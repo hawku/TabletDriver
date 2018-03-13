@@ -23,10 +23,10 @@ You can reopen the GUI by double clicking the system tray icon.
 #### Configured, but not properly tested:
   - Wacom CTH-470
   - Wacom CTH-670
-  - Wacom CTL-680
-  - Wacom CTH-680
   - Wacom CTL-671
   - Wacom CTL-672
+  - Wacom CTL-680
+  - Wacom CTH-680
   - Wacom CTH-490
   - Wacom PTH-451
 

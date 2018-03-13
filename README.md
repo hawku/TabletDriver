@@ -23,6 +23,8 @@ You can reopen the GUI by double clicking the system tray icon.
 #### Configured, but not properly tested:
   - Wacom CTH-470
   - Wacom CTH-670
+  - Wacom CTL-680
+  - Wacom CTH-680
   - Wacom CTL-671
   - Wacom CTL-672
   - Wacom CTH-490
@@ -32,10 +34,15 @@ You can reopen the GUI by double clicking the system tray icon.
 
 #### Install:
 
-1. Uninstall all other tablet drivers.
-2. Run "install_vmulti_driver.bat". It might need a restart if there is another vmulti driver installed.
-3. If you have Huion or Gaomon tablet, you need to run "install_huion_64.bat", which is located at the "driver_huion" directory.
-4. Start the TabletDriverGUI.exe
+1. You might need to install these libraries, but usually these are already installed:
+* https://aka.ms/vs/15/release/vc_redist.x86.exe
+* https://aka.ms/vs/15/release/vc_redist.x64.exe
+* https://www.microsoft.com/en-us/download/details.aspx?id=53587 (x64 and x86)
+
+2. Uninstall all other tablet drivers.
+3. Run "install_vmulti_driver.bat". It might need a restart if there is another vmulti driver installed.
+4. If you have Huion or Gaomon tablet, you need to run "install_huion_64.bat", which is located at the "driver_huion" directory.
+5. Start the TabletDriverGUI.exe
 
 
 #### Uninstall:
@@ -47,7 +54,8 @@ You can reopen the GUI by double clicking the system tray icon.
 #### Changelog:
 
 >**v0.0.12:**
->- Added multi-instance prevention. Old TabletDriverGUI.exe should pop up if you try to open another one.
+> - Added multi-instance prevention. Old TabletDriverGUI.exe should pop up if you try to open another one.
+> - New tablet configurations: CTL-680, CTH-680
 
 >**v0.0.11:**
 > - Fix for DPI scaling problems. Screen mapping were wrong when the monitor DPI scaling wasn't 100%
@@ -56,7 +64,7 @@ You can reopen the GUI by double clicking the system tray icon.
 
 
 >**v0.0.10:**
-> - Added configurations for Wacom tablets: CTH-470, CTH-670, PTH-451
+> - New tablet configurations: CTH-470, CTH-670, PTH-451
 > - Fix for the smoothing filter. The filter didn't turn on when the settings were applied.
 > - Fix for the Huion H640P clicking problem and also added better data validation for Huion 420,
 >   Gaomon S56K, XP Pen G430 and G640.

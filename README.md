@@ -32,7 +32,13 @@ You can reopen the GUI by double clicking the system tray icon.
 
 #
 
-#### Install:
+#### Download
+
+* http://hwk.fi/TabletDriver/TabletDriverV0.0.12.zip
+
+#
+
+#### Install
 
 1. You might need to install these libraries, but usually these are already installed:
 * https://aka.ms/vs/15/release/vc_redist.x86.exe
@@ -45,13 +51,13 @@ You can reopen the GUI by double clicking the system tray icon.
 5. Start the TabletDriverGUI.exe
 
 
-#### Uninstall:
+#### Uninstall
 1. Run "remove_vmulti_driver.bat"
 2. Run "remove_huion_64.bat", which is located at the "driver_huion" directory.
 
 #
 
-#### Changelog:
+#### Changelog
 
 >**v0.0.12:**
 > - Added multi-instance prevention. Old TabletDriverGUI.exe should pop up if you try to open another one.

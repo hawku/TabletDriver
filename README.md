@@ -1,7 +1,11 @@
 # TabletDriver
 
 Currently the driver only works when the TabletDriverGUI is running.
-The GUI minimizes to system tray / notification area. You can reopen the GUI by double clicking the system tray icon.
+
+The GUI minimizes to system tray / notification area.
+
+You can reopen the GUI by double clicking the system tray icon.
+
 
 #### Supported tablets:
   - Wacom CTL-470

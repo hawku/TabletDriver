@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -81,6 +82,13 @@ namespace TabletDriverGUI
         //
         public MainWindow()
         {
+            if (Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length > 1)
+            {
+                MessageBox.Show("Another instance of the TabletDriver application is already running. " +
+                    "You can double click on the TabletDriver icon in your system tray to display it again.", "Another instance already running", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Application.Current.Shutdown();
+            }
+
             //
             isLoadingSettings = true;
 

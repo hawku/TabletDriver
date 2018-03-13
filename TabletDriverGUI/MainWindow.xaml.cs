@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -7,8 +8,8 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
@@ -20,7 +21,8 @@ namespace TabletDriverGUI
     public partial class MainWindow : Window
     {
 
-        public string Version = "0.0.11";
+        // Version
+        public string Version = "0.0.12";
 
         // Console stuff
         private List<string> commandHistory;
@@ -81,18 +83,12 @@ namespace TabletDriverGUI
         //
         public MainWindow()
         {
+
             //
             isLoadingSettings = true;
 
             // Initialize WPF
             InitializeComponent();
-
-
-            // Limit frame rate
-            Timeline.DesiredFrameRateProperty.OverrideMetadata(typeof(Timeline),
-                new PropertyMetadata { DefaultValue = 10 }
-            );
-
 
             // Version text
             textVersion.Text = this.Version;
@@ -141,18 +137,24 @@ namespace TabletDriverGUI
 
 
             // Restart timer
-            timerRestart = new DispatcherTimer();
-            timerRestart.Interval = new TimeSpan(0, 0, 5);
+            timerRestart = new DispatcherTimer
+            {
+                Interval = new TimeSpan(0, 0, 5)
+            };
             timerRestart.Tick += TimerRestart_Tick;
 
             // Statusbar timer
-            timerStatusbar = new DispatcherTimer();
-            timerStatusbar.Interval = new TimeSpan(0, 0, 5);
+            timerStatusbar = new DispatcherTimer
+            {
+                Interval = new TimeSpan(0, 0, 5)
+            };
             timerStatusbar.Tick += TimerStatusbar_Tick;
 
             // Timer console update
-            timerConsoleUpdate = new DispatcherTimer();
-            timerConsoleUpdate.Interval = new TimeSpan(0, 0, 0, 0, 200);
+            timerConsoleUpdate = new DispatcherTimer
+            {
+                Interval = new TimeSpan(0, 0, 0, 0, 200)
+            };
             timerConsoleUpdate.Tick += TimerConsoleUpdate_Tick;
 
 
@@ -287,7 +289,7 @@ namespace TabletDriverGUI
         void NotifyExit(object sender, EventArgs e)
         {
             IsRealExit = true;
-            System.Windows.Application.Current.Shutdown();
+            Application.Current.Shutdown();
         }
 
         #endregion
@@ -338,7 +340,8 @@ namespace TabletDriverGUI
                 textTabletAreaHeight.IsEnabled = false;
                 textTabletAreaX.IsEnabled = false;
                 textTabletAreaY.IsEnabled = false;
-            } else
+            }
+            else
             {
                 textTabletAreaWidth.IsEnabled = true;
                 textTabletAreaHeight.IsEnabled = true;
@@ -689,11 +692,13 @@ namespace TabletDriverGUI
             //
             // Screen aspect ratio text
             //
-            textScreenAspectRatio = new TextBlock();
-            textScreenAspectRatio.Text = "";
-            textScreenAspectRatio.Foreground = Brushes.Black;
-            textScreenAspectRatio.FontSize = 11;
-            textScreenAspectRatio.FontWeight = FontWeights.Bold;
+            textScreenAspectRatio = new TextBlock
+            {
+                Text = "",
+                Foreground = Brushes.Black,
+                FontSize = 11,
+                FontWeight = FontWeights.Bold
+            };
             canvasScreenMap.Children.Add(textScreenAspectRatio);
 
 
@@ -752,11 +757,13 @@ namespace TabletDriverGUI
             //
             // Tablet area aspect ratio text
             //
-            textTabletAspectRatio = new TextBlock();
-            textTabletAspectRatio.Text = "";
-            textTabletAspectRatio.Foreground = Brushes.Black;
-            textTabletAspectRatio.FontSize = 11;
-            textTabletAspectRatio.FontWeight = FontWeights.Bold;
+            textTabletAspectRatio = new TextBlock
+            {
+                Text = "",
+                Foreground = Brushes.Black,
+                FontSize = 11,
+                FontWeight = FontWeights.Bold
+            };
             canvasTabletArea.Children.Add(textTabletAspectRatio);
 
 
@@ -1015,7 +1022,7 @@ namespace TabletDriverGUI
             }
         }
 
-        
+
         // TextBox setting changed
         private void TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -1636,5 +1643,37 @@ namespace TabletDriverGUI
 
             wacom.Close();
         }
+
+        //
+        // Add WndProc hook
+        //
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
+            source.AddHook(WndProc);
+        }
+
+        //
+        // Process Windows messages
+        //
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+
+            // Show TabletDriverGUI
+            if (msg == NativeMethods.WM_SHOWTABLETDRIVERGUI)
+            {
+                if (WindowState == WindowState.Minimized)
+                {
+                    NotifyShowWindow(null, null);               
+                } else
+                {
+                    Activate();
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+
     }
 }

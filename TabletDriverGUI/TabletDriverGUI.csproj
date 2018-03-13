@@ -78,6 +78,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="TabletDriver.cs" />
+    <Compile Include="NativeMethods.cs" />
     <Compile Include="VersionHelper.cs" />
     <Compile Include="WacomArea.xaml.cs">
       <DependentUpon>WacomArea.xaml</DependentUpon>

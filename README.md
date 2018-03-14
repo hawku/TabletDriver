@@ -74,6 +74,9 @@ If you want to compile the code and don't want to install anything from the Tabl
 
 #### Changelog
 
+>**v0.0.14:**
+> - Fix for the console "Copy all" function.
+
 >**v0.0.13:**
 > - Added a direction indicator to the tablet area and moved the aspect ratio text to the middle of the area.
 > - TabletDriverService process priority class is now set to "High" (suggestion by /u/Devocub)

@@ -36,7 +36,7 @@ You can reopen the GUI by double clicking the system tray icon.
 
 #### Download
 
-* http://hwk.fi/TabletDriver/TabletDriverV0.0.13.zip
+* http://hwk.fi/TabletDriver/TabletDriverV0.0.14.zip
 
 #
 

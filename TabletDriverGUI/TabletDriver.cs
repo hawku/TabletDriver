@@ -187,12 +187,18 @@ namespace TabletDriverGUI
                 processService.Exited += ProcessService_Exited;
                 processService.Disposed += ProcessService_Disposed;
 
-
+                // Start process
                 if (processService.Start())
                 {
-                    //consoleHistory = new List<string>();
                     processService.BeginOutputReadLine();
 
+                    // Set process priority
+                    try
+                    {
+                        processService.PriorityClass = ProcessPriorityClass.High;
+                    } catch(Exception)
+                    {
+                    }
 
                     running = true;
                     timerWatchdog.Start();

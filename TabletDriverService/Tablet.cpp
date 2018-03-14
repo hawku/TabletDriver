@@ -143,6 +143,21 @@ bool Tablet::Init() {
 
 
 //
+// Check if the tablet has enough configuration parameters set
+//
+bool Tablet::IsConfigured() {
+	if(
+		settings.maxX > 1 &&
+		settings.maxY > 1 &&
+		settings.maxPressure > 1 &&
+		settings.width > 1 &&
+		settings.height > 1
+	) return true;
+	return false;
+}
+
+
+//
 // Calculate filter latency
 //
 double Tablet::GetFilterLatency(double filterWeight, double interval, double threshold) {

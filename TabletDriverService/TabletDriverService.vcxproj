@@ -136,6 +136,9 @@ xcopy /C /Y "$(TargetPath)" "$(SolutionDir)TabletDriverGUI\bin\Release\bin\"
 xcopy /C /Y "$(ProjectDir)config\tablet.cfg" "$(SolutionDir)TabletDriverGUI\bin\Release\config\"
 xcopy /C /Y "$(ProjectDir)config\tablet.cfg" "$(SolutionDir)TabletDriverGUI\bin\Debug\config\"
 
+xcopy /C /Y "$(ProjectDir)config\wacom.cfg" "$(SolutionDir)TabletDriverGUI\bin\Release\config\"
+xcopy /C /Y "$(ProjectDir)config\wacom.cfg" "$(SolutionDir)TabletDriverGUI\bin\Debug\config\"
+
 xcopy /C /Y "$(ProjectDir)config\user.cfg" "$(SolutionDir)TabletDriverGUI\bin\Release\config\"
 xcopy /C /Y "$(ProjectDir)config\user.cfg" "$(SolutionDir)TabletDriverGUI\bin\Debug\config\"
 
@@ -197,6 +200,7 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <None Include="config\init.cfg" />
     <None Include="config\tablet.cfg" />
     <None Include="config\user.cfg" />
+    <None Include="config\wacom.cfg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

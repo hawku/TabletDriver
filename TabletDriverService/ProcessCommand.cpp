@@ -77,6 +77,9 @@ bool ProcessCommand(CommandLine *cmd) {
 	// Check tablet
 	else if(cmd->is("CheckTablet")) {
 		if(!CheckTablet()) {
+			LOG_ERROR("Tablet not found!\n");
+			LOG_ERROR("Check the list of supported tablets from the GitHub page.\n");
+			LOG_ERROR("http://github.com/hawku/TabletDriver\n");
 			CleanupAndExit(1);
 		}
 	}
@@ -539,7 +542,7 @@ bool ReadCommandFile(string filename) {
 		//
 		// Do not redefine tablet if one is already open
 		//
-		if(cmd->is("Tablet") && tablet != NULL) {
+		if(cmd->is("Tablet") && tablet != NULL && tablet->IsConfigured()) {
 			LOG_INFO(">> %s\n", cmd->line.c_str());
 			LOG_INFO("Tablet is already defined!\n");
 			delete cmd;
@@ -629,7 +632,6 @@ void LogTabletArea(string text) {
 
 bool CheckTablet() {
 	if(tablet == NULL) {
-		LOG_ERROR("Tablet not found!\n");
 		return false;
 	}
 	return true;

@@ -109,6 +109,7 @@ public:
 	~Tablet();
 
 	bool Init();
+	bool IsConfigured();
 
 	double GetFilterLatency(double filterWeight, double interval, double threshold);
 	double GetFilterLatency(double filterWeight);

@@ -88,5 +88,8 @@
     <None Include="config\tablet.cfg">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="config\wacom.cfg">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

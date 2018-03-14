@@ -83,67 +83,64 @@ bool USBDevice::OpenDevice(string usbDeviceGUIDString, int stringId, string stri
 									  OPEN_EXISTING,
 									  FILE_FLAG_OVERLAPPED,
 									  NULL);
-			if(!deviceHandle) {
-				continue;
-			}
-			//LOG_DEBUG("Handle: %lu\n", (ULONG)deviceHandle);
 
+			if(deviceHandle != INVALID_HANDLE_VALUE) {
+				//LOG_DEBUG("Handle: %lu\n", (ULONG)deviceHandle);
 
-			// Init WinUsb
-			WinUsb_Initialize(deviceHandle, &usbHandle);
-			if(!usbHandle) {
-				LOG_ERROR("ERROR! Unable to start WinUSB for the device!\n");
-				if(deviceHandle != INVALID_HANDLE_VALUE)
-					CloseHandle(deviceHandle);
-				return false;
-			}
-			//LOG_DEBUG("USB Handle: %d\n", (ULONG)usbHandle);
+				// Init WinUsb
+				WinUsb_Initialize(deviceHandle, &usbHandle);
+				if(!usbHandle) {
+					LOG_ERROR("ERROR! Unable to start WinUSB for the device!\n");
+					if(deviceHandle != INVALID_HANDLE_VALUE)
+						CloseHandle(deviceHandle);
+					return false;
+				}
+				//LOG_DEBUG("USB Handle: %d\n", (ULONG)usbHandle);
 
-			// Query interface settings
-			ZeroMemory(&usbInterfaceDescriptor, sizeof(USB_INTERFACE_DESCRIPTOR));
-			if(WinUsb_QueryInterfaceSettings(usbHandle, 0, &usbInterfaceDescriptor)) {
+				// Query interface settings
+				ZeroMemory(&usbInterfaceDescriptor, sizeof(USB_INTERFACE_DESCRIPTOR));
+				if(WinUsb_QueryInterfaceSettings(usbHandle, 0, &usbInterfaceDescriptor)) {
 
-				WINUSB_SETUP_PACKET setupPacket;
-				ULONG bytesRead;
-				BYTE buffer[64];
-				string str = "";
+					WINUSB_SETUP_PACKET setupPacket;
+					ULONG bytesRead;
+					BYTE buffer[64];
+					string str = "";
 
-				setupPacket.RequestType = 0x80;
-				setupPacket.Request = 0x06;
-				setupPacket.Value = (0x03 << 8) | stringId;
-				setupPacket.Index = 0x0409;
-				setupPacket.Length = 64;
+					setupPacket.RequestType = 0x80;
+					setupPacket.Request = 0x06;
+					setupPacket.Value = (0x03 << 8) | stringId;
+					setupPacket.Index = 0x0409;
+					setupPacket.Length = 64;
 
-				// String request match
-				if(WinUsb_ControlTransfer(usbHandle, setupPacket, buffer, 64, &bytesRead, NULL)) {
+					// String request match
+					if(WinUsb_ControlTransfer(usbHandle, setupPacket, buffer, 64, &bytesRead, NULL)) {
 
-					if(bytesRead >= stringMatch.length() * 2) {
+						if(bytesRead >= stringMatch.length() * 2) {
 
-						// Loop through chars
-						for(int i = 2; i < (int)bytesRead; i += 2) {
-							str.push_back(buffer[i]);
-						}
+							// Loop through chars
+							for(int i = 2; i < (int)bytesRead; i += 2) {
+								str.push_back(buffer[i]);
+							}
 
-						LOG_DEBUG("USB String (%d): %s\n", stringId, str.c_str());
+							LOG_DEBUG("USB String (%d): %s\n", stringId, str.c_str());
 
-						// Match!
-						if(str.compare(0, stringMatch.size(), stringMatch) == 0) {
-							_deviceHandle = deviceHandle;
-							_usbHandle = usbHandle;
+							// Match!
+							if(str.compare(0, stringMatch.size(), stringMatch) == 0) {
+								_deviceHandle = deviceHandle;
+								_usbHandle = usbHandle;
+							}
 						}
 					}
+				} else {
+					LOG_ERROR("ERROR! Can't query interface settings!\n");
 				}
-			} else {
-				LOG_ERROR("ERROR! Can't query interface settings!\n");
+
+				if(_usbHandle == NULL && usbHandle && usbHandle != INVALID_HANDLE_VALUE)
+					WinUsb_Free(usbHandle);
+
+				if(_deviceHandle == NULL && deviceHandle && deviceHandle != INVALID_HANDLE_VALUE)
+					CloseHandle(deviceHandle);
 			}
-
-			if(_usbHandle == NULL && usbHandle && usbHandle != INVALID_HANDLE_VALUE)
-				WinUsb_Free(usbHandle);
-
-			if(_deviceHandle == NULL && deviceHandle && deviceHandle != INVALID_HANDLE_VALUE)
-				CloseHandle(deviceHandle);
-
-
 		}
 
 		// Free memory

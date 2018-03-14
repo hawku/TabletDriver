@@ -70,32 +70,35 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 									  0,
 									  NULL);
 
-			// HID Attributes
-			HidD_GetAttributes(deviceHandle, &hidAttributes);
-			// HID Preparsed data
-			HidD_GetPreparsedData(deviceHandle, &hidPreparsedData);
-			// Capabilities
-			HidP_GetCaps(hidPreparsedData, &hidCapabilities);
+			if (deviceHandle != INVALID_HANDLE_VALUE) {
+				// HID Attributes
+				HidD_GetAttributes(deviceHandle, &hidAttributes);
+				// HID Preparsed data
+				HidD_GetPreparsedData(deviceHandle, &hidPreparsedData);
+				// Capabilities
+				HidP_GetCaps(hidPreparsedData, &hidCapabilities);
 
-			if(false && hidAttributes.VendorID == vendorId)
-				LOG_DEBUG("VID: %04X PID: %04X UP: %04X U: %04X\n",
-						  hidAttributes.VendorID, hidAttributes.ProductID,
-						  hidCapabilities.UsagePage, hidCapabilities.Usage);
+				if (false && hidAttributes.VendorID == vendorId)
+					LOG_DEBUG("VID: %04X PID: %04X UP: %04X U: %04X\n",
+						hidAttributes.VendorID, hidAttributes.ProductID,
+						hidCapabilities.UsagePage, hidCapabilities.Usage);
 
-			   // Set result file if this is the correct device
-			if(!resultHandle &&
-			   hidAttributes.VendorID == vendorId &&
-			   hidAttributes.ProductID == productId &&
-			   hidCapabilities.UsagePage == usagePage &&
-			   hidCapabilities.Usage == usage
-			   ) {
-				resultHandle = deviceHandle;
+				// Set result file if this is the correct device
+				if (!resultHandle &&
+					hidAttributes.VendorID == vendorId &&
+					hidAttributes.ProductID == productId &&
+					hidCapabilities.UsagePage == usagePage &&
+					hidCapabilities.Usage == usage
+					) {
+					resultHandle = deviceHandle;
 
-				// Close device
-			} else {
-				CloseHandle(deviceHandle);
+					// Close device
+				}
+				else {
+					CloseHandle(deviceHandle);
+				}
+				HidD_FreePreparsedData(hidPreparsedData);
 			}
-			HidD_FreePreparsedData(hidPreparsedData);
 		}
 
 		// Free memory

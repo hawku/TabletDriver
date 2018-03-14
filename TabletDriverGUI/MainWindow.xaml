@@ -395,12 +395,12 @@
             <TextBlock Name="textConsole"  TextWrapping="NoWrap" Text=""
                      Background="Black"
                      Foreground="White"
-                     FontFamily="Courier New" FontSize="12"
-                     
+                     FontFamily="Courier New" FontSize="12"                   
                      >
               <TextBlock.ContextMenu>
                 <ContextMenu>
-                  <MenuItem Header="Copy all" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Header="_Copy all" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Header="Open GitHub page" Click="ConsoleMenuClick"></MenuItem>
                 </ContextMenu>
               </TextBlock.ContextMenu>
             </TextBlock>

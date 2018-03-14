@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -22,7 +23,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.0.12";
+        public string Version = "0.0.13";
 
         // Console stuff
         private List<string> commandHistory;
@@ -55,7 +56,7 @@ namespace TabletDriverGUI
         // Tablet area canvas elements
         private Polygon polygonTabletFullArea;
         private Polygon polygonTabletArea;
-        private Ellipse ellipseTabletAreaCenter;
+        private Polygon polygonTabletAreaArrow;
         private TextBlock textTabletAspectRatio;
 
         // Culture
@@ -83,6 +84,8 @@ namespace TabletDriverGUI
         //
         public MainWindow()
         {
+            // Set the current directory as TabletDriverGUI.exe's directory.
+            try { Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory); } catch (Exception) { }
 
             //
             isLoadingSettings = true;
@@ -190,7 +193,13 @@ namespace TabletDriverGUI
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             notifyIcon.Visible = false;
-            config.Write("Config.xml");
+            try
+            {
+                config.Write("Config.xml");
+            }
+            catch (Exception)
+            {
+            }
             Stop();
         }
 
@@ -696,7 +705,7 @@ namespace TabletDriverGUI
             {
                 Text = "",
                 Foreground = Brushes.Black,
-                FontSize = 11,
+                FontSize = 13,
                 FontWeight = FontWeights.Bold
             };
             canvasScreenMap.Children.Add(textScreenAspectRatio);
@@ -745,14 +754,22 @@ namespace TabletDriverGUI
             };
             canvasTabletArea.Children.Add(polygonTabletArea);
 
+
             //
-            // Tablet area center dot
+            // Tablet area arrow polygon
             //
-            ellipseTabletAreaCenter = new Ellipse
+            polygonTabletAreaArrow = new Polygon
             {
-                Fill = new SolidColorBrush(Color.FromRgb(100, 100, 100)),
+                Fill = new SolidColorBrush(Color.FromArgb(50, 20, 20, 20)),
+                Points = new PointCollection
+                {
+                    new Point(0,0),
+                    new Point(0,0),
+                    new Point(0,0)
+                },
             };
-            canvasTabletArea.Children.Add(ellipseTabletAreaCenter);
+            canvasTabletArea.Children.Add(polygonTabletAreaArrow);
+
 
             //
             // Tablet area aspect ratio text
@@ -761,7 +778,7 @@ namespace TabletDriverGUI
             {
                 Text = "",
                 Foreground = Brushes.Black,
-                FontSize = 11,
+                FontSize = 13,
                 FontWeight = FontWeights.Bold
             };
             canvasTabletArea.Children.Add(textTabletAspectRatio);
@@ -815,9 +832,17 @@ namespace TabletDriverGUI
             Canvas.SetTop(rectangleScreenMap, offsetY + config.ScreenArea.Y * scale);
 
             // Screen aspect ratio text
-            textScreenAspectRatio.Text = GetNumberString(config.ScreenArea.Width / config.ScreenArea.Height, "0.###");
-            Canvas.SetLeft(textScreenAspectRatio, offsetX + config.ScreenArea.X * scale + 3);
-            Canvas.SetTop(textScreenAspectRatio, offsetY + config.ScreenArea.Y * scale + 2);
+            textScreenAspectRatio.Text = GetNumberString(config.ScreenArea.Width / config.ScreenArea.Height, "0.###") + ":1";
+            Canvas.SetLeft(textScreenAspectRatio, offsetX +
+                (config.ScreenArea.X + config.ScreenArea.Width / 2.0) * scale -
+                textScreenAspectRatio.ActualWidth / 2.0
+            );
+            Canvas.SetTop(textScreenAspectRatio, offsetY +
+                (config.ScreenArea.Y + config.ScreenArea.Height / 2.0) * scale -
+                textScreenAspectRatio.ActualHeight / 2.0
+            );
+
+
 
 
 
@@ -901,22 +926,31 @@ namespace TabletDriverGUI
                 polygonTabletArea.Points[i] = p;
             }
 
+            //
+            // Tablet area arrow
+            //
+            polygonTabletAreaArrow.Points[0] = new Point(
+                offsetX + config.TabletArea.X * scale,
+                offsetY + config.TabletArea.Y * scale
+            );
 
-            //
-            // Tablet area center dot
-            //
-            ellipseTabletAreaCenter.Width = 6;
-            ellipseTabletAreaCenter.Height = 6;
-            Canvas.SetLeft(ellipseTabletAreaCenter, offsetX + config.TabletArea.X * scale - 3);
-            Canvas.SetTop(ellipseTabletAreaCenter, offsetY + config.TabletArea.Y * scale - 3);
+            polygonTabletAreaArrow.Points[1] = new Point(
+                offsetX + corners[2].X * scale + config.TabletArea.X * scale,
+                offsetY + corners[2].Y * scale + config.TabletArea.Y * scale
+            );
+
+            polygonTabletAreaArrow.Points[2] = new Point(
+                offsetX + corners[3].X * scale + config.TabletArea.X * scale,
+                offsetY + corners[3].Y * scale + config.TabletArea.Y * scale
+            );
 
 
             //
             // Tablet area aspect ratio text
             //
-            textTabletAspectRatio.Text = GetNumberString(config.TabletArea.Width / config.TabletArea.Height, "0.###");
-            Canvas.SetLeft(textTabletAspectRatio, offsetX + (config.TabletArea.X - config.TabletArea.Width / 2) * scale + 2);
-            Canvas.SetTop(textTabletAspectRatio, offsetY + (config.TabletArea.Y - config.TabletArea.Height / 2) * scale + 0);
+            textTabletAspectRatio.Text = GetNumberString(config.TabletArea.Width / config.TabletArea.Height, "0.###") + ":1";
+            Canvas.SetLeft(textTabletAspectRatio, offsetX + (config.TabletArea.X) * scale - textTabletAspectRatio.ActualWidth / 2.0);
+            Canvas.SetTop(textTabletAspectRatio, offsetY + (config.TabletArea.Y) * scale - textTabletAspectRatio.ActualHeight / 2.0);
 
 
         }
@@ -1174,9 +1208,20 @@ namespace TabletDriverGUI
         //
         private void SaveSettings(object sender, RoutedEventArgs e)
         {
-            config.Write("Config.xml");
-            SendSettingsToDriver();
-            SetStatus("Settings saved!");
+            try
+            {
+                config.Write("Config.xml");
+                SendSettingsToDriver();
+                SetStatus("Settings saved!");
+            }
+            catch (Exception)
+            {
+                string dir = Directory.GetCurrentDirectory();
+                MessageBox.Show("Error occured while saving the configuration.\n" +
+                    "Make sure that it is possible to create and edit files in the '" + dir + "' directory.\n",
+                    "ERROR!", MessageBoxButton.OK, MessageBoxImage.Error
+                );
+            }
         }
 
         //
@@ -1597,6 +1642,10 @@ namespace TabletDriverGUI
                 Clipboard.SetText(textConsole.Text);
                 SetStatus("Console output copied to clipboard");
             }
+            else if (menuItemHeader.ToLower().Contains("github"))
+            {
+                System.Diagnostics.Process.Start("https://github.com/hawku/TabletDriver");
+            }
 
         }
 
@@ -1665,8 +1714,9 @@ namespace TabletDriverGUI
             {
                 if (WindowState == WindowState.Minimized)
                 {
-                    NotifyShowWindow(null, null);               
-                } else
+                    NotifyShowWindow(null, null);
+                }
+                else
                 {
                     Activate();
                 }

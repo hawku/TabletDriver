@@ -399,7 +399,7 @@
                      >
               <TextBlock.ContextMenu>
                 <ContextMenu>
-                  <MenuItem Header="_Copy all" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Header="Copy all" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Header="Open GitHub page" Click="ConsoleMenuClick"></MenuItem>
                 </ContextMenu>
               </TextBlock.ContextMenu>

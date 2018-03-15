@@ -392,31 +392,36 @@
                         VerticalScrollBarVisibility="Auto"
                         HorizontalScrollBarVisibility="Auto">
 
+            <!-- Console output -->
             <TextBlock Name="textConsole"  TextWrapping="NoWrap" Text=""
                      Background="Black"
                      Foreground="White"
                      FontFamily="Courier New" FontSize="12"                   
                      >
+              
+              <!-- Menu -->
               <TextBlock.ContextMenu>
                 <ContextMenu>
-                  <MenuItem Header="Copy all" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Header="Open GitHub page" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuCopyAll" Header="Copy all" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuCopyDebug" Header="Copy [DEBUG] messages" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuCopyErrors" Header="Copy [ERROR] messages" Click="ConsoleMenuClick"></MenuItem>
+                  <Separator/>
+                  <MenuItem Name="menuStartDebug" Header="Start Debug Log" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuStopDebug" Header="Stop Debug Log" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuOpenDebug" Header="Open Latest Debug Log" Click="ConsoleMenuClick"></MenuItem>
+                  <Separator/>
+                  <MenuItem Name="menuOpenStartup" Header="Open Startup Log" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuOpenFolder" Header="Open TabletDriver Folder" Click="ConsoleMenuClick"></MenuItem>
+                  <Separator/>
+                  <MenuItem Name="menuOpenGithub" Header="Open GitHub page" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuOpenLatestURL" Header="Open Latest URL" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuReportProblem" Header="Report a problem" Click="ConsoleMenuClick"></MenuItem>
                 </ContextMenu>
               </TextBlock.ContextMenu>
             </TextBlock>
           </ScrollViewer>
 
-          <!--
-          <TextBox IsReadOnly="True" Name="textConsole2" Margin="5,5,5,30" TextWrapping="NoWrap" Text=""
-                  Background="Black" Foreground="White"
-                  FontFamily="Courier New" FontSize="12"
-                  TabIndex="1"
-                  Focusable="True"
-                  IsEnabled="True"
-                  VerticalScrollBarVisibility="Auto"
-                  HorizontalScrollBarVisibility="Auto"
-                  />
-          -->
+          <!-- Console input -->
           <TextBox Name="textConsoleInput" Margin="5,0,5,5" VerticalAlignment="Bottom"  Height="20" TextWrapping="Wrap" Text=""
                    FontFamily="Courier New" Background="White" Foreground="Black"
                    FontSize="12"

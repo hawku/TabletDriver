@@ -23,7 +23,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.0.13";
+        public string Version = "0.0.15";
 
         // Console stuff
         private List<string> commandHistory;
@@ -1292,8 +1292,13 @@ namespace TabletDriverGUI
         private void OnDriverStarted(object sender, EventArgs e)
         {
             SendSettingsToDriver();
-            driver.SendCommand("info");
-            driver.SendCommand("start");
+            driver.SendCommand("Info");
+            driver.SendCommand("Start");
+            driver.SendCommand("Log off");
+            driver.SendCommand("LogDirect false");
+            driver.SendCommand("echo");
+            driver.SendCommand("echo   Startup OK!");
+            driver.SendCommand("echo");
         }
         // Stopped
         private void OnDriverStopped(object sender, EventArgs e)
@@ -1629,25 +1634,169 @@ namespace TabletDriverGUI
         }
 
 
-        #endregion
+        //
+        // Search rows
+        //
+        private List<string> SearchRows(List<string> rows, string search, int rowsBefore, int rowsAfter)
+        {
+            List<string> buffer = new List<string>(rowsBefore);
+            List<string> output = new List<string>();
+            int rowCounter = 0;
+
+            foreach (string row in rows)
+            {
+                if (row.Contains(search))
+                {
+                    if (buffer.Count > 0)
+                    {
+                        foreach (string bufferLine in buffer)
+                        {
+                            output.Add(bufferLine);
+                        }
+                        buffer.Clear();
+                    }
+                    output.Add(row.Trim());
+                    rowCounter = rowsAfter;
+                }
+                else if (rowCounter > 0)
+                {
+                    output.Add(row.Trim());
+                    rowCounter--;
+                }
+                else
+                {
+                    buffer.Add(row);
+                    if (buffer.Count > rowsBefore)
+                    {
+                        buffer.RemoveAt(0);
+                    }
+                }
+            }
+            return output;
+        }
+
 
         //
         // Console output context menu
         //
         private void ConsoleMenuClick(object sender, RoutedEventArgs e)
         {
-            string menuItemHeader = ((MenuItem)sender).Header.ToString();
-            if (menuItemHeader.ToLower() == "copy all")
+
+
+            // Copy all
+            if (sender == menuCopyAll)
             {
                 Clipboard.SetText(textConsole.Text);
                 SetStatus("Console output copied to clipboard");
             }
-            else if (menuItemHeader.ToLower().Contains("github"))
+
+            // Copy debug messages
+            else if (sender == menuCopyDebug)
             {
-                System.Diagnostics.Process.Start("https://github.com/hawku/TabletDriver");
+                string clipboard = "";
+                List<string> rows;
+                driver.ConsoleLock();
+                rows = SearchRows(driver.ConsoleBuffer, "[DEBUG]", 0, 0);
+                driver.ConsoleUnlock();
+                foreach (string row in rows)
+                    clipboard += row + "\r\n";
+                Clipboard.SetText(clipboard);
+                SetStatus("Debug message copied to clipboard");
             }
 
+            // Copy error messages
+            else if (sender == menuCopyErrors)
+            {
+                string clipboard = "";
+                List<string> rows;
+                driver.ConsoleLock();
+                rows = SearchRows(driver.ConsoleBuffer, "[ERROR]", 1, 1);
+                driver.ConsoleUnlock();
+                foreach (string row in rows)
+                    clipboard += row + "\r\n";
+                Clipboard.SetText(clipboard);
+                SetStatus("Error message copied to clipboard");
+            }
+
+            // Start debug log
+            else if (sender == menuStartDebug)
+            {
+                string logFilename = "debug_" + DateTime.Now.ToString("yyyy-MM-dd_hh_mm_ss") + ".txt";
+                ConsoleSendCommand("log " + logFilename);
+                ConsoleSendCommand("debug 1");
+            }
+
+            // Stop debug log
+            else if (sender == menuStopDebug)
+            {
+                ConsoleSendCommand("log off");
+                ConsoleSendCommand("debug 0");
+            }
+
+            // Open latest debug log
+            else if (sender == menuOpenDebug)
+            {
+                try
+                {
+                    var files = Directory.GetFiles(".", "debug_*.txt").OrderBy(a => File.GetCreationTime(a));
+                    if (files.Count() > 0)
+                    {
+                        string file = files.Last().ToString();
+                        Process.Start(file);
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+
+            // Open startup log
+            else if (sender == menuOpenStartup)
+            {
+                try { Process.Start("startuplog.txt"); } catch (Exception) { }
+            }
+
+            // Open driver folder
+            else if (sender == menuOpenFolder)
+            {
+                try { Process.Start("."); } catch (Exception) { }
+            }
+
+            // Open GitHub page
+            else if (sender == menuOpenGithub)
+            {
+                try { Process.Start("https://github.com/hawku/TabletDriver"); } catch (Exception) { }
+            }
+
+            // Open Latest URL
+            else if (sender == menuOpenLatestURL)
+            {
+                Regex regex = new Regex("(http[s]?://.+?)($|\\s)", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+                MatchCollection matches = regex.Matches(textConsole.Text);
+                if (matches.Count > 0)
+                {
+                    string url = matches[matches.Count - 1].Groups[0].ToString().Trim();
+                    try { Process.Start(url); } catch (Exception) { }
+                }
+            }
+
+            // Report a problem
+            else if (sender == menuReportProblem)
+            {
+                try { Process.Start("https://github.com/hawku/TabletDriver/wiki/FAQ"); } catch (Exception) { }
+            }
+
+
         }
+
+
+
+        #endregion
+
+
+
+        #region Wacom
 
         //
         // Wacom Area
@@ -1693,6 +1842,12 @@ namespace TabletDriverGUI
             wacom.Close();
         }
 
+        #endregion
+
+
+
+        #region WndProc
+
         //
         // Add WndProc hook
         //
@@ -1724,6 +1879,8 @@ namespace TabletDriverGUI
 
             return IntPtr.Zero;
         }
+
+        #endregion
 
     }
 }

@@ -307,6 +307,7 @@ int main(int argc, char**argv) {
 			// Start command
 			//
 			if(cmd->is("start")) {
+				LOG_INFO(">> %s\n", cmd->line.c_str());
 
 				if(running) {
 					LOG_INFO("Driver is already started!\n");
@@ -355,6 +356,18 @@ int main(int argc, char**argv) {
 
 				LOG_INFO("TabletDriver started!\n");
 				LOG_INFO("Tablet: %s\n", tablet->name.c_str());
+
+
+			//
+			// Echo
+			//
+			} else if(cmd->is("echo")) {
+				if(cmd->valueCount > 0) {
+					LOG_INFO("%s\n", cmd->line.c_str() + 5);
+				} else {
+					LOG_INFO("\n");
+				}
+				
 
 			//
 			// Process all other commands

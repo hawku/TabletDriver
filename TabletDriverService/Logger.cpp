@@ -230,6 +230,7 @@ bool Logger::OpenLogFile(string filename) {
 	if(!logFile) {
 		return false;
 	}
+	logFilename = filename;
 	return true;
 }
 

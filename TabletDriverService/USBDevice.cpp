@@ -18,7 +18,7 @@ USBDevice::~USBDevice() {
 }
 
 
-bool USBDevice::OpenDevice(string usbDeviceGUIDString, int stringId, string stringMatch) {
+bool USBDevice::OpenDevice(string usbDeviceGUIDString, int stringId, string stringSearch) {
 	GUID usbDeviceGUID;
 
 	HDEVINFO                         deviceInfo;
@@ -112,20 +112,20 @@ bool USBDevice::OpenDevice(string usbDeviceGUIDString, int stringId, string stri
 					setupPacket.Index = 0x0409;
 					setupPacket.Length = 64;
 
-					// String request match
+					// String request
 					if(WinUsb_ControlTransfer(usbHandle, setupPacket, buffer, 64, &bytesRead, NULL)) {
+						
+						// Create string from bytes
+						for(int i = 2; i < (int)bytesRead; i += 2) {
+							str.push_back(buffer[i]);
+						}
+						LOG_DEBUG("USB String (%d): %s\n", stringId, str.c_str());
 
-						if(bytesRead >= stringMatch.length() * 2) {
-
-							// Loop through chars
-							for(int i = 2; i < (int)bytesRead; i += 2) {
-								str.push_back(buffer[i]);
-							}
-
-							LOG_DEBUG("USB String (%d): %s\n", stringId, str.c_str());
+						// Device string longer than the search string 
+						if(bytesRead >= stringSearch.length() * 2) {
 
 							// Match!
-							if(str.compare(0, stringMatch.size(), stringMatch) == 0) {
+							if(str.compare(0, stringSearch.size(), stringSearch) == 0) {
 								_deviceHandle = deviceHandle;
 								_usbHandle = usbHandle;
 							}

@@ -25,7 +25,7 @@ bool ProcessCommand(CommandLine *cmd) {
 			if(tablet == NULL) {
 				tablet = new Tablet(guid, stringId, stringMatch);
 				if(tablet->isOpen) {
-					LOG_INFO("Tablet open!\n");
+					LOG_INFO("Tablet found!\n");
 				} else {
 					LOG_ERROR("Can't open USB tablet '%s' %d '%s'\n", guid.c_str(), stringId, stringMatch.c_str());
 					delete tablet;
@@ -43,7 +43,7 @@ bool ProcessCommand(CommandLine *cmd) {
 			if(tablet == NULL) {
 				tablet = new Tablet(vendorID, productID, usagePage, usage);
 				if(tablet->isOpen) {
-					LOG_INFO("Tablet open!\n");
+					LOG_INFO("Tablet found!\n");
 				} else {
 					LOG_ERROR("Can't open HID tablet 0x%04X 0x%04X 0x%04X 0x%04X\n", vendorID, productID, usagePage, usage);
 					delete tablet;
@@ -84,6 +84,18 @@ bool ProcessCommand(CommandLine *cmd) {
 		}
 	}
 
+	// HID List
+	else if(cmd->is("HIDList")) {
+		HANDLE hidHandle = 0;
+		HIDDevice *hid = new HIDDevice();
+		hid->debugEnabled = true;
+		hid->OpenDevice(&hidHandle, 1, 1, 1, 1);
+		if(hidHandle > 0) {
+			CloseHandle(hidHandle);
+		}
+		delete hid;
+	}
+
 
 	// HID Device 2
 	else if(cmd->is("HID2")) {
@@ -96,7 +108,7 @@ bool ProcessCommand(CommandLine *cmd) {
 			if(tablet->hidDevice2 == NULL) {
 				tablet->hidDevice2 = new HIDDevice(vendorID, productID, usagePage, usage);
 				if(tablet->hidDevice2->isOpen) {
-					LOG_INFO("HID Device open!\n");
+					LOG_INFO("HID Device found!\n");
 				} else {
 					LOG_ERROR("Can't open HID device 0x%04X 0x%04X 0x%04X 0x%04X\n", vendorID, productID, usagePage, usage);
 					delete tablet->hidDevice2;
@@ -423,11 +435,11 @@ bool ProcessCommand(CommandLine *cmd) {
 
 		// Set weight
 		tablet->filter.weight = tablet->GetFilterWeight(latency);
-		
+
 		// Print output
 		if(tablet->filter.weight < 1.0) {
 			tablet->filter.isEnabled = true;
-			LOG_INFO("Tablet filter = %0.2f ms to reach %0.0f%% (weight = %f)\n", latency, tablet->filter.threshold*100, tablet->filter.weight);
+			LOG_INFO("Tablet filter = %0.2f ms to reach %0.0f%% (weight = %f)\n", latency, tablet->filter.threshold * 100, tablet->filter.weight);
 		} else {
 			tablet->filter.isEnabled = false;
 			LOG_INFO("Tablet filter = off\n");
@@ -448,9 +460,9 @@ bool ProcessCommand(CommandLine *cmd) {
 		string logPath = cmd->GetString(0, "log.txt");
 		if(!cmd->GetBoolean(0, true)) {
 			logger.CloseLogFile();
-			LOG_INFO("Logging stopped!\n");
+			LOG_INFO("Log file '%s' closed.\n", logger.logFilename.c_str());
 		} else if(logger.OpenLogFile(logPath)) {
-			LOG_INFO("Log file '%s' opened!\n", logPath.c_str());
+			LOG_INFO("Log file '%s' opened.\n", logPath.c_str());
 		} else {
 			LOG_ERROR("Cant open log file!\n");
 		}
@@ -460,14 +472,15 @@ bool ProcessCommand(CommandLine *cmd) {
 	// Wait
 	else if(cmd->is("Wait")) {
 		int waitTime = cmd->GetInt(0, 0);
-		LOG_INFO("Waiting %d milliseconds...\n", waitTime);
 		Sleep(waitTime);
-		LOG_INFO("Done!\n", waitTime);
 	}
 
 	// Log
 	else if(cmd->is("LogDirect")) {
+		logger.ProcessMessages();
 		logger.directPrint = cmd->GetBoolean(0, logger.directPrint);
+		logger.ProcessMessages();
+		
 		LOG_INFO("Log direct print = %s\n", logger.directPrint ? "True" : "False");
 	}
 

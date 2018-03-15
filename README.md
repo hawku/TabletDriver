@@ -6,6 +6,13 @@ The GUI minimizes to system tray / notification area.
 
 You can reopen the GUI by double clicking the system tray icon.
 
+&nbsp;
+
+If you have problems with the driver, please read the FAQ:
+
+**https://github.com/hawku/TabletDriver/wiki/FAQ**
+
+#
 
 #### Supported tablets:
   - Wacom CTL-470

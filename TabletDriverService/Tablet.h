@@ -97,6 +97,7 @@ public:
 	string name = "Unknown";
 	bool isOpen;
 	bool debugEnabled;
+	int skipPackets;
 
 
 	// Tablet initialize buffers

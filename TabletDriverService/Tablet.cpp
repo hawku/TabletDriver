@@ -48,6 +48,11 @@ Tablet::Tablet() {
 	isOpen = false;
 	debugEnabled = false;
 
+	//
+	// Skip first packets, some of those might be invalid.
+	//
+	skipPackets = 5;
+
 	// Initial settings
 	settings.reportId = 0;
 	settings.reportLength = 8;
@@ -258,6 +263,12 @@ int Tablet::ReadPosition() {
 		return -1;
 	}
 
+	// Skip packets
+	if(skipPackets > 0) {
+		skipPackets--;
+		return Tablet::PacketInvalid;
+	}
+
 	// Validate packet id
 	if(settings.reportId > 0 && buffer[0] != settings.reportId) {
 		return Tablet::PacketInvalid;
@@ -273,11 +284,6 @@ int Tablet::ReadPosition() {
 		reportData.pressure = (buffer[6] << 3) | ((buffer[7] & 0xC0) >> 5) | (buffer[1] & 1);
 		reportData.reportId = buffer[0];
 		reportData.buttons = buffer[1];
-		/*
-		if(debugEnabled) {
-			LOG_DEBUG("%d, %d, %d, %d\n", reportData.buttons, reportData.x, reportData.y, reportData.pressure);
-		}
-		*/
 		//distance = buffer[9] >> 2;
 
 	//

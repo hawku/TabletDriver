@@ -5,7 +5,7 @@
 // Constructor
 //
 Logger::Logger() {
-	verbosity = 8;
+	verbosity = LogLevelDebug;
 	newMessage = false;
 	directPrint = false;
 }

@@ -522,6 +522,12 @@ bool ProcessCommand(CommandLine *cmd) {
 		LogInformation();
 	}
 
+	// Info
+	else if(cmd->is("Status")) {
+		if(!CheckTablet()) return true;
+		LogStatus();
+	}
+
 
 	// Info
 	else if(cmd->is("Include")) {
@@ -653,6 +659,31 @@ void LogInformation() {
 	LOG_INFO("\n");
 }
 
+//
+// Log Status
+//
+void LogStatus() {
+	LOG_STATUS("TABLET %s\n", tablet->name.c_str());
+	if(tablet->hidDevice != NULL) {
+		LOG_STATUS("HID %04X %04X %04X %04X\n", 
+			tablet->hidDevice->vendorId,
+			tablet->hidDevice->productId,
+			tablet->hidDevice->usagePage,
+			tablet->hidDevice->usage
+		);
+	}
+	else if(tablet->usbDevice != NULL) {
+		LOG_STATUS("USB %d %s\n",
+			tablet->usbDevice->stringId,
+			tablet->usbDevice->stringMatch
+		);
+	}
+	LOG_STATUS("WIDTH %0.5f\n", tablet->settings.width);
+	LOG_STATUS("HEIGHT %0.5f\n", tablet->settings.height);
+	LOG_STATUS("MAX_X %d\n", tablet->settings.maxX);
+	LOG_STATUS("MAX_Y %d\n", tablet->settings.maxY);
+	LOG_STATUS("MAX_PRESSURE %d\n", tablet->settings.maxPressure);
+}
 
 //
 // Log tablet area

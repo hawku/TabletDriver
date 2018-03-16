@@ -346,7 +346,7 @@ int main(int argc, char**argv) {
 				tabletThread = new thread(RunTabletThread);
 
 				LOG_INFO("TabletDriver started!\n");
-				LOG_INFO("Tablet: %s\n", tablet->name.c_str());
+				LogStatus();
 
 
 			//

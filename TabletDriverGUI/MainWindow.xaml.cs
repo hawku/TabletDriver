@@ -192,8 +192,8 @@ namespace TabletDriverGUI
             comboBoxFilterRate.SelectedIndex = 2;
 
 
-                // Events
-                Closing += MainWindow_Closing;
+            // Events
+            Closing += MainWindow_Closing;
             Loaded += MainWindow_Loaded;
             SizeChanged += MainWindow_SizeChanged;
 
@@ -1033,7 +1033,7 @@ namespace TabletDriverGUI
         }
 
         // Canvas mouse move
-        private void Canvas_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
             Point position;
             double dx, dy;
@@ -1273,7 +1273,7 @@ namespace TabletDriverGUI
         //
         private void SetStatus(string text)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 textStatus.Text = text;
             });
@@ -1286,7 +1286,7 @@ namespace TabletDriverGUI
         //
         private void TimerStatusbar_Tick(object sender, EventArgs e)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 textStatus.Text = "";
             });
@@ -1307,9 +1307,9 @@ namespace TabletDriverGUI
         private void OnDriverMessageReceived(object sender, TabletDriver.DriverEventArgs e)
         {
             //ConsoleAddText(e.Message);
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                ParseDriverMessage(e.Message);
+                ParseDriverStatus(e.Message);
             });
         }
         // Error
@@ -1339,8 +1339,8 @@ namespace TabletDriverGUI
             SendSettingsToDriver();
             driver.SendCommand("Info");
             driver.SendCommand("Start");
-            driver.SendCommand("Log off");
-            driver.SendCommand("LogDirect false");
+            driver.SendCommand("Log Off");
+            driver.SendCommand("LogDirect False");
             driver.SendCommand("Echo");
             driver.SendCommand("Echo Driver started!");
         }
@@ -1353,7 +1353,7 @@ namespace TabletDriverGUI
                 driver.ConsoleAddText("Driver stopped. Restarting!");
 
                 // Run in the main application thread
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                Application.Current.Dispatcher.Invoke(() =>
                 {
                     Title = "TabletDriverGUI";
                     notifyIcon.Text = "";
@@ -1376,62 +1376,59 @@ namespace TabletDriverGUI
 
 
         //
-        // Parse driver message
+        // Parse driver status messages
         //
-        private void ParseDriverMessage(string line)
+        private void ParseDriverStatus(string line)
         {
+            // Status line?
+            if (!line.Contains("[STATUS]")) return;
+
+            // Parse status variable and value
+            Match match = Regex.Match(line, "^.+\\[STATUS\\] ([^ ]+) (.*?)$");
+            if (!match.Success) return;
+
+            string variableName = match.Groups[1].ToString().ToLower();
+            string stringValue = match.Groups[2].ToString();
 
             //
             // Tablet Name
             //
-            Match match;
-            Regex regexTabletName = new Regex("^.*?\\[INFO\\] Tablet: (.*?)$");
-
-            match = Regex.Match(line, "^.*?\\[INFO\\] Tablet: (.*?)$");
-            if (match.Success)
+            if (variableName == "tablet")
             {
-                string tabletName = match.Groups[1].ToString();
-                Title = "TabletDriverGUI - " + tabletName;
-                notifyIcon.Text = tabletName;
-                SetStatus("Connected to " + tabletName);
+                Title = "TabletDriverGUI - " + stringValue;
+                notifyIcon.Text = Title;
+                SetStatus("Connected to " + stringValue);
             }
-            double value;
 
             //
             // Tablet width
             //
-            match = Regex.Match(line, "^.*?\\[INFO\\] Tablet width = ([0-9\\.]+) mm");
-            if (match.Success)
+            if (variableName == "width")
             {
-                if (ParseNumber(match.Groups[1].ToString(), out value))
+                if (ParseNumber(stringValue, out double value))
                 {
                     config.TabletFullArea.Width = value;
                     config.TabletFullArea.X = value / 2.0;
                     LoadSettingsFromConfiguration();
                     UpdateSettingsToConfiguration();
                     if (isFirstStart)
-                    {
                         SendSettingsToDriver();
-                    }
                 }
             }
 
             //
             // Tablet height
             //
-            match = Regex.Match(line, "^.*?\\[INFO\\] Tablet height = ([0-9\\.]+) mm");
-            if (match.Success)
+            if (variableName == "height")
             {
-                if (ParseNumber(match.Groups[1].ToString(), out value))
+                if (ParseNumber(stringValue, out double value))
                 {
                     config.TabletFullArea.Height = value;
                     config.TabletFullArea.Y = value / 2.0;
                     LoadSettingsFromConfiguration();
                     UpdateSettingsToConfiguration();
                     if (isFirstStart)
-                    {
                         SendSettingsToDriver();
-                    }
 
                 }
             }
@@ -1641,7 +1638,7 @@ namespace TabletDriverGUI
         //
         // Console input key down
         //
-        private void TextConsoleInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void TextConsoleInput_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
@@ -1653,7 +1650,7 @@ namespace TabletDriverGUI
         //
         // Console input preview key down
         //
-        private void TextConsoleInput_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void TextConsoleInput_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Up)
             {

@@ -48,6 +48,11 @@ Tablet::Tablet() {
 	isOpen = false;
 	debugEnabled = false;
 
+	//
+	// Skip first packets, some of those might be invalid.
+	//
+	skipPackets = 5;
+
 	// Initial settings
 	settings.reportId = 0;
 	settings.reportLength = 8;
@@ -64,6 +69,7 @@ Tablet::Tablet() {
 	// Initial filter settings
 	filter.timer = NULL;
 	filter.interval = 2.0;
+	filter.latency = 2.0;
 	filter.weight = 1.000;
 	filter.threshold = 0.9;
 	filter.isEnabled = false;
@@ -185,6 +191,11 @@ double Tablet::GetFilterWeight(double latency) {
 	return this->GetFilterWeight(latency, filter.interval, filter.threshold);
 }
 
+// Set filter values
+void Tablet::SetFilterLatency(double latency) {
+	tablet->filter.weight = tablet->GetFilterWeight(latency);
+	tablet->filter.latency = latency;
+}
 
 //
 // Process filter
@@ -212,6 +223,34 @@ void Tablet::ProcessFilter() {
 
 
 //
+// Start Filter Timer
+//
+bool Tablet::StartFilterTimer() {
+	return CreateTimerQueueTimer(
+		&filter.timer,
+		NULL, filter.callback,
+		NULL,
+		0,
+		(int)filter.interval,
+		WT_EXECUTEDEFAULT
+	);
+}
+
+
+//
+// Stop Filter Timer
+//
+bool Tablet::StopFilterTimer() {
+	if(tablet->filter.timer == NULL) return false;
+	bool result = DeleteTimerQueueTimer(NULL, filter.timer, NULL);
+	if(result) {
+		filter.timer = NULL;
+	}
+	return result;
+}
+
+
+//
 // Read Position
 //
 int Tablet::ReadPosition() {
@@ -222,6 +261,12 @@ int Tablet::ReadPosition() {
 	// Read report
 	if(!this->Read(buffer, settings.reportLength)) {
 		return -1;
+	}
+
+	// Skip packets
+	if(skipPackets > 0) {
+		skipPackets--;
+		return Tablet::PacketInvalid;
 	}
 
 	// Validate packet id
@@ -239,11 +284,6 @@ int Tablet::ReadPosition() {
 		reportData.pressure = (buffer[6] << 3) | ((buffer[7] & 0xC0) >> 5) | (buffer[1] & 1);
 		reportData.reportId = buffer[0];
 		reportData.buttons = buffer[1];
-		/*
-		if(debugEnabled) {
-			LOG_DEBUG("%d, %d, %d, %d\n", reportData.buttons, reportData.x, reportData.y, reportData.pressure);
-		}
-		*/
 		//distance = buffer[9] >> 2;
 
 	//
@@ -262,8 +302,7 @@ int Tablet::ReadPosition() {
 		if(reportData.pressure > settings.clickPressure) {
 			reportData.buttons |= 1;
 		}
-	}
-	else if(reportData.pressure > 10) {
+	} else if(reportData.pressure > 10) {
 		reportData.buttons |= 1;
 	}
 

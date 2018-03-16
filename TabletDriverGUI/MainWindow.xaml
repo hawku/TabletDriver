@@ -25,8 +25,8 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto">
           <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 
-            <!-- Screen Map -->
-            <GroupBox Header="Screen map" VerticalAlignment="Top" HorizontalAlignment="Left" Width="650">
+            <!-- Screen Mapping -->
+            <GroupBox Header="Screen Map" VerticalAlignment="Top" HorizontalAlignment="Left" Width="650">
               <StackPanel>
                 <!-- Screen map canvas -->
                 <Canvas Name="canvasScreenMap"
@@ -107,7 +107,7 @@
 
 
             <!-- Tablet area -->
-            <GroupBox Header="Tablet area" VerticalAlignment="Top" HorizontalAlignment="Left" Width="650" Margin="0,5,0,5">
+            <GroupBox Header="Tablet Area" VerticalAlignment="Top" HorizontalAlignment="Left" Width="650" Margin="0,5,0,5">
               <StackPanel>
 
                 <Grid>
@@ -221,6 +221,7 @@
                     </Grid>
                   </GroupBox>
 
+                  <!-- Force Aspect Ratio -->
                   <CheckBox Name="checkBoxForceAspect" VerticalAlignment="Center" Margin="5" VerticalContentAlignment="Center"
                             Checked="CheckboxChanged" Unchecked="CheckboxChanged">
                     <StackPanel Orientation="Vertical">
@@ -235,27 +236,33 @@
               </StackPanel>
             </GroupBox>
 
+            
+            <!-- Button Mapping and Smoothing Filter -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
-              <!-- Button mapping -->
-              <GroupBox Header="Button mapping" VerticalAlignment="Top" HorizontalAlignment="Left" Height="73">
+              <!-- Button Map -->
+              <GroupBox Header="Button Map" VerticalAlignment="Top" HorizontalAlignment="Left" Height="73">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
+                  <!-- Tip -->
                   <GroupBox Header="Tip" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90">
                     <ComboBox Name="comboBoxButton1" SelectionChanged="ItemSelectionChanged">
                     </ComboBox>
                   </GroupBox>
 
+                  <!-- Bottom -->
                   <GroupBox Header="Bottom" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90">
                     <ComboBox Name="comboBoxButton2" SelectionChanged="ItemSelectionChanged">
                     </ComboBox>
                   </GroupBox>
 
+                  <!-- Top -->
                   <GroupBox Header="Top" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90">
                     <ComboBox Name="comboBoxButton3" SelectionChanged="ItemSelectionChanged">
                     </ComboBox>
                   </GroupBox>
 
+                  <!-- Disable buttons -->
                   <CheckBox Name="checkBoxDisableButtons"
                             Margin="5"
                             VerticalAlignment="Center"
@@ -270,15 +277,27 @@
               <GroupBox Name="groupFilter" Header="Smoothing Filter" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
-                  <!-- Desktop Width -->
+                  <!-- Filter Latency -->
                   <GroupBox Header="Latency" Height="50" Width="80" Margin="0,0,0,0">
                     <Grid>
-                      <TextBox Name="textFilterValue" Padding="4,0,0,0"
+                      <TextBox Name="textFilterLatency" Padding="4,0,0,0"
                              ToolTip="In Windows 7 you need to manually type in main monitor size!"
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">0</TextBox>
                       <Label Width="30" HorizontalAlignment="Right">ms</Label>
                     </Grid>
+                  </GroupBox>
+                  
+                  <!-- Filter Rate -->
+                  <GroupBox Header="Rate" VerticalAlignment="Top" HorizontalAlignment="Left" Width="85" Height="50">
+                    <ComboBox Name="comboBoxFilterRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
+                    
+                      
+                      <ComboBoxItem>500 Hz</ComboBoxItem>
+                      <ComboBoxItem>333 Hz</ComboBoxItem>
+                      <ComboBoxItem Selector.IsSelected="True">250 Hz</ComboBoxItem>
+                      <ComboBoxItem>125 Hz</ComboBoxItem>
+                    </ComboBox>
                   </GroupBox>
 
                   <!-- Filter enabled -->
@@ -301,16 +320,21 @@
 
             </StackPanel>
 
+            
+            <!-- Desktop Size -->
             <StackPanel Orientation="Horizontal"  HorizontalAlignment="Center">
               <!-- Desktop size -->
-              <GroupBox Name="groupDesktopSize" Header="Desktop size" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left">
+              <GroupBox Name="groupDesktopSize" Header="Desktop Size" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left"
+                        ToolTip="In some cases you may have to disable auto size and manually type in the main monitor resolution."
+                        
+                        >
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
                   <!-- Desktop Width -->
                   <GroupBox Header="Width" Height="50" Width="80" Margin="0,0,0,0">
                     <Grid>
                       <TextBox Name="textDesktopWidth" Padding="4,0,0,0"
-                             ToolTip="In Windows 7 you need to manually type in main monitor size!"
+                             ToolTip="In some cases you may have to disable auto size and manually type in the main monitor resolution."
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">1920</TextBox>
                       <Label Width="30" HorizontalAlignment="Right">px</Label>
@@ -321,7 +345,7 @@
                   <GroupBox Header="Height" Height="50" Width="80" Margin="5,0,0,0">
                     <Grid>
                       <TextBox Name="textDesktopHeight" Padding="4,0,0,0"
-                             ToolTip="In Windows 7 you need to manually type in main monitor size!"
+                             ToolTip="In some cases you may have to disable auto size and manually type in the main monitor resolution."
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">1080</TextBox>
                       <Label Width="30" HorizontalAlignment="Right">px</Label>
@@ -331,16 +355,8 @@
                   <CheckBox Name="checkBoxAutomaticDesktopSize"
                             VerticalAlignment="Center"
                             Margin="5"
-                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">
-                    <CheckBox.ToolTip>
-                      <TextBlock>
-                      Automatic desktop size selection.
-                      <LineBreak /> 
-                      In Windows 7 you need to disable this and type in main monitor size!!!
-                      </TextBlock>
-                    </CheckBox.ToolTip>
-                    Auto
-                  </CheckBox>
+                            ToolTip="In some cases you may have to disable auto size and manually type in the main monitor resolution."
+                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">Auto</CheckBox>
                 </StackPanel>
               </GroupBox>
 

@@ -78,7 +78,9 @@ public:
 	//
 	struct {
 		HANDLE timer;
+		WAITORTIMERCALLBACK callback;
 		double interval;
+		double latency;
 		double weight;
 		double threshold;
 		bool isEnabled;
@@ -95,6 +97,7 @@ public:
 	string name = "Unknown";
 	bool isOpen;
 	bool debugEnabled;
+	int skipPackets;
 
 
 	// Tablet initialize buffers
@@ -116,7 +119,10 @@ public:
 	double GetFilterLatency();
 	double GetFilterWeight(double latency, double interval, double threshold);
 	double GetFilterWeight(double latency);
+	void SetFilterLatency(double latency);
 	void ProcessFilter();
+	bool StartFilterTimer();
+	bool StopFilterTimer();
 	
 	int ReadPosition();
 	bool Write(void *buffer, int length);

@@ -1291,14 +1291,29 @@ namespace TabletDriverGUI
         // Started
         private void OnDriverStarted(object sender, EventArgs e)
         {
+            driver.SendCommand("HIDList");
+            driver.SendCommand("Echo");
+            driver.SendCommand("Echo   Driver version: " + Version);
+            try { driver.SendCommand("echo   Windows version: " + Environment.OSVersion.VersionString); } catch (Exception) { }
+            try
+            {
+                driver.SendCommand("Echo   Windows product: " +
+                    Microsoft.Win32.Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ProductName", "").ToString());
+                driver.SendCommand("Echo   Windows release: " +
+                    Microsoft.Win32.Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ReleaseId", "").ToString());
+            }
+            catch (Exception)
+            {
+            }
+            driver.SendCommand("Echo");
+            driver.SendCommand("CheckTablet");
             SendSettingsToDriver();
             driver.SendCommand("Info");
             driver.SendCommand("Start");
             driver.SendCommand("Log off");
             driver.SendCommand("LogDirect false");
-            driver.SendCommand("echo");
-            driver.SendCommand("echo   Startup OK!");
-            driver.SendCommand("echo");
+            driver.SendCommand("Echo");
+            driver.SendCommand("Echo Driver started!");
         }
         // Stopped
         private void OnDriverStopped(object sender, EventArgs e)
@@ -1754,7 +1769,18 @@ namespace TabletDriverGUI
             // Open startup log
             else if (sender == menuOpenStartup)
             {
-                try { Process.Start("startuplog.txt"); } catch (Exception) { }
+                if (File.Exists("startuplog.txt"))
+                {
+                    try { Process.Start("startuplog.txt"); } catch (Exception) { }
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "Startup log not found!\n" +
+                        "Make sure that it is possible to create and edit files in the '" + Directory.GetCurrentDirectory() + "' directory.\n",
+                        "Error!", MessageBoxButton.OK, MessageBoxImage.Error
+                    );
+                }
             }
 
             // Open driver folder

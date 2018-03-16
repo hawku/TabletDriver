@@ -27,7 +27,7 @@ bool ProcessCommand(CommandLine *cmd) {
 				if(tablet->isOpen) {
 					LOG_INFO("Tablet found!\n");
 				} else {
-					LOG_ERROR("Can't open USB tablet '%s' %d '%s'\n", guid.c_str(), stringId, stringMatch.c_str());
+					LOG_WARNING("Can't open USB tablet '%s' %d '%s'\n", guid.c_str(), stringId, stringMatch.c_str());
 					delete tablet;
 					tablet = NULL;
 				}
@@ -45,7 +45,7 @@ bool ProcessCommand(CommandLine *cmd) {
 				if(tablet->isOpen) {
 					LOG_INFO("Tablet found!\n");
 				} else {
-					LOG_ERROR("Can't open HID tablet 0x%04X 0x%04X 0x%04X 0x%04X\n", vendorID, productID, usagePage, usage);
+					LOG_WARNING("Can't open HID tablet 0x%04X 0x%04X 0x%04X 0x%04X\n", vendorID, productID, usagePage, usage);
 					delete tablet;
 					tablet = NULL;
 				}

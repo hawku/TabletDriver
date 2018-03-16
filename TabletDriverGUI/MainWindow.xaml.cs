@@ -160,24 +160,6 @@ namespace TabletDriverGUI
             };
             timerConsoleUpdate.Tick += TimerConsoleUpdate_Tick;
 
-
-            // Create button map combobox items
-            comboBoxButton1.Items.Clear();
-            comboBoxButton2.Items.Clear();
-            comboBoxButton3.Items.Clear();
-            comboBoxButton1.Items.Add("Disabled");
-            comboBoxButton2.Items.Add("Disabled");
-            comboBoxButton3.Items.Add("Disabled");
-            for (int i = 1; i <= 5; i++)
-            {
-                comboBoxButton1.Items.Add("Mouse " + i);
-                comboBoxButton2.Items.Add("Mouse " + i);
-                comboBoxButton3.Items.Add("Mouse " + i);
-            }
-            comboBoxButton1.SelectedIndex = 0;
-            comboBoxButton2.SelectedIndex = 0;
-            comboBoxButton3.SelectedIndex = 0;
-
             // Events
             Closing += MainWindow_Closing;
             Loaded += MainWindow_Loaded;
@@ -405,21 +387,6 @@ namespace TabletDriverGUI
             textTabletAreaY.Text = GetNumberString(config.TabletArea.Y);
 
 
-            //
-            // Buttons
-            //
-            if (config.ButtonMap.Count() == 3)
-            {
-                comboBoxButton1.SelectedIndex = config.ButtonMap[0];
-                comboBoxButton2.SelectedIndex = config.ButtonMap[1];
-                comboBoxButton3.SelectedIndex = config.ButtonMap[2];
-            }
-            else
-            {
-                config.ButtonMap = new int[] { 1, 2, 3 };
-            }
-            checkBoxDisableButtons.IsChecked = config.DisableButtons;
-
 
             //
             // Filter
@@ -543,10 +510,10 @@ namespace TabletDriverGUI
 
 
             // Button map 
-            config.ButtonMap[0] = comboBoxButton1.SelectedIndex;
-            config.ButtonMap[1] = comboBoxButton2.SelectedIndex;
-            config.ButtonMap[2] = comboBoxButton3.SelectedIndex;
-            config.DisableButtons = (bool)checkBoxDisableButtons.IsChecked;
+            //config.ButtonMap[0] = comboBoxButton1.SelectedIndex;
+            //config.ButtonMap[1] = comboBoxButton2.SelectedIndex;
+            //config.ButtonMap[2] = comboBoxButton3.SelectedIndex;
+            //config.DisablePenButtons = (bool)checkBoxDisableButtons.IsChecked;
 
 
 
@@ -1092,20 +1059,6 @@ namespace TabletDriverGUI
 
             }
 
-            // Disable button map selection when buttons are disabled
-            if (checkBoxDisableButtons.IsChecked == true)
-            {
-                comboBoxButton1.IsEnabled = false;
-                comboBoxButton2.IsEnabled = false;
-                comboBoxButton3.IsEnabled = false;
-            }
-            else
-            {
-                comboBoxButton1.IsEnabled = true;
-                comboBoxButton2.IsEnabled = true;
-                comboBoxButton3.IsEnabled = true;
-            }
-
             // Disable desktop size settings when automatic is checked
             if (checkBoxAutomaticDesktopSize.IsChecked == true)
             {
@@ -1445,7 +1398,7 @@ namespace TabletDriverGUI
 
 
             // Button map
-            if (config.DisableButtons)
+            if (config.DisablePenButtons)
             {
                 driver.SendCommand("ButtonMap 0 0 0");
             }
@@ -1725,5 +1678,23 @@ namespace TabletDriverGUI
             return IntPtr.Zero;
         }
 
+        private void EditButtonMapping_Click(object sender, RoutedEventArgs e)
+        {
+            ButtonMapping bm = new ButtonMapping(config, 4);
+
+            bm.ShowDialog();
+
+            if (bm.DialogResult == true)
+            {
+                config.ButtonMap[0] = bm.PenTipComboBox.SelectedIndex;
+                config.ButtonMap[1] = bm.PenBottomComboBox.SelectedIndex;
+                config.ButtonMap[2] = bm.PenTopComboBox.SelectedIndex;
+
+                config.DisablePenButtons = bm.CheckBoxDisablePenButtons.IsChecked ?? false;
+                config.DisableTabletButtons = bm.CheckBoxDisableTabletButtons.IsChecked ?? false;
+            }
+
+            bm.Close();
+        }
     }
 }

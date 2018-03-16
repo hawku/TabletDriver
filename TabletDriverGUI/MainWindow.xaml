@@ -238,28 +238,9 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
               <!-- Button mapping -->
-              <GroupBox Header="Button mapping" VerticalAlignment="Top" HorizontalAlignment="Left" Height="73">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
-
-                  <GroupBox Header="Tip" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90">
-                    <ComboBox Name="comboBoxButton1" SelectionChanged="ItemSelectionChanged">
-                    </ComboBox>
-                  </GroupBox>
-
-                  <GroupBox Header="Bottom" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90">
-                    <ComboBox Name="comboBoxButton2" SelectionChanged="ItemSelectionChanged">
-                    </ComboBox>
-                  </GroupBox>
-
-                  <GroupBox Header="Top" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90">
-                    <ComboBox Name="comboBoxButton3" SelectionChanged="ItemSelectionChanged">
-                    </ComboBox>
-                  </GroupBox>
-
-                  <CheckBox Name="checkBoxDisableButtons"
-                            Margin="5"
-                            VerticalAlignment="Center"
-                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">Disable buttons</CheckBox>
+              <GroupBox Header="Button mapping" Height="73">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                  <Button Name="EditButtonMapping" Content="Edit" Width="70" Padding="5,5,5,5" Click="EditButtonMapping_Click" />
                 </StackPanel>
               </GroupBox>
 

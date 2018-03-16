@@ -35,7 +35,8 @@ namespace TabletDriverGUI
         [XmlArray("ButtonMap")]
         [XmlArrayItem("Button")]
         public int[] ButtonMap;
-        public bool DisableButtons;
+        public bool DisablePenButtons;
+        public bool DisableTabletButtons;
 
         [XmlArray("CommandsAfter")]
         [XmlArrayItem("Command")]
@@ -73,7 +74,8 @@ namespace TabletDriverGUI
             AutomaticDesktopSize = true;
 
             ButtonMap = new int[] { 1, 2, 3 };
-            DisableButtons = false;
+            DisablePenButtons = false;
+            DisableTabletButtons = false;
 
             FilterEnabled = false;
             FilterValue = 0;

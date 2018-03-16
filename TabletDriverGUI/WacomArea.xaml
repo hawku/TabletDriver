@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TabletDriverGUI"
         mc:Ignorable="d"
-        Title="Wacom Intuos/Bamboo area" Height="250" Width="350">
+        Title="Wacom Intuos/Bamboo area" Height="250" Width="350" ResizeMode="NoResize">
   <Grid>
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
       <StackPanel Orientation="Horizontal">

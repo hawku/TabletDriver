@@ -77,6 +77,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ButtonActionEnum.cs" />
+    <Compile Include="ButtonConfBox.cs" />
     <Compile Include="ButtonMapping.xaml.cs">
       <DependentUpon>ButtonMapping.xaml</DependentUpon>
     </Compile>

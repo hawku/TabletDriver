@@ -46,6 +46,7 @@ namespace TabletDriverGUI
         private Configuration config;
         private bool isFirstStart = false;
         private bool isLoadingSettings;
+        private string TabletName;
 
         // Screen map canvas elements
         private Rectangle[] rectangleMonitors;
@@ -1294,10 +1295,10 @@ namespace TabletDriverGUI
             match = Regex.Match(line, "^.*?\\[INFO\\] Tablet: (.*?)$");
             if (match.Success)
             {
-                string tabletName = match.Groups[1].ToString();
-                Title = "TabletDriverGUI - " + tabletName;
-                notifyIcon.Text = tabletName;
-                SetStatus("Connected to " + tabletName);
+                TabletName = match.Groups[1].ToString();
+                Title = "TabletDriverGUI - " + TabletName;
+                notifyIcon.Text = TabletName;
+                SetStatus("Connected to " + TabletName);
             }
             double value;
 
@@ -1680,21 +1681,28 @@ namespace TabletDriverGUI
 
         private void EditButtonMapping_Click(object sender, RoutedEventArgs e)
         {
-            ButtonMapping bm = new ButtonMapping(config, 4);
-
-            bm.ShowDialog();
-
-            if (bm.DialogResult == true)
+            try
             {
-                config.ButtonMap[0] = bm.PenTipComboBox.SelectedIndex;
-                config.ButtonMap[1] = bm.PenBottomComboBox.SelectedIndex;
-                config.ButtonMap[2] = bm.PenTopComboBox.SelectedIndex;
+                ButtonMapping bm = new ButtonMapping(config, TabletName);
 
-                config.DisablePenButtons = bm.CheckBoxDisablePenButtons.IsChecked ?? false;
-                config.DisableTabletButtons = bm.CheckBoxDisableTabletButtons.IsChecked ?? false;
+                bm.ShowDialog();
+
+                if (bm.DialogResult == true)
+                {
+                    config.ButtonMap[0] = bm.PenTipComboBox.SelectedIndex;
+                    config.ButtonMap[1] = bm.PenBottomComboBox.SelectedIndex;
+                    config.ButtonMap[2] = bm.PenTopComboBox.SelectedIndex;
+
+                    config.DisablePenButtons = bm.CheckBoxDisablePenButtons.IsChecked ?? false;
+                    config.DisableTabletButtons = bm.CheckBoxDisableTabletButtons.IsChecked ?? false;
+                }
+
+                bm.Close();
             }
-
-            bm.Close();
+            catch (TabletNotRecognizedException)
+            {
+                MessageBox.Show("Your tablet needs to be recognized before changing its control mapping.", "Tablet not recognized", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
         }
     }
 }

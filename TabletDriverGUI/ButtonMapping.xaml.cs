@@ -83,6 +83,16 @@ namespace TabletDriverGUI
                         cb.Items.Add("Mouse " + i);
                     }
                 }
+                PenTipComboBox.Items.Add("Shortcut");
+                PenBottomComboBox.Items.Add("Shortcut");
+                PenTopComboBox.Items.Add("Shortcut");
+                for (var i = 0; i < tabletButtons.Count; ++i)
+                {
+                    var gb = tabletButtons[i] as GroupBox;
+                    var cb = gb.Content as ComboBox;
+                    cb.Items.Add("Shortcut");
+                }
+
                 PenTipComboBox.SelectedIndex = 0;
                 PenBottomComboBox.SelectedIndex = 0;
                 PenTopComboBox.SelectedIndex = 0;

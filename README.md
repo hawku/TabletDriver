@@ -8,7 +8,7 @@ You can reopen the GUI by double clicking the system tray icon.
 
 &nbsp;
 
-If you have problems with the driver, please read the FAQ:
+**If you have problems with the driver, please read the FAQ:**
 
 **https://github.com/hawku/TabletDriver/wiki/FAQ**
 
@@ -43,7 +43,7 @@ If you have problems with the driver, please read the FAQ:
 
 #### Download
 
-* http://hwk.fi/TabletDriver/TabletDriverV0.0.14.zip
+* http://hwk.fi/TabletDriver/TabletDriverV0.0.15.zip
 
 #
 
@@ -80,6 +80,13 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 #### Changelog
+
+>**v0.0.15:**
+> - Added more debug information to startuplog.txt. It now includes a list of connected input devices.
+> - Added debug tools to the console output context menu (Right click).
+> - Removed ClickPressure workaround from Wacom 490.
+>   You can re-enable that by adding `ClickPressure 500` to Commands tab.
+> - Updated the wacom.cfg
 
 >**v0.0.14:**
 > - Fix for the console "Copy all" function.

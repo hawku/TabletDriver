@@ -1282,6 +1282,33 @@ namespace TabletDriverGUI
         }
 
         //
+        // Update statusbar
+        //
+        private void SetStatusWarning(string text)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                textStatusWarning.Text = text;
+            });
+            timerStatusbar.Stop();
+            timerStatusbar.Start();
+        }
+        
+
+        //
+        // Statusbar warning text click
+        //
+        private void StatusWarning_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Open Task Manager 
+            if (textStatusWarning.Text.ToLower().Contains("priority"))
+            {
+                try { Process.Start("taskmgr.exe"); } catch (Exception) { }
+            }
+        }
+
+
+        //
         // Statusbar timer tick
         //
         private void TimerStatusbar_Tick(object sender, EventArgs e)
@@ -1289,6 +1316,7 @@ namespace TabletDriverGUI
             Application.Current.Dispatcher.Invoke(() =>
             {
                 textStatus.Text = "";
+                textStatusWarning.Text = "";
             });
             timerStatusbar.Stop();
         }
@@ -1315,7 +1343,8 @@ namespace TabletDriverGUI
         // Error
         private void OnDriverErrorReceived(object sender, TabletDriver.DriverEventArgs e)
         {
-            //ConsoleAddText("ERROR! " + e.Message);
+            SetStatusWarning(e.Message);
+
         }
         // Started
         private void OnDriverStarted(object sender, EventArgs e)

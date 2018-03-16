@@ -74,7 +74,7 @@
                   </GroupBox>
 
                   <!-- Screen Area Left -->
-                  <GroupBox Header="Left offset" Height="50" Width="100" Margin="5,0,0,0">
+                  <GroupBox Header="Left Offset" Height="50" Width="100" Margin="5,0,0,0">
                     <Grid>
                       <TextBox Name="textScreenAreaX" Padding="4,0,0,0"
                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
@@ -84,7 +84,7 @@
                   </GroupBox>
 
                   <!-- Screen Area Top -->
-                  <GroupBox Header="Top offset" Height="50" Width="100" Margin="5,0,0,0">
+                  <GroupBox Header="Top Offset" Height="50" Width="100" Margin="5,0,0,0">
                     <Grid>
                       <TextBox Name="textScreenAreaY" Padding="4,0,0,0"
                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
@@ -94,7 +94,7 @@
                   </GroupBox>
 
                   <!-- Set monitor -->
-                  <GroupBox Header="Set monitor" Height="50" Width="150" Margin="5,0,0,0">
+                  <GroupBox Header="Set Area" Height="50" Width="150" Margin="5,0,0,0">
                     <ComboBox Name="comboBoxMonitor"
                               PreviewMouseDown="ComboBoxMonitor_MouseDown"
                               SelectionChanged="ComboBoxMonitor_SelectionChanged"
@@ -159,7 +159,7 @@
 
                     <CheckBox Name="checkBoxForceFullArea" Margin="5"
                             Checked="CheckboxChanged"
-                            Unchecked="CheckboxChanged">Full area</CheckBox>
+                            Unchecked="CheckboxChanged">Full Area</CheckBox>
 
                     <!-- Output mode-->
                     <GroupBox Header="Mode" Width="130" HorizontalAlignment="Left">
@@ -325,7 +325,7 @@
             <StackPanel Orientation="Horizontal"  HorizontalAlignment="Center">
               <!-- Desktop size -->
               <GroupBox Name="groupDesktopSize" Header="Desktop Size" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left"
-                        ToolTip="In some cases you may have to disable auto size and manually type in the main monitor resolution."
+                        ToolTip="In some cases you may have to disable the auto size and manually type in the main monitor resolution."
                         
                         >
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
@@ -334,7 +334,6 @@
                   <GroupBox Header="Width" Height="50" Width="80" Margin="0,0,0,0">
                     <Grid>
                       <TextBox Name="textDesktopWidth" Padding="4,0,0,0"
-                             ToolTip="In some cases you may have to disable auto size and manually type in the main monitor resolution."
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">1920</TextBox>
                       <Label Width="30" HorizontalAlignment="Right">px</Label>
@@ -345,7 +344,6 @@
                   <GroupBox Header="Height" Height="50" Width="80" Margin="5,0,0,0">
                     <Grid>
                       <TextBox Name="textDesktopHeight" Padding="4,0,0,0"
-                             ToolTip="In some cases you may have to disable auto size and manually type in the main monitor resolution."
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">1080</TextBox>
                       <Label Width="30" HorizontalAlignment="Right">px</Label>
@@ -353,9 +351,7 @@
                   </GroupBox>
 
                   <CheckBox Name="checkBoxAutomaticDesktopSize"
-                            VerticalAlignment="Center"
-                            Margin="5"
-                            ToolTip="In some cases you may have to disable auto size and manually type in the main monitor resolution."
+                            VerticalAlignment="Center" Margin="5"
                             Checked="CheckboxChanged" Unchecked="CheckboxChanged">Auto</CheckBox>
                 </StackPanel>
               </GroupBox>
@@ -456,11 +452,14 @@
     </StackPanel>
 
     <StatusBar Height="25" VerticalAlignment="Bottom">
-      <StatusBarItem>
+      <StatusBarItem HorizontalAlignment="Left">
         <TextBlock Name="textStatus"></TextBlock>
       </StatusBarItem>
       <StatusBarItem HorizontalAlignment="Right">
-        <TextBlock Name="textVersion"></TextBlock>
+        <StackPanel Orientation="Horizontal">
+        <TextBlock Name="textStatusWarning" Foreground="#F60" Margin="0,0,5,0" MouseDown="StatusWarning_MouseDown"></TextBlock>
+        <TextBlock Name="textVersion">0.0.0</TextBlock>
+        </StackPanel>
       </StatusBarItem>
 
     </StatusBar>

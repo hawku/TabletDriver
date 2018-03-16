@@ -433,17 +433,42 @@ bool ProcessCommand(CommandLine *cmd) {
 		// Set threshold
 		tablet->filter.threshold = threshold;
 
-		// Set weight
-		tablet->filter.weight = tablet->GetFilterWeight(latency);
+		// Set filter latency
+		tablet->SetFilterLatency(latency);
 
 		// Print output
 		if(tablet->filter.weight < 1.0) {
 			tablet->filter.isEnabled = true;
-			LOG_INFO("Tablet filter = %0.2f ms to reach %0.0f%% (weight = %f)\n", latency, tablet->filter.threshold * 100, tablet->filter.weight);
+			LOG_INFO("Filter = %0.2f ms to reach %0.0f%% (weight = %f)\n", latency, tablet->filter.threshold * 100, tablet->filter.weight);
 		} else {
 			tablet->filter.isEnabled = false;
-			LOG_INFO("Tablet filter = off\n");
+			LOG_INFO("Filter = off\n");
 		}
+	}
+
+	//
+	// Smoothing filter interval
+	//
+	else if(cmd->is("FilterInterval")) {
+		int interval = cmd->GetInt(0, (int)round(tablet->filter.interval));
+
+		// 10 Hz
+		if(interval > 100) interval = 100;
+
+		// 1000 Hz
+		if(interval < 1) interval = 1;
+
+		// Interval changed?
+		if(interval != (int)round(tablet->filter.interval)) {
+			tablet->filter.interval = interval;
+			tablet->SetFilterLatency(tablet->filter.latency);
+			if(tablet->StopFilterTimer()) {
+				tablet->StartFilterTimer();
+			}
+		}
+
+		LOG_INFO("Filter Interval = %d (%0.2f Hz, %0.2f ms, %f)\n", interval, 1000.0 / interval, tablet->filter.latency, tablet->filter.weight);
+
 	}
 
 	// Debug
@@ -480,7 +505,7 @@ bool ProcessCommand(CommandLine *cmd) {
 		logger.ProcessMessages();
 		logger.directPrint = cmd->GetBoolean(0, logger.directPrint);
 		logger.ProcessMessages();
-		
+
 		LOG_INFO("Log direct print = %s\n", logger.directPrint ? "True" : "False");
 	}
 

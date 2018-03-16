@@ -23,7 +23,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.0.15";
+        public string Version = "0.0.16";
 
         // Console stuff
         private List<string> commandHistory;
@@ -161,7 +161,9 @@ namespace TabletDriverGUI
             timerConsoleUpdate.Tick += TimerConsoleUpdate_Tick;
 
 
-            // Create button map combobox items
+            //
+            // Buttom Map ComboBoxes
+            //
             comboBoxButton1.Items.Clear();
             comboBoxButton2.Items.Clear();
             comboBoxButton3.Items.Clear();
@@ -178,8 +180,20 @@ namespace TabletDriverGUI
             comboBoxButton2.SelectedIndex = 0;
             comboBoxButton3.SelectedIndex = 0;
 
-            // Events
-            Closing += MainWindow_Closing;
+
+            //
+            // Filter rate ComboBox
+            //
+            comboBoxFilterRate.Items.Clear();
+            for (int i = 2; i <= 8; i++)
+            {
+                comboBoxFilterRate.Items.Add((1000.0 / i).ToString("0") + " Hz");
+            }
+            comboBoxFilterRate.SelectedIndex = 2;
+
+
+                // Events
+                Closing += MainWindow_Closing;
             Loaded += MainWindow_Loaded;
             SizeChanged += MainWindow_SizeChanged;
 
@@ -210,10 +224,6 @@ namespace TabletDriverGUI
             try
             {
                 config = Configuration.CreateFromFile("Config.xml");
-                isLoadingSettings = true;
-                Width = config.WindowWidth;
-                Height = config.WindowHeight;
-                isLoadingSettings = false;
             }
             catch (Exception)
             {
@@ -221,10 +231,14 @@ namespace TabletDriverGUI
                 isFirstStart = true;
                 config = new Configuration();
             }
+            isLoadingSettings = true;
+            Width = config.WindowWidth;
+            Height = config.WindowHeight;
+            isLoadingSettings = false;
+
 
             if (!config.DeveloperMode)
             {
-                groupDesktopSize.Visibility = Visibility.Collapsed;
             }
 
 
@@ -425,11 +439,18 @@ namespace TabletDriverGUI
             // Filter
             //
             checkBoxFilter.IsChecked = config.FilterEnabled;
-            textFilterValue.Text = GetNumberString(config.FilterValue);
+            textFilterLatency.Text = GetNumberString(config.FilterLatency);
+            comboBoxFilterRate.SelectedIndex = config.FilterInterval - 2;
             if (config.FilterEnabled)
-                textFilterValue.IsEnabled = true;
+            {
+                textFilterLatency.IsEnabled = true;
+                comboBoxFilterRate.IsEnabled = true;
+            }
             else
-                textFilterValue.IsEnabled = false;
+            {
+                textFilterLatency.IsEnabled = false;
+                comboBoxFilterRate.IsEnabled = false;
+            }
 
 
             //
@@ -552,12 +573,20 @@ namespace TabletDriverGUI
 
             // Filter
             config.FilterEnabled = (bool)checkBoxFilter.IsChecked;
-            if (ParseNumber(textFilterValue.Text, out value))
-                config.FilterValue = value;
+            config.FilterInterval = comboBoxFilterRate.SelectedIndex + 2;
+            if (ParseNumber(textFilterLatency.Text, out value))
+                config.FilterLatency = value;
+
             if (config.FilterEnabled)
-                textFilterValue.IsEnabled = true;
+            {
+                textFilterLatency.IsEnabled = true;
+                comboBoxFilterRate.IsEnabled = true;
+            }
             else
-                textFilterValue.IsEnabled = false;
+            {
+                textFilterLatency.IsEnabled = false;
+                comboBoxFilterRate.IsEnabled = false;
+            }
 
 
             // Custom commands
@@ -1477,7 +1506,8 @@ namespace TabletDriverGUI
             // Filter
             if (config.FilterEnabled)
             {
-                driver.SendCommand("Filter " + GetNumberString(config.FilterValue));
+                driver.SendCommand("Filter " + GetNumberString(config.FilterLatency));
+                driver.SendCommand("FilterInterval " + GetNumberString(config.FilterInterval));
             }
             else
             {

@@ -64,6 +64,7 @@ Tablet::Tablet() {
 	// Initial filter settings
 	filter.timer = NULL;
 	filter.interval = 2.0;
+	filter.latency = 2.0;
 	filter.weight = 1.000;
 	filter.threshold = 0.9;
 	filter.isEnabled = false;
@@ -185,6 +186,11 @@ double Tablet::GetFilterWeight(double latency) {
 	return this->GetFilterWeight(latency, filter.interval, filter.threshold);
 }
 
+// Set filter values
+void Tablet::SetFilterLatency(double latency) {
+	tablet->filter.weight = tablet->GetFilterWeight(latency);
+	tablet->filter.latency = latency;
+}
 
 //
 // Process filter
@@ -208,6 +214,34 @@ void Tablet::ProcessFilter() {
 		filter.y = filter.targetY;
 	}
 
+}
+
+
+//
+// Start Filter Timer
+//
+bool Tablet::StartFilterTimer() {
+	return CreateTimerQueueTimer(
+		&filter.timer,
+		NULL, filter.callback,
+		NULL,
+		0,
+		(int)filter.interval,
+		WT_EXECUTEDEFAULT
+	);
+}
+
+
+//
+// Stop Filter Timer
+//
+bool Tablet::StopFilterTimer() {
+	if(tablet->filter.timer == NULL) return false;
+	bool result = DeleteTimerQueueTimer(NULL, filter.timer, NULL);
+	if(result) {
+		filter.timer = NULL;
+	}
+	return result;
 }
 
 
@@ -262,8 +296,7 @@ int Tablet::ReadPosition() {
 		if(reportData.pressure > settings.clickPressure) {
 			reportData.buttons |= 1;
 		}
-	}
-	else if(reportData.pressure > 10) {
+	} else if(reportData.pressure > 10) {
 		reportData.buttons |= 1;
 	}
 

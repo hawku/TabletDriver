@@ -26,7 +26,8 @@ namespace TabletDriverGUI
 
         public Area ScreenArea;
 
-        public double FilterValue;
+        public double FilterLatency;
+        public int FilterInterval;
         public bool FilterEnabled;
 
         public Area DesktopSize;
@@ -76,13 +77,14 @@ namespace TabletDriverGUI
             DisableButtons = false;
 
             FilterEnabled = false;
-            FilterValue = 0;
+            FilterLatency = 0;
+            FilterInterval = 4;
 
             CommandsAfter = new string[] { "" };
             CommandsBefore = new string[] { "" };
 
-            WindowWidth = 850;
-            WindowHeight = 650;
+            WindowWidth = 800;
+            WindowHeight = 690;
             DriverPath = "bin/TabletDriverService.exe";
             DriverArguments = "config/init.cfg";
             DeveloperMode = false;

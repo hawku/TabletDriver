@@ -6,7 +6,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-### http://hwk.fi/TabletDriver/TabletDriverV0.0.15.zip
+### http://hwk.fi/TabletDriver/TabletDriverV0.0.16.zip
 
 **If you have problems with the driver, please read the FAQ:**
 
@@ -73,6 +73,15 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ### Changelog
+
+>**v0.0.16:**
+> - Added smoothing filter rate selector. Use a lower rate if you have filter performance problems.
+> - Added TabletDriverService.exe process priority warning when the priority isn't set to High.
+> - Desktop size settings are now available to everyone.
+>   Previously shown only when the developer mode was enabled.
+>   Automatic size should be used, but if you have problems with the screen mapping:
+>   https://github.com/hawku/TabletDriver/issues/4
+> - First few tablet position packets are now ignored to prevent the cursor jumping to a wrong position when driver is started.
 
 >**v0.0.15:**
 > - Added more debug information to startuplog.txt. It now includes a list of connected input devices.

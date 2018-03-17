@@ -6,11 +6,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-<<<<<<< HEAD
 ### http://hwk.fi/TabletDriver/TabletDriverV0.0.15.zip
-=======
-#### http://hwk.fi/TabletDriver/TabletDriverV0.0.15.zip
->>>>>>> 55b0a9d01d5f2fb762e9fb96fe0c297a85b53556
 
 **If you have problems with the driver, please read the FAQ:**
 

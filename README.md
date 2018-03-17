@@ -2,11 +2,15 @@
 
 Currently the driver only works when the TabletDriverGUI is running.
 
-The GUI minimizes to system tray / notification area.
+The GUI minimizes to system tray / notification area. You can reopen the GUI by double clicking the system tray icon.
 
-You can reopen the GUI by double clicking the system tray icon.
+## Download
 
-&nbsp;
+<<<<<<< HEAD
+### http://hwk.fi/TabletDriver/TabletDriverV0.0.15.zip
+=======
+#### http://hwk.fi/TabletDriver/TabletDriverV0.0.15.zip
+>>>>>>> 55b0a9d01d5f2fb762e9fb96fe0c297a85b53556
 
 **If you have problems with the driver, please read the FAQ:**
 
@@ -14,7 +18,7 @@ You can reopen the GUI by double clicking the system tray icon.
 
 #
 
-#### Supported tablets:
+### Supported tablets:
   - Wacom CTL-470
   - Wacom CTL-471
   - Wacom CTL-472
@@ -27,7 +31,7 @@ You can reopen the GUI by double clicking the system tray icon.
   - Huion H640P
   - Gaomon S56K
   
-#### Configured, but not properly tested:
+### Configured, but not properly tested:
   - Huion H420
   - Wacom CTH-470
   - Wacom CTH-670
@@ -38,16 +42,9 @@ You can reopen the GUI by double clicking the system tray icon.
   - Wacom CTH-490
   - Wacom PTH-451
 
-
 #
 
-#### Download
-
-* http://hwk.fi/TabletDriver/TabletDriverV0.0.15.zip
-
-#
-
-#### Install
+### Install
 
 1. You might need to install these libraries, but usually these are already installed:
 * https://aka.ms/vs/15/release/vc_redist.x86.exe
@@ -61,13 +58,13 @@ You can reopen the GUI by double clicking the system tray icon.
 6. Start the TabletDriverGUI.exe
 
 
-#### Uninstall
+### Uninstall
 1. Run "remove_vmulti_driver.bat"
 2. Run "remove_huion_64.bat", which is located at the "driver_huion" directory.
 
 #
 
-#### VMulti and Huion drivers
+### VMulti and Huion drivers
 
 If you want to compile the code and don't want to install anything from the TabletDriver binary package, you will need extract the missing drivers from these installation packages:
 
@@ -79,7 +76,7 @@ If you want to compile the code and don't want to install anything from the Tabl
 
 #
 
-#### Changelog
+### Changelog
 
 >**v0.0.15:**
 > - Added more debug information to startuplog.txt. It now includes a list of connected input devices.

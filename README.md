@@ -6,7 +6,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-### http://hwk.fi/TabletDriver/TabletDriverV0.0.16.zip
+### http://hwk.fi/TabletDriver/TabletDriverV0.0.17.zip
 
 **If you have problems with the driver, please read the FAQ:**
 
@@ -73,6 +73,9 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ### Changelog
+
+>**v0.0.17:**
+> - Fixed driver crashing when used with the Huion or Gaomon tablets.
 
 >**v0.0.16:**
 > - Added smoothing filter rate selector. Use a lower rate if you have filter performance problems.

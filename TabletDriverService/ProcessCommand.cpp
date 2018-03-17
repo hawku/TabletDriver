@@ -664,18 +664,18 @@ void LogInformation() {
 //
 void LogStatus() {
 	LOG_STATUS("TABLET %s\n", tablet->name.c_str());
+
 	if(tablet->hidDevice != NULL) {
-		LOG_STATUS("HID %04X %04X %04X %04X\n", 
+		LOG_STATUS("HID %04X %04X %04X %04X\n",
 			tablet->hidDevice->vendorId,
 			tablet->hidDevice->productId,
 			tablet->hidDevice->usagePage,
 			tablet->hidDevice->usage
 		);
-	}
-	else if(tablet->usbDevice != NULL) {
+	} else if(tablet->usbDevice != NULL) {
 		LOG_STATUS("USB %d %s\n",
 			tablet->usbDevice->stringId,
-			tablet->usbDevice->stringMatch
+			tablet->usbDevice->stringMatch.c_str()
 		);
 	}
 	LOG_STATUS("WIDTH %0.5f\n", tablet->settings.width);

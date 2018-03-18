@@ -23,7 +23,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.0.17";
+        public string Version = "0.0.18";
 
         // Console stuff
         private List<string> commandHistory;

@@ -6,7 +6,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-### http://hwk.fi/TabletDriver/TabletDriverV0.0.17.zip
+### http://hwk.fi/TabletDriver/TabletDriverV0.0.18.zip
 
 **If you have problems with the driver, please read the FAQ:**
 
@@ -73,6 +73,11 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ### Changelog
+
+>**v0.0.18:**
+> - Added multi-instance prevention for TabletDriverService.exe.
+> - Added yet another Wacom 490 tip click fix.
+>   `KeepTipDown` command sets how long the pen tip button output should be kept down after the pen tip is released.
 
 >**v0.0.17:**
 > - Fixed driver crashing when used with the Huion or Gaomon tablets.

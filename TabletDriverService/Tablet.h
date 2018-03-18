@@ -41,6 +41,7 @@ public:
 		int maxY;
 		int maxPressure;
 		int clickPressure;
+		int keepTipDown;
 		double width;
 		double height;
 		BYTE reportId;
@@ -99,6 +100,8 @@ public:
 	bool debugEnabled;
 	int skipPackets;
 
+	// Pen tip button keep down
+	int tipDownCounter;
 
 	// Tablet initialize buffers
 	BYTE *initFeature;

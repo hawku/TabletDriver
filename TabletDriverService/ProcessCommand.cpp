@@ -175,6 +175,14 @@ bool ProcessCommand(CommandLine *cmd) {
 	}
 
 
+	// Keep pen tip down
+	else if(cmd->is("KeepTipDown")) {
+		if(tablet == NULL) return false;
+		tablet->settings.keepTipDown = cmd->GetInt(0, tablet->settings.keepTipDown);
+		LOG_INFO("Tablet pen tip keep down = %d packets\n", tablet->settings.keepTipDown);
+	}
+
+
 	// Width
 	else if(cmd->is("Width")) {
 		if(tablet == NULL) return false;
@@ -620,8 +628,9 @@ void LogInformation() {
 	LOG_INFO("  Max Y = %d\n", tablet->settings.maxY);
 	LOG_INFO("  Max Pressure = %d\n", tablet->settings.maxPressure);
 	LOG_INFO("  Click Pressure = %d\n", tablet->settings.clickPressure);
+	LOG_INFO("  Keep Tip Down = %d packets\n", tablet->settings.keepTipDown);
 	LOG_INFO("  Report Id = %02X\n", tablet->settings.reportId);
-	LOG_INFO("  Report Length = %d\n", tablet->settings.reportLength);
+	LOG_INFO("  Report Length = %d bytes\n", tablet->settings.reportLength);
 	LOG_INFO("  Button Mask = 0x%02X\n", tablet->settings.buttonMask);
 
 	for(int i = 0; i < 8; i++) {

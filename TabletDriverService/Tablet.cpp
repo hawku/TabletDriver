@@ -53,6 +53,9 @@ Tablet::Tablet() {
 	//
 	skipPackets = 5;
 
+	// Keep tip down packet counter
+	tipDownCounter = 0;
+
 	// Initial settings
 	settings.reportId = 0;
 	settings.reportLength = 8;
@@ -278,12 +281,11 @@ int Tablet::ReadPosition() {
 	// Wacom Intuos data format
 	//
 	if(settings.type == TypeWacomIntuos) {
-
 		reportData.x = ((buffer[2] * 0x100 + buffer[3]) << 1) | ((buffer[9] >> 1) & 1);
 		reportData.y = ((buffer[4] * 0x100 + buffer[5]) << 1) | (buffer[9] & 1);
 		reportData.pressure = (buffer[6] << 3) | ((buffer[7] & 0xC0) >> 5) | (buffer[1] & 1);
 		reportData.reportId = buffer[0];
-		reportData.buttons = buffer[1];
+		reportData.buttons = buffer[1] & ~0x01;
 		//distance = buffer[9] >> 2;
 
 	//
@@ -294,6 +296,11 @@ int Tablet::ReadPosition() {
 	}
 
 
+	// Validate position
+	if(settings.buttonMask > 0 && (reportData.buttons & settings.buttonMask) != settings.buttonMask) {
+		return Tablet::PacketPositionInvalid;
+	}
+
 	//
 	// Use pen pressure to detect the pen tip click
 	//
@@ -302,14 +309,22 @@ int Tablet::ReadPosition() {
 		if(reportData.pressure > settings.clickPressure) {
 			reportData.buttons |= 1;
 		}
+
+	// Force tip button if pressure is detected
 	} else if(reportData.pressure > 10) {
 		reportData.buttons |= 1;
 	}
 
-	// Validate position
-	if(settings.buttonMask > 0 && (reportData.buttons & settings.buttonMask) != settings.buttonMask) {
-		return Tablet::PacketPositionInvalid;
+	// Keep pen tip button down for a few packets
+	if(settings.keepTipDown > 0) {
+		if(reportData.buttons & 0x01) {
+			tipDownCounter = settings.keepTipDown;
+		}
+		if(tipDownCounter-- >= 0) {
+			reportData.buttons |= 1;
+		}
 	}
+
 
 
 

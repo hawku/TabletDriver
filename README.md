@@ -75,7 +75,7 @@ If you want to compile the code and don't want to install anything from the Tabl
 ### Changelog
 
 >**v0.0.18:**
-> - Added multi-instance prevention for TabletDriverService.exe.
+> - Added TabletDriverService.exe multi-instance prevention.
 > - Added yet another Wacom 490 tip click fix.
 >   `KeepTipDown` command sets how long the pen tip button output should be kept down after the pen tip is released.
 

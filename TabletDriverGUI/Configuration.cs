@@ -49,8 +49,10 @@ namespace TabletDriverGUI
         public int WindowWidth;
         public int WindowHeight;
 
+        public bool RunAtStartup;
+
         public string DriverPath;
-        public string DriverArguments;
+        public string DriverArguments;        
 
         public bool DeveloperMode;
 
@@ -85,6 +87,9 @@ namespace TabletDriverGUI
 
             WindowWidth = 800;
             WindowHeight = 690;
+
+            RunAtStartup = false;
+
             DriverPath = "bin/TabletDriverService.exe";
             DriverArguments = "config/init.cfg";
             DeveloperMode = false;

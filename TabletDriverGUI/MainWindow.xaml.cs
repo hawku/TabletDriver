@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -160,6 +161,10 @@ namespace TabletDriverGUI
             };
             timerConsoleUpdate.Tick += TimerConsoleUpdate_Tick;
 
+            // Tooltip timeout
+            ToolTipService.ShowDurationProperty.OverrideMetadata(
+                typeof(DependencyObject), new FrameworkPropertyMetadata(60000));
+
 
             //
             // Buttom Map ComboBoxes
@@ -167,9 +172,9 @@ namespace TabletDriverGUI
             comboBoxButton1.Items.Clear();
             comboBoxButton2.Items.Clear();
             comboBoxButton3.Items.Clear();
-            comboBoxButton1.Items.Add("Disabled");
-            comboBoxButton2.Items.Add("Disabled");
-            comboBoxButton3.Items.Add("Disabled");
+            comboBoxButton1.Items.Add("Disable");
+            comboBoxButton2.Items.Add("Disable");
+            comboBoxButton3.Items.Add("Disable");
             for (int i = 1; i <= 5; i++)
             {
                 comboBoxButton1.Items.Add("Mouse " + i);
@@ -191,6 +196,8 @@ namespace TabletDriverGUI
             }
             comboBoxFilterRate.SelectedIndex = 2;
 
+            // Process command line arguments
+            ProcessCommandLineArguments();
 
             // Events
             Closing += MainWindow_Closing;
@@ -259,12 +266,48 @@ namespace TabletDriverGUI
             // Load settings from configuration
             LoadSettingsFromConfiguration();
 
-            // 
+            // Update the settings back to the configuration
             UpdateSettingsToConfiguration();
 
+            // Console timer
             timerConsoleUpdate.Start();
 
+            // Set run at startup
+            SetRunAtStartup(config.RunAtStartup);
+
+            // Hide the window if the GUI is started as minimized
+            if (WindowState == WindowState.Minimized)
+            {
+                Hide();
+            }
+
+            // Start the driver
             Start();
+        }
+
+
+        //
+        // Process command line arguments
+        //
+        void ProcessCommandLineArguments()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++)
+            {
+                // Skip values
+                if (!args[i].StartsWith("-") && !args[i].StartsWith("/")) continue;
+
+                // Remove '-' and '/' characters at the start of the argument
+                string parameter = Regex.Replace(args[i], "^[\\-/]+", "").ToLower();
+
+                //
+                // Parameter: --hide
+                //
+                if (parameter == "hide")
+                {
+                    WindowState = WindowState.Minimized;
+                }
+            }
         }
 
         #endregion
@@ -453,6 +496,10 @@ namespace TabletDriverGUI
             }
 
 
+            // Run at startup
+            checkRunAtStartup.IsChecked = config.RunAtStartup;
+
+
             //
             // Custom commands
             //
@@ -484,6 +531,8 @@ namespace TabletDriverGUI
         {
             if (isLoadingSettings)
                 return;
+
+            bool oldValue;
 
             // Tablet area
             if (ParseNumber(textTabletAreaWidth.Text, out double value))
@@ -588,6 +637,14 @@ namespace TabletDriverGUI
                 comboBoxFilterRate.IsEnabled = false;
             }
 
+            //
+            // Run at startup
+            //
+            oldValue = config.RunAtStartup;
+            config.RunAtStartup = (bool)checkRunAtStartup.IsChecked;
+            if (config.RunAtStartup != oldValue)
+                SetRunAtStartup(config.RunAtStartup);
+
 
             // Custom commands
             List<string> commandList = new List<string>();
@@ -607,7 +664,6 @@ namespace TabletDriverGUI
             UpdateCanvasElements();
 
         }
-
 
         //
         // String to Number
@@ -635,6 +691,28 @@ namespace TabletDriverGUI
             return value.ToString(format, cultureEnglish.NumberFormat);
         }
 
+
+        //
+        // Set run at startup
+        //
+        private void SetRunAtStartup(bool enabled)
+        {
+            try
+            {
+                string path = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string entryName = "TabletDriverGUI";
+                RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+                if (enabled)
+                    rk.SetValue(entryName, "\"" + path + "\" --hide");
+                else
+                    rk.DeleteValue(entryName, false);
+
+                rk.Close();
+            }
+            catch (Exception)
+            {
+            }
+        }
 
         //
         // Get desktop size
@@ -1049,7 +1127,7 @@ namespace TabletDriverGUI
 
                 if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
                     dx = 0;
-                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.LeftCtrl))
+                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
                     dy = 0;
 
                 // Screen map canvas
@@ -1168,8 +1246,11 @@ namespace TabletDriverGUI
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (!IsLoaded || isLoadingSettings) return;
-            config.WindowWidth = (int)e.NewSize.Width;
-            config.WindowHeight = (int)e.NewSize.Height;
+            if (WindowState != WindowState.Maximized)
+            {
+                config.WindowWidth = (int)e.NewSize.Width;
+                config.WindowHeight = (int)e.NewSize.Height;
+            }
         }
 
         // Monitor combobox clicked -> create new monitor list
@@ -1293,7 +1374,7 @@ namespace TabletDriverGUI
             timerStatusbar.Stop();
             timerStatusbar.Start();
         }
-        
+
 
         //
         // Statusbar warning text click

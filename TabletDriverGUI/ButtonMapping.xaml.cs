@@ -14,6 +14,17 @@ using System.Windows.Shapes;
 
 namespace TabletDriverGUI
 {
+    public enum ButtonActionEnum : uint
+    {
+        DISABLED = 0,
+        MOUSE1 = 1,
+        MOUSE2 = 2,
+        MOUSE3 = 3,
+        MOUSE4 = 4,
+        MOUSE5 = 5,
+        SHORTCUT = 6
+    };
+
     /// <summary>
     /// Logique d'interaction pour ButtonMapping.xaml
     /// </summary>
@@ -38,15 +49,17 @@ namespace TabletDriverGUI
                 { "Gaomon S56K", 0 },
             };
 
-            if (tabletName != null && NbTabletButtonsMap.ContainsKey(tabletName))
-            {
+            //if (tabletName != null && NbTabletButtonsMap.ContainsKey(tabletName))
+            //{
                 InitializeComponent();
-                for (var i = 0; i < NbTabletButtonsMap[tabletName]; ++i)
+                //for (var i = 0; i < NbTabletButtonsMap[tabletName]; ++i)
+                for (var i = 0; i < 4; ++i)
                 {
                     ComboBox cb = new ComboBox
                     {
                         Name = "TabletButton" + (i + 1).ToString()
                     };
+                    cb.DropDownClosed += new EventHandler(PromptShortcutWindowEvent);
 
                     GroupBox gb = new GroupBox
                     {
@@ -112,11 +125,11 @@ namespace TabletDriverGUI
 
                 CheckBoxDisablePenButtons.IsChecked = config.DisablePenButtons;
                 CheckBoxDisableTabletButtons.IsChecked = config.DisableTabletButtons;
-            }
-            else
-            {
-                throw new TabletNotRecognizedException("Tablet not recognized");
-            }
+            //}
+            //else
+            //{
+            //    throw new TabletNotRecognizedException("Tablet not recognized");
+            //}
         }
 
         private void ButtonSet_Click(object sender, RoutedEventArgs e)
@@ -147,6 +160,30 @@ namespace TabletDriverGUI
         private void CheckBoxDisableTabletButtons_Unchecked(object sender, RoutedEventArgs e)
         {
             TabletButtonsContainer.IsEnabled = true;
+        }
+
+        private void PromptShortcutWindowEvent(object sender, EventArgs e)
+        {
+            PromptShortcutWindow(sender);
+        }
+
+        private void PromptShortcutWindow(object sender)
+        {
+            ComboBox cb = sender as ComboBox;
+
+            if (cb.SelectedIndex == (uint)ButtonActionEnum.SHORTCUT)
+            {
+                ShortcutMapWindow shortcutMapWindow = new ShortcutMapWindow();
+
+                shortcutMapWindow.ShowDialog();
+
+                if (shortcutMapWindow.DialogResult == true)
+                {
+
+                }
+
+                shortcutMapWindow.Close();
+            }
         }
     }
 }

@@ -77,10 +77,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ButtonActionEnum.cs" />
-    <Compile Include="ButtonConfBox.cs" />
     <Compile Include="ButtonMapping.xaml.cs">
       <DependentUpon>ButtonMapping.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ShortcutMapWindow.xaml.cs">
+      <DependentUpon>ShortcutMapWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="TabletDriver.cs" />
     <Compile Include="NativeMethods.cs" />
@@ -107,6 +108,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="ShortcutMapWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="WacomArea.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

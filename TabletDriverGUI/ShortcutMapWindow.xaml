@@ -1,0 +1,29 @@
+﻿<Window x:Class="TabletDriverGUI.ShortcutMapWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TabletDriverGUI"
+        mc:Ignorable="d"
+        Title="ShortcutMapWindow" Height="200" Width="300" ResizeMode="NoResize"
+        KeyDown="Window_KeyDown">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="75*"/>
+            <RowDefinition Height="25*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Label HorizontalContentAlignment="Center">
+                <TextBlock Margin="0,0,0,5" TextAlignment="Center">
+                    Make your own shortcut by pressing<LineBreak/>on the keyboard
+                </TextBlock>
+            </Label>
+            <Label Name="ShortcutResult" HorizontalAlignment="Center" FontSize="18" Content="-"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Name="ButtonSet" Content="Set" Width="60" Height="25" Click="ButtonSet_Click"/>
+            <Button Name="ButtonCancel" Margin="35,0,0,0" Width="60" Height="25" Content="Cancel" Click="ButtonCancel_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

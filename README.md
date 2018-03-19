@@ -1,16 +1,26 @@
 # TabletDriver
 
+This is a low latency graphics tablet driver that is meant to be used with rhythm game [osu!](https://osu.ppy.sh/home)
+
 Currently the driver only works when the TabletDriverGUI is running.
 
 The GUI minimizes to system tray / notification area. You can reopen the GUI by double clicking the system tray icon.
 
-## Download
-
-### http://hwk.fi/TabletDriver/TabletDriverV0.0.18.zip
-
 **If you have problems with the driver, please read the FAQ:**
 
 **https://github.com/hawku/TabletDriver/wiki/FAQ**
+
+## Download
+
+### http://hwk.fi/TabletDriver/TabletDriverV0.1.0.zip
+
+#
+
+### Supported operating systems:
+  - Windows 7 64-bit
+  - Windows 8 64-bit
+  - Windows 8.1 64-bit
+  - Windows 10 64-bit
 
 #
 
@@ -73,6 +83,11 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ### Changelog
+
+>**v0.1.0:**
+> - Added `Bench` / `Benchmark` command.
+> - Added `-hide` GUI command line parameter. GUI will start as minimized when you run `TabletDriverGUI.exe -hide` 
+> - Added an option to run the TabletDriverGUI at Windows startup.
 
 >**v0.0.18:**
 > - Added TabletDriverService.exe multi-instance prevention.

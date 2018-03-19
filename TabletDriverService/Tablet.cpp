@@ -45,16 +45,6 @@ Tablet::Tablet() {
 	hidDevice2 = NULL;
 
 	usbPipeId = 0;
-	isOpen = false;
-	debugEnabled = false;
-
-	//
-	// Skip first packets, some of those might be invalid.
-	//
-	skipPackets = 5;
-
-	// Keep tip down packet counter
-	tipDownCounter = 0;
 
 	// Initial settings
 	settings.reportId = 0;
@@ -90,11 +80,26 @@ Tablet::Tablet() {
 	// Reset state
 	memset(&state, 0, sizeof(state));
 
+	// Reset benchmark
+	memset(&benchmark, 0, sizeof(benchmark));
+
 	// Button map
 	memset(&buttonMap, 0, sizeof(buttonMap));
 	buttonMap[0] = 1;
 	buttonMap[1] = 2;
 	buttonMap[2] = 3;
+
+	// Tablet connection open
+	isOpen = false;
+
+	// Debug output
+	debugEnabled = false;
+
+	// Skip first packets, some of those might be invalid.
+	skipPackets = 5;
+
+	// Keep tip down packet counter
+	tipDownCounter = 0;
 
 }
 
@@ -254,6 +259,20 @@ bool Tablet::StopFilterTimer() {
 
 
 //
+// Start tablet benchmark
+//
+void Tablet::StartBenchmark(int packetCount) {
+	tablet->benchmark.maxX = -10000;
+	tablet->benchmark.maxY = -10000;
+	tablet->benchmark.minX = 10000;
+	tablet->benchmark.minY = 10000;
+	tablet->benchmark.totalPackets = packetCount;
+	tablet->benchmark.packetCounter = packetCount;
+}
+
+
+
+//
 // Read Position
 //
 int Tablet::ReadPosition() {
@@ -354,6 +373,19 @@ int Tablet::ReadPosition() {
 	}
 	state.pressure = ((double)reportData.pressure / (double)settings.maxPressure);
 
+	//
+	// Tablet benchmark
+	//
+	if(benchmark.packetCounter > 0) {
+
+		// Set min & max
+		if(state.x < benchmark.minX) benchmark.minX = state.x;
+		if(state.x > benchmark.maxX) benchmark.maxX = state.x;
+		if(state.y < benchmark.minY) benchmark.minY = state.y;
+		if(state.y > benchmark.maxY) benchmark.maxY = state.y;
+
+		benchmark.packetCounter--;
+	}
 
 	// Packet and position is valid
 	return Tablet::PacketValid;

@@ -536,6 +536,59 @@ bool ProcessCommand(CommandLine *cmd) {
 		LogStatus();
 	}
 
+	// Info
+	else if(cmd->is("Benchmark") || cmd->is("Bench")) {
+		if(!CheckTablet()) return true;
+
+		int timeLimit;
+		int packetCount = cmd->GetInt(0, 200);
+		if(packetCount < 10) packetCount = 10;
+		if(packetCount > 1000) packetCount = 1000;
+		timeLimit = packetCount * 10;
+		if(timeLimit < 1000) timeLimit = 1000;
+
+		LOG_INFO("Tablet benchmark starting in 3 seconds!\n");
+		LOG_INFO("Keep the pen stationary on top of the tablet!\n");
+		Sleep(3000);
+		LOG_INFO("Benchmark started!\n");
+		tablet->StartBenchmark(packetCount);
+
+		// Log the benchmark result
+		for(int i = 0; i < timeLimit / 100; i++) {
+			Sleep(100);
+			if(tablet->benchmark.packetCounter <= 0) {
+
+				double width = tablet->benchmark.maxX - tablet->benchmark.minX;
+				double height = tablet->benchmark.maxY - tablet->benchmark.minY;
+				LOG_INFO("Benchmark done!\n");
+				LOG_INFO("Results from %d tablet positions:\n", tablet->benchmark.totalPackets);
+				LOG_INFO("  X range: %0.3f mm <-> %0.3f mm\n", tablet->benchmark.minX, tablet->benchmark.maxX);
+				LOG_INFO("  Y range: %0.3f mm <-> %0.3f mm\n", tablet->benchmark.minY, tablet->benchmark.maxY);
+				LOG_INFO("  Width: %0.3f mm, %0.2f pixels @ %0.0f px, %0.2f mm\n",
+					width,
+					mapper->areaScreen.width / mapper->areaTablet.width * width,
+					mapper->areaScreen.width,
+					mapper->areaTablet.width
+				);
+				LOG_INFO("  Height: %0.3f mm, %0.2f pixels @ %0.0f px, %0.2f mm\n",
+					height,
+					mapper->areaScreen.height / mapper->areaTablet.height* height,
+					mapper->areaScreen.height,
+					mapper->areaTablet.height
+				);
+				break;
+			}
+		}
+		if(tablet->benchmark.packetCounter > 0) {
+			LOG_ERROR("Benchmark failed!\n");
+			LOG_ERROR("Not enough packets captured in %0.2f seconds!\n",
+				timeLimit / 1000.0
+			);
+		}
+
+
+	}
+
 
 	// Info
 	else if(cmd->is("Include")) {

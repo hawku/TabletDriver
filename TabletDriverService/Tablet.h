@@ -91,6 +91,18 @@ public:
 		double y;
 	} filter;
 
+	//
+	// Benchmark
+	//
+	struct {
+		double minX;
+		double maxX;
+		double minY;
+		double maxY;
+		int totalPackets;
+		int packetCounter;
+	} benchmark;
+
 	// Button map
 	BYTE buttonMap[16];
 
@@ -126,6 +138,8 @@ public:
 	void ProcessFilter();
 	bool StartFilterTimer();
 	bool StopFilterTimer();
+
+	void StartBenchmark(int packetCount);
 	
 	int ReadPosition();
 	bool Write(void *buffer, int length);

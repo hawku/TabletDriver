@@ -50,28 +50,30 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 #
 
-### Install
+## Installation
 
 1. You might need to install these libraries, but usually these are already installed:
     * https://www.microsoft.com/net/download/dotnet-framework-runtime
     * https://aka.ms/vs/15/release/vc_redist.x86.exe
-    * https://aka.ms/vs/15/release/vc_redist.x64.exe
-    * https://www.microsoft.com/en-us/download/details.aspx?id=53587 (x64 and x86)
 
-2. Unzip the driver to a folder (Shorter path is recommended, for example C:\Temp\TabletDriver)
+2. Unzip the driver to a folder (Shorter path is recommended, for example `C:\Temp\TabletDriver`)
 3. Uninstall all other tablet drivers.
-4. Run "install_vmulti_driver.bat". It might need a restart if there is another vmulti driver installed.
-5. If you have Huion or Gaomon tablet, you need to run "install_huion_64.bat", which is located at the "driver_huion" directory.
+4. Run `install_vmulti_driver.bat`. It might need a restart if there is another vmulti driver installed.
+5. If you have Huion or Gaomon tablet, you need to run `install_huion_64.bat`, which is in the `driver_huion` directory.
 6. Start the TabletDriverGUI.exe
 
+## Updating to a new version
+1. Unzip the new version
+2. Start the TabletDriverGUI.exe
 
-### Uninstall
-1. Run "remove_vmulti_driver.bat"
-2. Run "remove_huion_64.bat", which is located at the "driver_huion" directory.
+## Uninstallation
+1. Uncheck the "Run at Windows startup" option in the GUI.
+2. Run `remove_vmulti_driver.bat`
+3. Run `remove_huion_64.bat`, which is in the `driver_huion` directory.
 
 #
 
-### VMulti and Huion drivers
+## VMulti and Huion driver binaries
 
 If you want to compile the code and don't want to install anything from the TabletDriver binary package, you will need extract the missing drivers from these installation packages:
 
@@ -83,7 +85,7 @@ If you want to compile the code and don't want to install anything from the Tabl
 
 #
 
-### Changelog
+## Changelog
 
 >**v0.1.0:**
 > - Added `Bench` / `Benchmark` command.

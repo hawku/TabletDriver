@@ -53,9 +53,10 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 ### Install
 
 1. You might need to install these libraries, but usually these are already installed:
-* https://aka.ms/vs/15/release/vc_redist.x86.exe
-* https://aka.ms/vs/15/release/vc_redist.x64.exe
-* https://www.microsoft.com/en-us/download/details.aspx?id=53587 (x64 and x86)
+    * https://www.microsoft.com/net/download/dotnet-framework-runtime
+    * https://aka.ms/vs/15/release/vc_redist.x86.exe
+    * https://aka.ms/vs/15/release/vc_redist.x64.exe
+    * https://www.microsoft.com/en-us/download/details.aspx?id=53587 (x64 and x86)
 
 2. Unzip the driver to a folder (Shorter path is recommended, for example C:\Temp\TabletDriver)
 3. Uninstall all other tablet drivers.

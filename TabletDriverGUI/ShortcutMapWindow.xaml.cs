@@ -8,8 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using WindowsInput.Native;
-using WindowsInput;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -26,21 +24,25 @@ namespace TabletDriverGUI
         [DllImport("User32.Dll", EntryPoint = "PostMessageA")]
         private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
 
-        public Key PressedKey;
+        public List<ModifierKeys>   ModifierKey;
+        public Key                  PressedKey;
 
         public ShortcutMapWindow()
         {
+            ModifierKey = new List<ModifierKeys>();
             InitializeComponent();
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
-            PressedKey = e.Key;
+            ModifierKey.Clear();
 
             e.Handled = true;
 
             // Fetch the actual shortcut key.
             Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
+
+            PressedKey = key;
 
             // Ignore modifier keys.
             if (key == Key.LeftShift || key == Key.RightShift
@@ -55,14 +57,17 @@ namespace TabletDriverGUI
             StringBuilder shortcutText = new StringBuilder();
             if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
             {
+                ModifierKey.Add(ModifierKeys.Control);
                 shortcutText.Append("Ctrl+");
             }
             if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0)
             {
+                ModifierKey.Add(ModifierKeys.Shift);
                 shortcutText.Append("Shift+");
             }
             if ((Keyboard.Modifiers & ModifierKeys.Alt) != 0)
             {
+                ModifierKey.Add(ModifierKeys.Alt);
                 shortcutText.Append("Alt+");
             }
             shortcutText.Append(key.ToString());
@@ -78,19 +83,6 @@ namespace TabletDriverGUI
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
-            //Process[] processes = Process.GetProcesses();
-            //foreach (Process proc in processes)
-            //{
-            //    const uint WM_KEYDOWN = 0x0100;
-            //    PostMessage(proc.MainWindowHandle, WM_KEYDOWN, 0xBE, 0);
-            //    PostMessage(proc.MainWindowHandle, WM_KEYDOWN, 0x63, 0);
-                //SetForegroundWindow(proc.MainWindowHandle);
-                //System.Windows.Forms.SendKeys.SendWait("(.3)");
-            //}
-
-            //InputSimulator inputSimulator = new InputSimulator();
-            //inputSimulator.Keyboard.ModifiedKeyStroke(VirtualKeyCode.MENU, VirtualKeyCode.F4);
-            //System.Windows.Forms.SendKeys.SendWait("(%{F4})");
         }
     }
 }

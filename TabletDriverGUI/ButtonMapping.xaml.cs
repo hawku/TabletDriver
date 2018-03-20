@@ -26,7 +26,7 @@ namespace TabletDriverGUI
     };
 
     /// <summary>
-    /// Logique d'interaction pour ButtonMapping.xaml
+    /// Interaction logic for ButtonMapping.xaml
     /// </summary>
     public partial class ButtonMapping : Window
     {
@@ -179,7 +179,11 @@ namespace TabletDriverGUI
 
                 if (shortcutMapWindow.DialogResult == true)
                 {
-
+                    Console.WriteLine(shortcutMapWindow.PressedKey.ToString());
+                    for (var i = 0; i < shortcutMapWindow.ModifierKey.Count; ++i)
+                    {
+                        Console.WriteLine(shortcutMapWindow.ModifierKey[i].ToString());
+                    }
                 }
 
                 shortcutMapWindow.Close();

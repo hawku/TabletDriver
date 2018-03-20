@@ -276,6 +276,27 @@ bool ProcessCommand(CommandLine *cmd) {
 	}
 
 
+
+	//
+	// Tablet buttons macro
+	//
+	else if (cmd->is("TabletMacro") && cmd->valueCount == 2) {
+		if (!CheckTablet()) return true;
+		int indexToBeAssigned = cmd->GetInt(0, -1);
+		string macroToBeAssigned = cmd->GetString(1, "undefined");
+
+		if (indexToBeAssigned != -1 && macroToBeAssigned != "undefined")
+		{
+			tablet->buttonTabletMap[indexToBeAssigned] = macroToBeAssigned;
+			LOG_INFO("Set the macro '%s' to the tablet button [%d]", macroToBeAssigned, indexToBeAssigned);
+		}
+		else
+		{
+			LOG_INFO("Invalid command for TabletMacro, try this instead: TabletMacro index_to_modify macro_to_assign");
+		}
+	}
+
+
 	// Screen Map Area
 	else if(cmd->is("ScreenArea") || cmd->is("Screen")) {
 		if(!CheckTablet()) return true;

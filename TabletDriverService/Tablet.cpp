@@ -26,11 +26,20 @@ Tablet::Tablet(string usbGUID, int stringId, string stringMatch) : Tablet() {
 Tablet::Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage) : Tablet() {
 	//_construct();
 	hidDevice = new HIDDevice(vendorId, productId, usagePage, usage);
-	if(hidDevice->isOpen) {
+	if (hidDevice->isOpen) {
 		this->isOpen = true;
-	} else {
+	}
+	else {
 		delete hidDevice;
 		hidDevice = NULL;
+	}
+	hidDevice2 = new HIDDevice(vendorId, productId, usagePage, usage);
+	if (hidDevice2->isOpen) {
+		this->isOpen = true;
+	}
+	else {
+		delete hidDevice2;
+		hidDevice2 = NULL;
 	}
 }
 
@@ -83,6 +92,7 @@ Tablet::Tablet() {
 
 	// Button map
 	memset(&buttonMap, 0, sizeof(buttonMap));
+	memset(&buttonTabletMap, 0, sizeof(buttonTabletMap));
 	buttonMap[0] = 1;
 	buttonMap[1] = 2;
 	buttonMap[2] = 3;
@@ -345,6 +355,7 @@ void Tablet::CloseDevice() {
 			usbDevice->CloseDevice();
 		} else if(hidDevice != NULL) {
 			hidDevice->CloseDevice();
+			hidDevice2->CloseDevice();
 		}
 	}
 	isOpen = false;

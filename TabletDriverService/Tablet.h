@@ -90,6 +90,7 @@ public:
 
 	// Button map
 	BYTE buttonMap[16];
+	string buttonTabletMap[16];
 
 	//
 	string name = "Unknown";

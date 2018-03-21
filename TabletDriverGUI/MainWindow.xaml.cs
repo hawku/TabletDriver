@@ -79,6 +79,7 @@ namespace TabletDriverGUI
             }
         }
         MouseDrag mouseDrag;
+        private double value;
 
         //
         // Constructor
@@ -190,11 +191,11 @@ namespace TabletDriverGUI
             // Filter rate ComboBox
             //
             comboBoxFilterRate.Items.Clear();
-            for (int i = 2; i <= 8; i++)
+            for (int i = 1; i <= 8; i++)
             {
                 comboBoxFilterRate.Items.Add((1000.0 / i).ToString("0") + " Hz");
             }
-            comboBoxFilterRate.SelectedIndex = 2;
+            comboBoxFilterRate.SelectedIndex = 1;
 
             // Process command line arguments
             ProcessCommandLineArguments();
@@ -483,7 +484,7 @@ namespace TabletDriverGUI
             //
             checkBoxFilter.IsChecked = config.FilterEnabled;
             textFilterLatency.Text = GetNumberString(config.FilterLatency);
-            comboBoxFilterRate.SelectedIndex = config.FilterInterval - 2;
+            comboBoxFilterRate.SelectedIndex = config.FilterInterval - 1;
             if (config.FilterEnabled)
             {
                 textFilterLatency.IsEnabled = true;
@@ -535,7 +536,7 @@ namespace TabletDriverGUI
             bool oldValue;
 
             // Tablet area
-            if (ParseNumber(textTabletAreaWidth.Text, out double value))
+            if (ParseNumber(textTabletAreaWidth.Text, out value))
                 config.TabletArea.Width = value;
             if (ParseNumber(textTabletAreaHeight.Text, out value))
                 config.TabletArea.Height = value;
@@ -622,7 +623,7 @@ namespace TabletDriverGUI
 
             // Filter
             config.FilterEnabled = (bool)checkBoxFilter.IsChecked;
-            config.FilterInterval = comboBoxFilterRate.SelectedIndex + 2;
+            config.FilterInterval = comboBoxFilterRate.SelectedIndex + 1;
             if (ParseNumber(textFilterLatency.Text, out value))
                 config.FilterLatency = value;
 
@@ -671,7 +672,8 @@ namespace TabletDriverGUI
         private bool ParseNumber(string str, out double value)
         {
             value = 0;
-            if (double.TryParse(str, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, cultureEnglish.NumberFormat, out double tmp))
+            double tmp;
+            if (double.TryParse(str, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, cultureEnglish.NumberFormat, out tmp))
             {
                 value = tmp;
                 return true;
@@ -1515,7 +1517,7 @@ namespace TabletDriverGUI
             //
             if (variableName == "width")
             {
-                if (ParseNumber(stringValue, out double value))
+                if (ParseNumber(stringValue, out value))
                 {
                     config.TabletFullArea.Width = value;
                     config.TabletFullArea.X = value / 2.0;
@@ -1531,7 +1533,7 @@ namespace TabletDriverGUI
             //
             if (variableName == "height")
             {
-                if (ParseNumber(stringValue, out double value))
+                if (ParseNumber(stringValue, out value))
                 {
                     config.TabletFullArea.Height = value;
                     config.TabletFullArea.Y = value / 2.0;
@@ -1978,11 +1980,12 @@ namespace TabletDriverGUI
             // Set button clicked
             if (wacom.DialogResult == true)
             {
+                double left, right, top, bottom;
                 if (
-                    ParseNumber(wacom.textWacomLeft.Text, out double left) &&
-                    ParseNumber(wacom.textWacomRight.Text, out double right) &&
-                    ParseNumber(wacom.textWacomTop.Text, out double top) &&
-                    ParseNumber(wacom.textWacomBottom.Text, out double bottom)
+                    ParseNumber(wacom.textWacomLeft.Text, out left) &&
+                    ParseNumber(wacom.textWacomRight.Text, out right) &&
+                    ParseNumber(wacom.textWacomTop.Text, out top) &&
+                    ParseNumber(wacom.textWacomBottom.Text, out bottom)
                 )
                 {
                     double width, height;

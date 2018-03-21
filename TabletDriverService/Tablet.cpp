@@ -210,19 +210,25 @@ void Tablet::SetFilterLatency(double latency) {
 //
 void Tablet::ProcessFilter() {
 
-	double deltaX, deltaY, distance;
+	double deltaX, deltaY, distance, weightModifier;
 
 	deltaX = filter.targetX - filter.x;
 	deltaY = filter.targetY - filter.y;
 	distance = sqrt(deltaX*deltaX + deltaY * deltaY);
 
-	// Distance large enough?
-	if(distance > 0.01) {
+	// Regular smoothing
+	if (distance > 0.17) {
 		filter.x += deltaX * filter.weight;
 		filter.y += deltaY * filter.weight;
-
-	// Too small distance -> set output values as target values
-	} else {
+	}
+	// Strong smoothing on small distances to avoid tablet noise (it needs up to 0.3 near borders in some places or when pen is very high, but ~0.17 is enough in most cases)
+	else if (distance <= 0.17 & distance > 0.00001) {
+		weightModifier = pow(distance, 50);
+		if (weightModifier > 1) weightModifier = 1;
+		filter.x += deltaX * (filter.weight * weightModifier);
+		filter.y += deltaY * (filter.weight * weightModifier);
+	}
+	else {
 		filter.x = filter.targetX;
 		filter.y = filter.targetY;
 	}

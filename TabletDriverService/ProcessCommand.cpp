@@ -25,9 +25,9 @@ bool ProcessCommand(CommandLine *cmd) {
 			if(tablet == NULL) {
 				tablet = new Tablet(guid, stringId, stringMatch);
 				if(tablet->isOpen) {
-					LOG_INFO("Tablet open!\n");
+					LOG_INFO("Tablet found!\n");
 				} else {
-					LOG_ERROR("Can't open USB tablet '%s' %d '%s'\n", guid.c_str(), stringId, stringMatch.c_str());
+					LOG_WARNING("Can't open USB tablet '%s' %d '%s'\n", guid.c_str(), stringId, stringMatch.c_str());
 					delete tablet;
 					tablet = NULL;
 				}
@@ -43,9 +43,9 @@ bool ProcessCommand(CommandLine *cmd) {
 			if(tablet == NULL) {
 				tablet = new Tablet(vendorID, productID, usagePage, usage);
 				if(tablet->isOpen) {
-					LOG_INFO("Tablet open!\n");
+					LOG_INFO("Tablet found!\n");
 				} else {
-					LOG_ERROR("Can't open HID tablet 0x%04X 0x%04X 0x%04X 0x%04X\n", vendorID, productID, usagePage, usage);
+					LOG_WARNING("Can't open HID tablet 0x%04X 0x%04X 0x%04X 0x%04X\n", vendorID, productID, usagePage, usage);
 					delete tablet;
 					tablet = NULL;
 				}
@@ -84,6 +84,18 @@ bool ProcessCommand(CommandLine *cmd) {
 		}
 	}
 
+	// HID List
+	else if(cmd->is("HIDList")) {
+		HANDLE hidHandle = 0;
+		HIDDevice *hid = new HIDDevice();
+		hid->debugEnabled = true;
+		hid->OpenDevice(&hidHandle, 1, 1, 1, 1);
+		if(hidHandle > 0) {
+			CloseHandle(hidHandle);
+		}
+		delete hid;
+	}
+
 
 	// HID Device 2
 	else if(cmd->is("HID2")) {
@@ -96,7 +108,7 @@ bool ProcessCommand(CommandLine *cmd) {
 			if(tablet->hidDevice2 == NULL) {
 				tablet->hidDevice2 = new HIDDevice(vendorID, productID, usagePage, usage);
 				if(tablet->hidDevice2->isOpen) {
-					LOG_INFO("HID Device open!\n");
+					LOG_INFO("HID Device found!\n");
 				} else {
 					LOG_ERROR("Can't open HID device 0x%04X 0x%04X 0x%04X 0x%04X\n", vendorID, productID, usagePage, usage);
 					delete tablet->hidDevice2;
@@ -160,6 +172,14 @@ bool ProcessCommand(CommandLine *cmd) {
 		if(tablet == NULL) return false;
 		tablet->settings.clickPressure = cmd->GetInt(0, tablet->settings.clickPressure);
 		LOG_INFO("Tablet click pressure = %d\n", tablet->settings.clickPressure);
+	}
+
+
+	// Keep pen tip down
+	else if(cmd->is("KeepTipDown")) {
+		if(tablet == NULL) return false;
+		tablet->settings.keepTipDown = cmd->GetInt(0, tablet->settings.keepTipDown);
+		LOG_INFO("Tablet pen tip keep down = %d packets\n", tablet->settings.keepTipDown);
 	}
 
 
@@ -456,17 +476,42 @@ bool ProcessCommand(CommandLine *cmd) {
 		// Set threshold
 		tablet->filter.threshold = threshold;
 
-		// Set weight
-		tablet->filter.weight = tablet->GetFilterWeight(latency);
-		
+		// Set filter latency
+		tablet->SetFilterLatency(latency);
+
 		// Print output
 		if(tablet->filter.weight < 1.0) {
 			tablet->filter.isEnabled = true;
-			LOG_INFO("Tablet filter = %0.2f ms to reach %0.0f%% (weight = %f)\n", latency, tablet->filter.threshold*100, tablet->filter.weight);
+			LOG_INFO("Filter = %0.2f ms to reach %0.0f%% (weight = %f)\n", latency, tablet->filter.threshold * 100, tablet->filter.weight);
 		} else {
 			tablet->filter.isEnabled = false;
-			LOG_INFO("Tablet filter = off\n");
+			LOG_INFO("Filter = off\n");
 		}
+	}
+
+	//
+	// Smoothing filter interval
+	//
+	else if(cmd->is("FilterInterval")) {
+		int interval = cmd->GetInt(0, (int)round(tablet->filter.interval));
+
+		// 10 Hz
+		if(interval > 100) interval = 100;
+
+		// 1000 Hz
+		if(interval < 1) interval = 1;
+
+		// Interval changed?
+		if(interval != (int)round(tablet->filter.interval)) {
+			tablet->filter.interval = interval;
+			tablet->SetFilterLatency(tablet->filter.latency);
+			if(tablet->StopFilterTimer()) {
+				tablet->StartFilterTimer();
+			}
+		}
+
+		LOG_INFO("Filter Interval = %d (%0.2f Hz, %0.2f ms, %f)\n", interval, 1000.0 / interval, tablet->filter.latency, tablet->filter.weight);
+
 	}
 
 	// Debug
@@ -483,9 +528,9 @@ bool ProcessCommand(CommandLine *cmd) {
 		string logPath = cmd->GetString(0, "log.txt");
 		if(!cmd->GetBoolean(0, true)) {
 			logger.CloseLogFile();
-			LOG_INFO("Logging stopped!\n");
+			LOG_INFO("Log file '%s' closed.\n", logger.logFilename.c_str());
 		} else if(logger.OpenLogFile(logPath)) {
-			LOG_INFO("Log file '%s' opened!\n", logPath.c_str());
+			LOG_INFO("Log file '%s' opened.\n", logPath.c_str());
 		} else {
 			LOG_ERROR("Cant open log file!\n");
 		}
@@ -495,14 +540,15 @@ bool ProcessCommand(CommandLine *cmd) {
 	// Wait
 	else if(cmd->is("Wait")) {
 		int waitTime = cmd->GetInt(0, 0);
-		LOG_INFO("Waiting %d milliseconds...\n", waitTime);
 		Sleep(waitTime);
-		LOG_INFO("Done!\n", waitTime);
 	}
 
 	// Log
 	else if(cmd->is("LogDirect")) {
+		logger.ProcessMessages();
 		logger.directPrint = cmd->GetBoolean(0, logger.directPrint);
+		logger.ProcessMessages();
+
 		LOG_INFO("Log direct print = %s\n", logger.directPrint ? "True" : "False");
 	}
 
@@ -517,6 +563,65 @@ bool ProcessCommand(CommandLine *cmd) {
 	else if(cmd->is("Info")) {
 		if(!CheckTablet()) return true;
 		LogInformation();
+	}
+
+	// Info
+	else if(cmd->is("Status")) {
+		if(!CheckTablet()) return true;
+		LogStatus();
+	}
+
+	// Info
+	else if(cmd->is("Benchmark") || cmd->is("Bench")) {
+		if(!CheckTablet()) return true;
+
+		int timeLimit;
+		int packetCount = cmd->GetInt(0, 200);
+		if(packetCount < 10) packetCount = 10;
+		if(packetCount > 1000) packetCount = 1000;
+		timeLimit = packetCount * 10;
+		if(timeLimit < 1000) timeLimit = 1000;
+
+		LOG_INFO("Tablet benchmark starting in 3 seconds!\n");
+		LOG_INFO("Keep the pen stationary on top of the tablet!\n");
+		Sleep(3000);
+		LOG_INFO("Benchmark started!\n");
+		tablet->StartBenchmark(packetCount);
+
+		// Log the benchmark result
+		for(int i = 0; i < timeLimit / 100; i++) {
+			Sleep(100);
+			if(tablet->benchmark.packetCounter <= 0) {
+
+				double width = tablet->benchmark.maxX - tablet->benchmark.minX;
+				double height = tablet->benchmark.maxY - tablet->benchmark.minY;
+				LOG_INFO("Benchmark done!\n");
+				LOG_INFO("Results from %d tablet positions:\n", tablet->benchmark.totalPackets);
+				LOG_INFO("  X range: %0.3f mm <-> %0.3f mm\n", tablet->benchmark.minX, tablet->benchmark.maxX);
+				LOG_INFO("  Y range: %0.3f mm <-> %0.3f mm\n", tablet->benchmark.minY, tablet->benchmark.maxY);
+				LOG_INFO("  Width: %0.3f mm, %0.2f pixels @ %0.0f px, %0.2f mm\n",
+					width,
+					mapper->areaScreen.width / mapper->areaTablet.width * width,
+					mapper->areaScreen.width,
+					mapper->areaTablet.width
+				);
+				LOG_INFO("  Height: %0.3f mm, %0.2f pixels @ %0.0f px, %0.2f mm\n",
+					height,
+					mapper->areaScreen.height / mapper->areaTablet.height* height,
+					mapper->areaScreen.height,
+					mapper->areaTablet.height
+				);
+				break;
+			}
+		}
+		if(tablet->benchmark.packetCounter > 0) {
+			LOG_ERROR("Benchmark failed!\n");
+			LOG_ERROR("Not enough packets captured in %0.2f seconds!\n",
+				timeLimit / 1000.0
+			);
+		}
+
+
 	}
 
 
@@ -611,8 +716,9 @@ void LogInformation() {
 	LOG_INFO("  Max Y = %d\n", tablet->settings.maxY);
 	LOG_INFO("  Max Pressure = %d\n", tablet->settings.maxPressure);
 	LOG_INFO("  Click Pressure = %d\n", tablet->settings.clickPressure);
+	LOG_INFO("  Keep Tip Down = %d packets\n", tablet->settings.keepTipDown);
 	LOG_INFO("  Report Id = %02X\n", tablet->settings.reportId);
-	LOG_INFO("  Report Length = %d\n", tablet->settings.reportLength);
+	LOG_INFO("  Report Length = %d bytes\n", tablet->settings.reportLength);
 	LOG_INFO("  Button Mask = 0x%02X\n", tablet->settings.buttonMask);
 
 	for(int i = 0; i < 8; i++) {
@@ -650,6 +756,31 @@ void LogInformation() {
 	LOG_INFO("\n");
 }
 
+//
+// Log Status
+//
+void LogStatus() {
+	LOG_STATUS("TABLET %s\n", tablet->name.c_str());
+
+	if(tablet->hidDevice != NULL) {
+		LOG_STATUS("HID %04X %04X %04X %04X\n",
+			tablet->hidDevice->vendorId,
+			tablet->hidDevice->productId,
+			tablet->hidDevice->usagePage,
+			tablet->hidDevice->usage
+		);
+	} else if(tablet->usbDevice != NULL) {
+		LOG_STATUS("USB %d %s\n",
+			tablet->usbDevice->stringId,
+			tablet->usbDevice->stringMatch.c_str()
+		);
+	}
+	LOG_STATUS("WIDTH %0.5f\n", tablet->settings.width);
+	LOG_STATUS("HEIGHT %0.5f\n", tablet->settings.height);
+	LOG_STATUS("MAX_X %d\n", tablet->settings.maxX);
+	LOG_STATUS("MAX_Y %d\n", tablet->settings.maxY);
+	LOG_STATUS("MAX_PRESSURE %d\n", tablet->settings.maxPressure);
+}
 
 //
 // Log tablet area

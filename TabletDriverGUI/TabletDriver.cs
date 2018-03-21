@@ -2,27 +2,18 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Timers;
 
 namespace TabletDriverGUI
 {
     public class TabletDriver
     {
+        // Event handlers
         public delegate void DriverEventHandler(object sender, DriverEventArgs e);
-
         public event DriverEventHandler MessageReceived;
         public event DriverEventHandler ErrorReceived;
         public event EventHandler Started;
         public event EventHandler Stopped;
-
-
-        public List<string> ConsoleBuffer;
-        public bool HasConsoleUpdated;
-        private int ConsoleMaxLines;
-        private Mutex mutexConsoleUpdate;
-
-
         public enum DriverEventType
         {
             Error,
@@ -39,27 +30,37 @@ namespace TabletDriverGUI
             }
         }
 
+        // Console stuff
+        public List<string> ConsoleBuffer;
+        public bool HasConsoleUpdated;
+        private int ConsoleMaxLines;
+        private System.Threading.Mutex mutexConsoleUpdate;
+
+        // Other variables
         private string servicePath;
         private Process processService;
-        private System.Timers.Timer timerWatchdog;
+        private Timer timerWatchdog;
         private bool running;
+        public bool IsRunning { get { return running; } }
 
+        //
+        // Constructor
+        //
         public TabletDriver(string servicePath)
         {
             this.servicePath = servicePath;
-            timerWatchdog = new System.Timers.Timer(1000);
+            this.processService = null;
+            timerWatchdog = new Timer(2000);
             timerWatchdog.Elapsed += TimerWatchdog_Elapsed;
 
             ConsoleMaxLines = 300;
             ConsoleBuffer = new List<string>(ConsoleMaxLines);
-            mutexConsoleUpdate = new Mutex();
+            mutexConsoleUpdate = new System.Threading.Mutex();
         }
 
-        // 
-        public bool IsRunning { get { return running; } }
-
-
-        // Watchdog timer
+        //
+        // Driver watchdog
+        //
         private void TimerWatchdog_Elapsed(object sender, ElapsedEventArgs e)
         {
             if (running)
@@ -67,13 +68,26 @@ namespace TabletDriverGUI
                 //Console.WriteLine("ID: " + processDriver.Id);
                 if (processService.HasExited)
                 {
-                    RaiseError("Watchdog detected a driver service shutdown!");
+                    RaiseError("Driver watchdog detected a service shutdown!");
                     Stop();
+                }
+
+                processService.Refresh();
+                switch(processService.PriorityClass)
+                {
+                    case ProcessPriorityClass.High:
+                    case ProcessPriorityClass.RealTime:
+                        break;
+                    default:
+                        RaiseError("TabletDriverService priority too low! Run the GUI as an administrator or change the priority to high!");
+                        break;
                 }
             }
         }
 
-
+        //
+        // Send command to the driver service
+        //
         public void SendCommand(string line)
         {
             if (running)
@@ -90,7 +104,7 @@ namespace TabletDriverGUI
             HasConsoleUpdated = true;
 
             // Limit console buffer size
-            if (ConsoleBuffer.Count >= ConsoleMaxLines) 
+            if (ConsoleBuffer.Count >= ConsoleMaxLines)
                 ConsoleBuffer.RemoveRange(0, ConsoleBuffer.Count - ConsoleMaxLines);
 
             mutexConsoleUpdate.ReleaseMutex();
@@ -98,43 +112,55 @@ namespace TabletDriverGUI
 
 
         //
-        // Console lock
+        // Console mutex lock
         //
         public void ConsoleLock()
         {
             mutexConsoleUpdate.WaitOne();
         }
-
+        // Console mutex unlock
         public void ConsoleUnlock()
         {
             mutexConsoleUpdate.ReleaseMutex();
         }
 
 
+        //
+        // Raise error message
+        //
         private void RaiseError(string text)
         {
             ErrorReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Error, text));
         }
 
         //
-        // Handle driver service process events
+        // Driver service disposed
         //
         private void ProcessService_Disposed(object sender, EventArgs e)
         {
             Stop();
         }
 
+        //
+        // Driver service exited
+        //
         private void ProcessService_Exited(object sender, EventArgs e)
         {
             Stop();
         }
 
+        //
+        // Driver service error received
+        //
         private void ProcessService_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
             ConsoleAddText("ERROR! " + e.Data);
             ErrorReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Error, e.Data));
         }
 
+        //
+        // Driver service data received
+        //
         private void ProcessService_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (e.Data == null)
@@ -150,17 +176,17 @@ namespace TabletDriverGUI
         }
 
         //
-        // Start driver
+        // Start the driver service
         //
         public void Start(string processPath, string arguments)
         {
 
-            if(!File.Exists(processPath))
+            if (!File.Exists(processPath))
             {
                 throw new FileNotFoundException(processPath + " not found!");
             }
 
- 
+
             // Try to start the driver
             try
             {
@@ -196,7 +222,8 @@ namespace TabletDriverGUI
                     try
                     {
                         processService.PriorityClass = ProcessPriorityClass.High;
-                    } catch(Exception)
+                    }
+                    catch (Exception)
                     {
                     }
 
@@ -222,7 +249,7 @@ namespace TabletDriverGUI
 
 
         //
-        // Stop driver
+        // Stop the driver service
         //
         public void Stop()
         {

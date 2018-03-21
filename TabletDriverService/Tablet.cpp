@@ -54,8 +54,6 @@ Tablet::Tablet() {
 	hidDevice2 = NULL;
 
 	usbPipeId = 0;
-	isOpen = false;
-	debugEnabled = false;
 
 	// Initial settings
 	settings.reportId = 0;
@@ -73,6 +71,7 @@ Tablet::Tablet() {
 	// Initial filter settings
 	filter.timer = NULL;
 	filter.interval = 2.0;
+	filter.latency = 2.0;
 	filter.weight = 1.000;
 	filter.threshold = 0.9;
 	filter.isEnabled = false;
@@ -90,11 +89,26 @@ Tablet::Tablet() {
 	// Reset state
 	memset(&state, 0, sizeof(state));
 
+	// Reset benchmark
+	memset(&benchmark, 0, sizeof(benchmark));
+
 	// Button map
 	memset(&buttonMap, 0, sizeof(buttonMap));
 	buttonMap[0] = 1;
 	buttonMap[1] = 2;
 	buttonMap[2] = 3;
+
+	// Tablet connection open
+	isOpen = false;
+
+	// Debug output
+	debugEnabled = false;
+
+	// Skip first packets, some of those might be invalid.
+	skipPackets = 5;
+
+	// Keep tip down packet counter
+	tipDownCounter = 0;
 
 }
 
@@ -194,6 +208,11 @@ double Tablet::GetFilterWeight(double latency) {
 	return this->GetFilterWeight(latency, filter.interval, filter.threshold);
 }
 
+// Set filter values
+void Tablet::SetFilterLatency(double latency) {
+	tablet->filter.weight = tablet->GetFilterWeight(latency);
+	tablet->filter.latency = latency;
+}
 
 //
 // Process filter
@@ -221,6 +240,48 @@ void Tablet::ProcessFilter() {
 
 
 //
+// Start Filter Timer
+//
+bool Tablet::StartFilterTimer() {
+	return CreateTimerQueueTimer(
+		&filter.timer,
+		NULL, filter.callback,
+		NULL,
+		0,
+		(int)filter.interval,
+		WT_EXECUTEDEFAULT
+	);
+}
+
+
+//
+// Stop Filter Timer
+//
+bool Tablet::StopFilterTimer() {
+	if(tablet->filter.timer == NULL) return false;
+	bool result = DeleteTimerQueueTimer(NULL, filter.timer, NULL);
+	if(result) {
+		filter.timer = NULL;
+	}
+	return result;
+}
+
+
+//
+// Start tablet benchmark
+//
+void Tablet::StartBenchmark(int packetCount) {
+	tablet->benchmark.maxX = -10000;
+	tablet->benchmark.maxY = -10000;
+	tablet->benchmark.minX = 10000;
+	tablet->benchmark.minY = 10000;
+	tablet->benchmark.totalPackets = packetCount;
+	tablet->benchmark.packetCounter = packetCount;
+}
+
+
+
+//
 // Read Position
 //
 int Tablet::ReadPosition() {
@@ -233,6 +294,12 @@ int Tablet::ReadPosition() {
 		return -1;
 	}
 
+	// Skip packets
+	if(skipPackets > 0) {
+		skipPackets--;
+		return Tablet::PacketInvalid;
+	}
+
 	// Validate packet id
 	if(settings.reportId > 0 && buffer[0] != settings.reportId) {
 		return Tablet::PacketInvalid;
@@ -242,17 +309,11 @@ int Tablet::ReadPosition() {
 	// Wacom Intuos data format
 	//
 	if(settings.type == TypeWacomIntuos) {
-
 		reportData.x = ((buffer[2] * 0x100 + buffer[3]) << 1) | ((buffer[9] >> 1) & 1);
 		reportData.y = ((buffer[4] * 0x100 + buffer[5]) << 1) | (buffer[9] & 1);
 		reportData.pressure = (buffer[6] << 3) | ((buffer[7] & 0xC0) >> 5) | (buffer[1] & 1);
 		reportData.reportId = buffer[0];
-		reportData.buttons = buffer[1];
-		/*
-		if(debugEnabled) {
-			LOG_DEBUG("%d, %d, %d, %d\n", reportData.buttons, reportData.x, reportData.y, reportData.pressure);
-		}
-		*/
+		reportData.buttons = buffer[1] & ~0x01;
 		//distance = buffer[9] >> 2;
 
 	//
@@ -263,6 +324,11 @@ int Tablet::ReadPosition() {
 	}
 
 
+	// Validate position
+	if(settings.buttonMask > 0 && (reportData.buttons & settings.buttonMask) != settings.buttonMask) {
+		return Tablet::PacketPositionInvalid;
+	}
+
 	//
 	// Use pen pressure to detect the pen tip click
 	//
@@ -271,15 +337,22 @@ int Tablet::ReadPosition() {
 		if(reportData.pressure > settings.clickPressure) {
 			reportData.buttons |= 1;
 		}
-	}
-	else if(reportData.pressure > 10) {
+
+	// Force tip button if pressure is detected
+	} else if(reportData.pressure > 10) {
 		reportData.buttons |= 1;
 	}
 
-	// Validate position
-	if(settings.buttonMask > 0 && (reportData.buttons & settings.buttonMask) != settings.buttonMask) {
-		return Tablet::PacketPositionInvalid;
+	// Keep pen tip button down for a few packets
+	if(settings.keepTipDown > 0) {
+		if(reportData.buttons & 0x01) {
+			tipDownCounter = settings.keepTipDown;
+		}
+		if(tipDownCounter-- >= 0) {
+			reportData.buttons |= 1;
+		}
 	}
+
 
 
 
@@ -309,6 +382,19 @@ int Tablet::ReadPosition() {
 	}
 	state.pressure = ((double)reportData.pressure / (double)settings.maxPressure);
 
+	//
+	// Tablet benchmark
+	//
+	if(benchmark.packetCounter > 0) {
+
+		// Set min & max
+		if(state.x < benchmark.minX) benchmark.minX = state.x;
+		if(state.x > benchmark.maxX) benchmark.maxX = state.x;
+		if(state.y < benchmark.minY) benchmark.minY = state.y;
+		if(state.y > benchmark.maxY) benchmark.maxY = state.y;
+
+		benchmark.packetCounter--;
+	}
 
 	// Packet and position is valid
 	return Tablet::PacketValid;

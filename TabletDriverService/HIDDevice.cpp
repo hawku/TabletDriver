@@ -4,17 +4,21 @@
 #define LOG_MODULE "HIDDevice"
 #include "Logger.h"
 
-HIDDevice::HIDDevice(USHORT VendorId, USHORT ProductId, USHORT UsagePage, USHORT Usage) {
+HIDDevice::HIDDevice(USHORT VendorId, USHORT ProductId, USHORT UsagePage, USHORT Usage) : HIDDevice() {
 	this->vendorId = VendorId;
 	this->productId = ProductId;
 	this->usagePage = UsagePage;
 	this->usage = Usage;
-	isOpen = false;
-	_deviceHandle = NULL;
-	if(this->OpenDevice(&_deviceHandle, vendorId, productId, usagePage, usage)) {
+	if(this->OpenDevice(&this->_deviceHandle, this->vendorId, this->productId, this->usagePage, this->usage)) {
 		isOpen = true;
 	}
 }
+
+HIDDevice::HIDDevice() {
+	isOpen = false;
+	_deviceHandle = NULL;
+}
+
 HIDDevice::~HIDDevice() {
 	CloseDevice();
 }
@@ -26,6 +30,7 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 	SP_DEVINFO_DATA                  deviceInfoData;
 	DWORD dwSize, dwMemberIdx;
 	GUID hidGuid;
+	BYTE stringBytes[1024];
 
 	PHIDP_PREPARSED_DATA hidPreparsedData;
 	HIDD_ATTRIBUTES hidAttributes;
@@ -44,7 +49,7 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 		return false;
 	}
 
-	// Enum device interface data
+	// Enumerate device interface data
 	deviceInterfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
 	dwMemberIdx = 0;
 	SetupDiEnumDeviceInterfaces(deviceInfo, NULL, &hidGuid, dwMemberIdx, &deviceInterfaceData);
@@ -61,42 +66,88 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 		// Get interface detail
 		if(SetupDiGetDeviceInterfaceDetail(deviceInfo, &deviceInterfaceData, deviceInterfaceDetailData, dwSize, &dwSize, &deviceInfoData)) {
 
-			// Create File            
-			deviceHandle = CreateFile(deviceInterfaceDetailData->DevicePath,
-									  GENERIC_READ | GENERIC_WRITE,
-									  FILE_SHARE_READ | FILE_SHARE_WRITE,
-									  NULL,
-									  OPEN_EXISTING,
-									  0,
-									  NULL);
+			// Open HID
+			deviceHandle = CreateFile(
+				deviceInterfaceDetailData->DevicePath,
+				GENERIC_READ | GENERIC_WRITE,
+				FILE_SHARE_READ | FILE_SHARE_WRITE,
+				NULL,
+				OPEN_EXISTING,
+				0,
+				NULL);
 
-			if (deviceHandle != INVALID_HANDLE_VALUE) {
+			// HID handle valid?
+			if(deviceHandle != INVALID_HANDLE_VALUE) {
+
 				// HID Attributes
 				HidD_GetAttributes(deviceHandle, &hidAttributes);
+
 				// HID Preparsed data
 				HidD_GetPreparsedData(deviceHandle, &hidPreparsedData);
-				// Capabilities
+
+				// HID Capabilities
 				HidP_GetCaps(hidPreparsedData, &hidCapabilities);
 
-				if (false && hidAttributes.VendorID == vendorId)
-					LOG_DEBUG("VID: %04X PID: %04X UP: %04X U: %04X\n",
-						hidAttributes.VendorID, hidAttributes.ProductID,
-						hidCapabilities.UsagePage, hidCapabilities.Usage);
+				// Debug logging
+				if(this->debugEnabled) {
 
-				// Set result file if this is the correct device
-				if (!resultHandle &&
+					string manufacturerName = "";
+					string productName = "";
+
+					// HID manufacturer string
+					if(HidD_GetManufacturerString(deviceHandle, &stringBytes, sizeof(stringBytes))) {
+						for(int i = 0; i < (int)sizeof(stringBytes); i += 2) {
+							if(stringBytes[i]) {
+								manufacturerName.push_back(stringBytes[i]);
+							} else {
+								break;
+							}
+						}
+					}
+
+					// HID product string
+					if(HidD_GetProductString(deviceHandle, &stringBytes, sizeof(stringBytes))) {
+						for(int i = 0; i < (int)sizeof(stringBytes); i += 2) {
+							if(stringBytes[i]) {
+								productName.push_back(stringBytes[i]);
+							} else {
+								break;
+							}
+						}
+					}
+
+					LOG_DEBUG("HID Device: Vendor: '%s' Product: '%s'\n", manufacturerName.c_str(), productName.c_str());
+					LOG_DEBUG("  Vendor Id: 0x%04X, Product Id: 0x%04X\n",
+						hidAttributes.VendorID,
+						hidAttributes.ProductID
+					);
+					LOG_DEBUG("  Usage Page: 0x%04X, Usage: 0x%04X\n",
+						hidCapabilities.UsagePage,
+						hidCapabilities.Usage
+					);
+					LOG_DEBUG("  FeatureLen: %d, InputLen: %d, OutputLen: %d\n",
+						hidCapabilities.FeatureReportByteLength,
+						hidCapabilities.InputReportByteLength,
+						hidCapabilities.OutputReportByteLength
+					);
+					LOG_DEBUG("\n");
+				}
+
+				// Set the result handle if this is the correct device
+				if(!resultHandle &&
 					hidAttributes.VendorID == vendorId &&
 					hidAttributes.ProductID == productId &&
 					hidCapabilities.UsagePage == usagePage &&
 					hidCapabilities.Usage == usage
-					) {
+				) {
 					resultHandle = deviceHandle;
 
-					// Close device
-				}
-				else {
+				// Close the HID handle if the device is incorrect
+				} else {
 					CloseHandle(deviceHandle);
 				}
+
+				// Free HID preparsed data
 				HidD_FreePreparsedData(hidPreparsedData);
 			}
 		}
@@ -104,8 +155,7 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 		// Free memory
 		delete deviceInterfaceDetailData;
 
-
-		// Enum next
+		// Get next interface data
 		SetupDiEnumDeviceInterfaces(deviceInfo, NULL, &hidGuid, ++dwMemberIdx, &deviceInterfaceData);
 	}
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -21,6 +22,33 @@ namespace TabletDriverGUI
             instanceMutex = new Mutex(true, "Local\\" + InstanceGuid.ToString());
             if (instanceMutex.WaitOne(TimeSpan.Zero, true))
             {
+
+                //
+                // Kill old TabletDriverService.exe instances
+                //
+                Process[] processes = Process.GetProcessesByName("TabletDriverService");
+                foreach (Process process in processes)
+                {
+                    if (process.ProcessName == "TabletDriverService")
+                    {
+                        try
+                        {
+                            process.Kill();
+                        }
+                        catch (Exception)
+                        {
+                            MessageBox.Show(
+                                "You have another TabletDriverService.exe running in the background. " +
+                                "Please shutdown that before starting the GUI!",
+                                "Error!", MessageBoxButton.OK, MessageBoxImage.Error
+                            );
+                            instanceMutex.ReleaseMutex();
+                            Shutdown();
+                            return;
+                        }
+                    }
+                }
+
                 MainWindow mainWindow = new MainWindow();
                 mainWindow.Show();
                 Exit += App_Exit;

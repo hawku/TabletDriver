@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -23,7 +24,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.0.13";
+        public string Version = "0.1.0";
 
         // Console stuff
         private List<string> commandHistory;
@@ -160,7 +161,24 @@ namespace TabletDriverGUI
                 Interval = new TimeSpan(0, 0, 0, 0, 200)
             };
             timerConsoleUpdate.Tick += TimerConsoleUpdate_Tick;
+            
+            // Tooltip timeout
+            ToolTipService.ShowDurationProperty.OverrideMetadata(
+                typeof(DependencyObject), new FrameworkPropertyMetadata(60000));
 
+            //
+            // Filter rate ComboBox
+            //
+            comboBoxFilterRate.Items.Clear();
+            for (int i = 2; i <= 8; i++)
+            {
+                comboBoxFilterRate.Items.Add((1000.0 / i).ToString("0") + " Hz");
+            }
+            comboBoxFilterRate.SelectedIndex = 2;
+
+            // Process command line arguments
+            ProcessCommandLineArguments();
+            
             // Events
             Closing += MainWindow_Closing;
             Loaded += MainWindow_Loaded;
@@ -193,10 +211,6 @@ namespace TabletDriverGUI
             try
             {
                 config = Configuration.CreateFromFile("Config.xml");
-                isLoadingSettings = true;
-                Width = config.WindowWidth;
-                Height = config.WindowHeight;
-                isLoadingSettings = false;
             }
             catch (Exception)
             {
@@ -204,10 +218,14 @@ namespace TabletDriverGUI
                 isFirstStart = true;
                 config = new Configuration();
             }
+            isLoadingSettings = true;
+            Width = config.WindowWidth;
+            Height = config.WindowHeight;
+            isLoadingSettings = false;
+
 
             if (!config.DeveloperMode)
             {
-                groupDesktopSize.Visibility = Visibility.Collapsed;
             }
 
 
@@ -228,12 +246,48 @@ namespace TabletDriverGUI
             // Load settings from configuration
             LoadSettingsFromConfiguration();
 
-            // 
+            // Update the settings back to the configuration
             UpdateSettingsToConfiguration();
 
+            // Console timer
             timerConsoleUpdate.Start();
 
+            // Set run at startup
+            SetRunAtStartup(config.RunAtStartup);
+
+            // Hide the window if the GUI is started as minimized
+            if (WindowState == WindowState.Minimized)
+            {
+                Hide();
+            }
+
+            // Start the driver
             Start();
+        }
+
+
+        //
+        // Process command line arguments
+        //
+        void ProcessCommandLineArguments()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++)
+            {
+                // Skip values
+                if (!args[i].StartsWith("-") && !args[i].StartsWith("/")) continue;
+
+                // Remove '-' and '/' characters at the start of the argument
+                string parameter = Regex.Replace(args[i], "^[\\-/]+", "").ToLower();
+
+                //
+                // Parameter: --hide
+                //
+                if (parameter == "hide")
+                {
+                    WindowState = WindowState.Minimized;
+                }
+            }
         }
 
         #endregion
@@ -393,11 +447,22 @@ namespace TabletDriverGUI
             // Filter
             //
             checkBoxFilter.IsChecked = config.FilterEnabled;
-            textFilterValue.Text = GetNumberString(config.FilterValue);
+            textFilterLatency.Text = GetNumberString(config.FilterLatency);
+            comboBoxFilterRate.SelectedIndex = config.FilterInterval - 2;
             if (config.FilterEnabled)
-                textFilterValue.IsEnabled = true;
+            {
+                textFilterLatency.IsEnabled = true;
+                comboBoxFilterRate.IsEnabled = true;
+            }
             else
-                textFilterValue.IsEnabled = false;
+            {
+                textFilterLatency.IsEnabled = false;
+                comboBoxFilterRate.IsEnabled = false;
+            }
+
+
+            // Run at startup
+            checkRunAtStartup.IsChecked = config.RunAtStartup;
 
 
             //
@@ -431,6 +496,8 @@ namespace TabletDriverGUI
         {
             if (isLoadingSettings)
                 return;
+
+            bool oldValue;
 
             // Tablet area
             if (ParseNumber(textTabletAreaWidth.Text, out double value))
@@ -520,12 +587,28 @@ namespace TabletDriverGUI
 
             // Filter
             config.FilterEnabled = (bool)checkBoxFilter.IsChecked;
-            if (ParseNumber(textFilterValue.Text, out value))
-                config.FilterValue = value;
+            config.FilterInterval = comboBoxFilterRate.SelectedIndex + 2;
+            if (ParseNumber(textFilterLatency.Text, out value))
+                config.FilterLatency = value;
+
             if (config.FilterEnabled)
-                textFilterValue.IsEnabled = true;
+            {
+                textFilterLatency.IsEnabled = true;
+                comboBoxFilterRate.IsEnabled = true;
+            }
             else
-                textFilterValue.IsEnabled = false;
+            {
+                textFilterLatency.IsEnabled = false;
+                comboBoxFilterRate.IsEnabled = false;
+            }
+
+            //
+            // Run at startup
+            //
+            oldValue = config.RunAtStartup;
+            config.RunAtStartup = (bool)checkRunAtStartup.IsChecked;
+            if (config.RunAtStartup != oldValue)
+                SetRunAtStartup(config.RunAtStartup);
 
 
             // Custom commands
@@ -546,7 +629,6 @@ namespace TabletDriverGUI
             UpdateCanvasElements();
 
         }
-
 
         //
         // String to Number
@@ -574,6 +656,28 @@ namespace TabletDriverGUI
             return value.ToString(format, cultureEnglish.NumberFormat);
         }
 
+
+        //
+        // Set run at startup
+        //
+        private void SetRunAtStartup(bool enabled)
+        {
+            try
+            {
+                string path = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string entryName = "TabletDriverGUI";
+                RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+                if (enabled)
+                    rk.SetValue(entryName, "\"" + path + "\" --hide");
+                else
+                    rk.DeleteValue(entryName, false);
+
+                rk.Close();
+            }
+            catch (Exception)
+            {
+            }
+        }
 
         //
         // Get desktop size
@@ -972,7 +1076,7 @@ namespace TabletDriverGUI
         }
 
         // Canvas mouse move
-        private void Canvas_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
             Point position;
             double dx, dy;
@@ -988,7 +1092,7 @@ namespace TabletDriverGUI
 
                 if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
                     dx = 0;
-                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.LeftCtrl))
+                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
                     dy = 0;
 
                 // Screen map canvas
@@ -1093,8 +1197,11 @@ namespace TabletDriverGUI
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (!IsLoaded || isLoadingSettings) return;
-            config.WindowWidth = (int)e.NewSize.Width;
-            config.WindowHeight = (int)e.NewSize.Height;
+            if (WindowState != WindowState.Maximized)
+            {
+                config.WindowWidth = (int)e.NewSize.Width;
+                config.WindowHeight = (int)e.NewSize.Height;
+            }
         }
 
         // Monitor combobox clicked -> create new monitor list
@@ -1199,7 +1306,7 @@ namespace TabletDriverGUI
         //
         private void SetStatus(string text)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 textStatus.Text = text;
             });
@@ -1208,13 +1315,41 @@ namespace TabletDriverGUI
         }
 
         //
+        // Update statusbar
+        //
+        private void SetStatusWarning(string text)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                textStatusWarning.Text = text;
+            });
+            timerStatusbar.Stop();
+            timerStatusbar.Start();
+        }
+
+
+        //
+        // Statusbar warning text click
+        //
+        private void StatusWarning_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Open Task Manager 
+            if (textStatusWarning.Text.ToLower().Contains("priority"))
+            {
+                try { Process.Start("taskmgr.exe"); } catch (Exception) { }
+            }
+        }
+
+
+        //
         // Statusbar timer tick
         //
         private void TimerStatusbar_Tick(object sender, EventArgs e)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 textStatus.Text = "";
+                textStatusWarning.Text = "";
             });
             timerStatusbar.Stop();
         }
@@ -1233,22 +1368,43 @@ namespace TabletDriverGUI
         private void OnDriverMessageReceived(object sender, TabletDriver.DriverEventArgs e)
         {
             //ConsoleAddText(e.Message);
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                ParseDriverMessage(e.Message);
+                ParseDriverStatus(e.Message);
             });
         }
         // Error
         private void OnDriverErrorReceived(object sender, TabletDriver.DriverEventArgs e)
         {
-            //ConsoleAddText("ERROR! " + e.Message);
+            SetStatusWarning(e.Message);
+
         }
         // Started
         private void OnDriverStarted(object sender, EventArgs e)
         {
+            driver.SendCommand("HIDList");
+            driver.SendCommand("Echo");
+            driver.SendCommand("Echo   Driver version: " + Version);
+            try { driver.SendCommand("echo   Windows version: " + Environment.OSVersion.VersionString); } catch (Exception) { }
+            try
+            {
+                driver.SendCommand("Echo   Windows product: " +
+                    Microsoft.Win32.Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ProductName", "").ToString());
+                driver.SendCommand("Echo   Windows release: " +
+                    Microsoft.Win32.Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ReleaseId", "").ToString());
+            }
+            catch (Exception)
+            {
+            }
+            driver.SendCommand("Echo");
+            driver.SendCommand("CheckTablet");
             SendSettingsToDriver();
-            driver.SendCommand("info");
-            driver.SendCommand("start");
+            driver.SendCommand("Info");
+            driver.SendCommand("Start");
+            driver.SendCommand("Log Off");
+            driver.SendCommand("LogDirect False");
+            driver.SendCommand("Echo");
+            driver.SendCommand("Echo Driver started!");
         }
         // Stopped
         private void OnDriverStopped(object sender, EventArgs e)
@@ -1259,7 +1415,7 @@ namespace TabletDriverGUI
                 driver.ConsoleAddText("Driver stopped. Restarting!");
 
                 // Run in the main application thread
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                Application.Current.Dispatcher.Invoke(() =>
                 {
                     Title = "TabletDriverGUI";
                     notifyIcon.Text = "";
@@ -1282,76 +1438,60 @@ namespace TabletDriverGUI
 
 
         //
-        // Parse driver message
+        // Parse driver status messages
         //
-        private void ParseDriverMessage(string line)
+        private void ParseDriverStatus(string line)
         {
-            Dictionary<string, uint> NbTabletButtonsMap = new Dictionary<string, uint>()
-            {
-                { "Wacom CTL-470", 0 },
-                { "Wacom CTL-471", 0 },
-                { "Wacom CTL-472", 0 },
-                { "Wacom CTL-480", 4 },
-                { "Wacom CTH-480", 4 },
-                { "Wacom CTL-490", 4 },
-                { "XP Pen G430", 0 },
-                { "XP Pen G640", 0 },
-                { "Huion 420", 0 },
-                { "Huion H640P", 6 },
-                { "Gaomon S56K", 0 },
-            };
+            // Status line?
+            if (!line.Contains("[STATUS]")) return;
+
+            // Parse status variable and value
+            Match match = Regex.Match(line, "^.+\\[STATUS\\] ([^ ]+) (.*?)$");
+            if (!match.Success) return;
+
+            string variableName = match.Groups[1].ToString().ToLower();
+            string stringValue = match.Groups[2].ToString();
 
             //
             // Tablet Name
             //
-            Match match;
-            Regex regexTabletName = new Regex("^.*?\\[INFO\\] Tablet: (.*?)$");
-
-            match = Regex.Match(line, "^.*?\\[INFO\\] Tablet: (.*?)$");
-            if (match.Success)
+            if (variableName == "tablet")
             {
-                TabletName = match.Groups[1].ToString();
+                TabletName = stringValue;
                 Title = "TabletDriverGUI - " + TabletName;
-                notifyIcon.Text = TabletName;
+                notifyIcon.Text = Title;
                 SetStatus("Connected to " + TabletName);
             }
-            double value;
 
             //
             // Tablet width
             //
-            match = Regex.Match(line, "^.*?\\[INFO\\] Tablet width = ([0-9\\.]+) mm");
-            if (match.Success)
+            if (variableName == "width")
             {
-                if (ParseNumber(match.Groups[1].ToString(), out value))
+                if (ParseNumber(TabletName, out double value))
                 {
                     config.TabletFullArea.Width = value;
                     config.TabletFullArea.X = value / 2.0;
                     LoadSettingsFromConfiguration();
                     UpdateSettingsToConfiguration();
                     if (isFirstStart)
-                    {
                         SendSettingsToDriver();
-                    }
                 }
             }
 
             //
             // Tablet height
             //
-            match = Regex.Match(line, "^.*?\\[INFO\\] Tablet height = ([0-9\\.]+) mm");
-            if (match.Success)
+            if (variableName == "height")
             {
-                if (ParseNumber(match.Groups[1].ToString(), out value))
+                if (ParseNumber(TabletName, out double value))
                 {
                     config.TabletFullArea.Height = value;
                     config.TabletFullArea.Y = value / 2.0;
                     LoadSettingsFromConfiguration();
                     UpdateSettingsToConfiguration();
                     if (isFirstStart)
-                    {
                         SendSettingsToDriver();
-                    }
 
                 }
             }
@@ -1443,7 +1583,8 @@ namespace TabletDriverGUI
             // Filter
             if (config.FilterEnabled)
             {
-                driver.SendCommand("Filter " + GetNumberString(config.FilterValue));
+                driver.SendCommand("Filter " + GetNumberString(config.FilterLatency));
+                driver.SendCommand("FilterInterval " + GetNumberString(config.FilterInterval));
             }
             else
             {
@@ -1577,7 +1718,7 @@ namespace TabletDriverGUI
         //
         // Console input key down
         //
-        private void TextConsoleInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void TextConsoleInput_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
@@ -1589,7 +1730,7 @@ namespace TabletDriverGUI
         //
         // Console input preview key down
         //
-        private void TextConsoleInput_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void TextConsoleInput_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Up)
             {
@@ -1615,25 +1756,180 @@ namespace TabletDriverGUI
         }
 
 
-        #endregion
+        //
+        // Search rows
+        //
+        private List<string> SearchRows(List<string> rows, string search, int rowsBefore, int rowsAfter)
+        {
+            List<string> buffer = new List<string>(rowsBefore);
+            List<string> output = new List<string>();
+            int rowCounter = 0;
+
+            foreach (string row in rows)
+            {
+                if (row.Contains(search))
+                {
+                    if (buffer.Count > 0)
+                    {
+                        foreach (string bufferLine in buffer)
+                        {
+                            output.Add(bufferLine);
+                        }
+                        buffer.Clear();
+                    }
+                    output.Add(row.Trim());
+                    rowCounter = rowsAfter;
+                }
+                else if (rowCounter > 0)
+                {
+                    output.Add(row.Trim());
+                    rowCounter--;
+                }
+                else
+                {
+                    buffer.Add(row);
+                    if (buffer.Count > rowsBefore)
+                    {
+                        buffer.RemoveAt(0);
+                    }
+                }
+            }
+            return output;
+        }
+
 
         //
         // Console output context menu
         //
         private void ConsoleMenuClick(object sender, RoutedEventArgs e)
         {
-            string menuItemHeader = ((MenuItem)sender).Header.ToString();
-            if (menuItemHeader.ToLower() == "copy all")
+
+
+            // Copy all
+            if (sender == menuCopyAll)
             {
                 Clipboard.SetText(textConsole.Text);
                 SetStatus("Console output copied to clipboard");
             }
-            else if (menuItemHeader.ToLower().Contains("github"))
+
+            // Copy debug messages
+            else if (sender == menuCopyDebug)
             {
-                System.Diagnostics.Process.Start("https://github.com/hawku/TabletDriver");
+                string clipboard = "";
+                List<string> rows;
+                driver.ConsoleLock();
+                rows = SearchRows(driver.ConsoleBuffer, "[DEBUG]", 0, 0);
+                driver.ConsoleUnlock();
+                foreach (string row in rows)
+                    clipboard += row + "\r\n";
+                Clipboard.SetText(clipboard);
+                SetStatus("Debug message copied to clipboard");
             }
 
+            // Copy error messages
+            else if (sender == menuCopyErrors)
+            {
+                string clipboard = "";
+                List<string> rows;
+                driver.ConsoleLock();
+                rows = SearchRows(driver.ConsoleBuffer, "[ERROR]", 1, 1);
+                driver.ConsoleUnlock();
+                foreach (string row in rows)
+                    clipboard += row + "\r\n";
+                Clipboard.SetText(clipboard);
+                SetStatus("Error message copied to clipboard");
+            }
+
+            // Start debug log
+            else if (sender == menuStartDebug)
+            {
+                string logFilename = "debug_" + DateTime.Now.ToString("yyyy-MM-dd_hh_mm_ss") + ".txt";
+                ConsoleSendCommand("log " + logFilename);
+                ConsoleSendCommand("debug 1");
+            }
+
+            // Stop debug log
+            else if (sender == menuStopDebug)
+            {
+                ConsoleSendCommand("log off");
+                ConsoleSendCommand("debug 0");
+            }
+
+            // Open latest debug log
+            else if (sender == menuOpenDebug)
+            {
+                try
+                {
+                    var files = Directory.GetFiles(".", "debug_*.txt").OrderBy(a => File.GetCreationTime(a));
+                    if (files.Count() > 0)
+                    {
+                        string file = files.Last().ToString();
+                        Process.Start(file);
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+
+            // Open startup log
+            else if (sender == menuOpenStartup)
+            {
+                if (File.Exists("startuplog.txt"))
+                {
+                    try { Process.Start("startuplog.txt"); } catch (Exception) { }
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "Startup log not found!\n" +
+                        "Make sure that it is possible to create and edit files in the '" + Directory.GetCurrentDirectory() + "' directory.\n",
+                        "Error!", MessageBoxButton.OK, MessageBoxImage.Error
+                    );
+                }
+            }
+
+            // Open driver folder
+            else if (sender == menuOpenFolder)
+            {
+                try { Process.Start("."); } catch (Exception) { }
+            }
+
+            // Open GitHub page
+            else if (sender == menuOpenGithub)
+            {
+                try { Process.Start("https://github.com/hawku/TabletDriver"); } catch (Exception) { }
+            }
+
+            // Open Latest URL
+            else if (sender == menuOpenLatestURL)
+            {
+                Regex regex = new Regex("(http[s]?://.+?)($|\\s)", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+                MatchCollection matches = regex.Matches(textConsole.Text);
+                if (matches.Count > 0)
+                {
+                    string url = matches[matches.Count - 1].Groups[0].ToString().Trim();
+                    try { Process.Start(url); } catch (Exception) { }
+                }
+            }
+
+            // Report a problem
+            else if (sender == menuReportProblem)
+            {
+                try { Process.Start("https://github.com/hawku/TabletDriver/wiki/FAQ"); } catch (Exception) { }
+            }
+
+
         }
+
+
+
+        #endregion
+
+
+
+        #region Wacom
 
         //
         // Wacom Area
@@ -1679,6 +1975,12 @@ namespace TabletDriverGUI
             wacom.Close();
         }
 
+        #endregion
+
+
+
+        #region WndProc
+
         //
         // Add WndProc hook
         //
@@ -1710,11 +2012,12 @@ namespace TabletDriverGUI
 
             return IntPtr.Zero;
         }
-
+        
         private void EditButtonMapping_Click(object sender, RoutedEventArgs e)
         {
             try
             {
+                Console.WriteLine("TabletName = " + TabletName);
                 ButtonMapping bm = new ButtonMapping(config, TabletName);
 
                 bm.ShowDialog();
@@ -1807,5 +2110,7 @@ namespace TabletDriverGUI
                 MessageBox.Show("Your tablet needs to be recognized before changing its control mapping.", "Tablet not recognized", MessageBoxButton.OK, MessageBoxImage.Exclamation);
             }
         }
+
+        #endregion
     }
 }

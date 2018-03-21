@@ -316,6 +316,7 @@ int main(int argc, char**argv) {
 			// Start command
 			//
 			if(cmd->is("start")) {
+				LOG_INFO(">> %s\n", cmd->line.c_str());
 
 				if(running) {
 					LOG_INFO("Driver is already started!\n");
@@ -346,17 +347,8 @@ int main(int argc, char**argv) {
 
 
 				// Filter timer
-				CreateTimerQueueTimer(
-					&tablet->filter.timer,
-					NULL, FilterTimerCallback,
-					NULL,
-					0,
-					(int)tablet->filter.interval,
-					WT_EXECUTEDEFAULT
-				);
-				//LOG_INFO("Filter resolution: %f\n", tablet->filter.resolution);
-				//LOG_INFO("Filter timer: %lu\n", tablet->filter.timer);
-
+				tablet->filter.callback = FilterTimerCallback;
+				tablet->StartFilterTimer();
 
 
 				// Start the tablet thread
@@ -364,7 +356,19 @@ int main(int argc, char**argv) {
 				tabletButtonThread = new thread(RunTabletButtonThread);
 
 				LOG_INFO("TabletDriver started!\n");
-				LOG_INFO("Tablet: %s\n", tablet->name.c_str());
+				LogStatus();
+
+
+			//
+			// Echo
+			//
+			} else if(cmd->is("echo")) {
+				if(cmd->valueCount > 0) {
+					LOG_INFO("%s\n", cmd->line.c_str() + 5);
+				} else {
+					LOG_INFO("\n");
+				}
+				
 
 			//
 			// Process all other commands
@@ -395,8 +399,8 @@ void CleanupAndExit(int code) {
 		*/
 
 	// Delete filter timer
-	if(tablet != NULL && tablet->filter.timer != NULL) {
-		DeleteTimerQueueTimer(NULL, tablet->filter.timer, NULL);
+	if(tablet != NULL) {
+		tablet->StopFilterTimer();
 	}
 
 	if(vmulti != NULL) {

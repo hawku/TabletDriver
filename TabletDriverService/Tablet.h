@@ -42,6 +42,7 @@ public:
 		int maxY;
 		int maxPressure;
 		int clickPressure;
+		int keepTipDown;
 		double width;
 		double height;
 		BYTE reportId;
@@ -79,7 +80,9 @@ public:
 	//
 	struct {
 		HANDLE timer;
+		WAITORTIMERCALLBACK callback;
 		double interval;
+		double latency;
 		double weight;
 		double threshold;
 		bool isEnabled;
@@ -89,6 +92,18 @@ public:
 		double y;
 	} filter;
 
+	//
+	// Benchmark
+	//
+	struct {
+		double minX;
+		double maxX;
+		double minY;
+		double maxY;
+		int totalPackets;
+		int packetCounter;
+	} benchmark;
+
 	// Button map
 	BYTE buttonMap[16];
 	std::unordered_map<int, std::vector<int>> buttonTabletMap;
@@ -97,7 +112,10 @@ public:
 	string name = "Unknown";
 	bool isOpen;
 	bool debugEnabled;
+	int skipPackets;
 
+	// Pen tip button keep down
+	int tipDownCounter;
 
 	// Tablet initialize buffers
 	BYTE *initFeature;
@@ -118,7 +136,12 @@ public:
 	double GetFilterLatency();
 	double GetFilterWeight(double latency, double interval, double threshold);
 	double GetFilterWeight(double latency);
+	void SetFilterLatency(double latency);
 	void ProcessFilter();
+	bool StartFilterTimer();
+	bool StopFilterTimer();
+
+	void StartBenchmark(int packetCount);
 	
 	int ReadPosition();
 	bool Write(void *buffer, int length);

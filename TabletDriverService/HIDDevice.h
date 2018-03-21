@@ -16,16 +16,18 @@ using namespace std;
 class HIDDevice {
 private:
 	HANDLE _deviceHandle;
-	bool OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage);
 public:
 	bool isOpen;
+	bool debugEnabled;
 	USHORT vendorId;
 	USHORT productId;
 	USHORT usagePage;
 	USHORT usage;
 
 	HIDDevice(USHORT VendorId, USHORT ProductId, USHORT UsagePage, USHORT Usage);
+	HIDDevice();
 	~HIDDevice();
+	bool OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage);
 	int Read(void *buffer, int length);
 	int Write(void *buffer, int length);
 	bool SetFeature(void *buffer, int length);

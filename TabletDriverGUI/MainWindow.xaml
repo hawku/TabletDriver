@@ -25,8 +25,26 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto">
           <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 
-            <!-- Screen Map -->
-            <GroupBox Header="Screen map" VerticalAlignment="Top" HorizontalAlignment="Left" Width="650">
+            <!-- Screen Mapping -->
+            <GroupBox Header="Screen Map" VerticalAlignment="Top" HorizontalAlignment="Left" Width="650">
+
+              <GroupBox.ToolTip>
+                <StackPanel>
+                  <TextBlock FontWeight="Bold">
+                    Screen Map
+                  </TextBlock>
+                  <TextBlock>
+                    - You can drag the screen area with a mouse.
+                    <LineBreak/>
+                    - Drag + Control = Move area in X direction.
+                    <LineBreak/>
+                    - Drag + Shift = Move area Y direction.          
+                    <LineBreak/>
+                    - Use the "Set Area" to set the screen area to single monitor or full desktop.
+                  </TextBlock>
+                </StackPanel>
+              </GroupBox.ToolTip>
+
               <StackPanel>
                 <!-- Screen map canvas -->
                 <Canvas Name="canvasScreenMap"
@@ -38,17 +56,6 @@
                       MouseMove="Canvas_MouseMove"
                       MouseUp="Canvas_MouseUp"
                       >
-                  <Canvas.ToolTip>
-                    <TextBlock>
-                    You can drag the area with a mouse.
-                    <LineBreak/>
-                    Left Control = Only in X direction.
-                    <LineBreak/>
-                    Left Shift = Only Y direction.
-                    </TextBlock>
-                  </Canvas.ToolTip>
-
-
                 </Canvas>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -74,7 +81,7 @@
                   </GroupBox>
 
                   <!-- Screen Area Left -->
-                  <GroupBox Header="Left offset" Height="50" Width="100" Margin="5,0,0,0">
+                  <GroupBox Header="Left Offset" Height="50" Width="100" Margin="5,0,0,0">
                     <Grid>
                       <TextBox Name="textScreenAreaX" Padding="4,0,0,0"
                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
@@ -84,7 +91,7 @@
                   </GroupBox>
 
                   <!-- Screen Area Top -->
-                  <GroupBox Header="Top offset" Height="50" Width="100" Margin="5,0,0,0">
+                  <GroupBox Header="Top Offset" Height="50" Width="100" Margin="5,0,0,0">
                     <Grid>
                       <TextBox Name="textScreenAreaY" Padding="4,0,0,0"
                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
@@ -94,7 +101,7 @@
                   </GroupBox>
 
                   <!-- Set monitor -->
-                  <GroupBox Header="Set monitor" Height="50" Width="150" Margin="5,0,0,0">
+                  <GroupBox Header="Set Area" Height="50" Width="150" Margin="5,0,0,0">
                     <ComboBox Name="comboBoxMonitor"
                               PreviewMouseDown="ComboBoxMonitor_MouseDown"
                               SelectionChanged="ComboBoxMonitor_SelectionChanged"
@@ -107,7 +114,26 @@
 
 
             <!-- Tablet area -->
-            <GroupBox Header="Tablet area" VerticalAlignment="Top" HorizontalAlignment="Left" Width="650" Margin="0,5,0,5">
+            <GroupBox Header="Tablet Area" VerticalAlignment="Top" HorizontalAlignment="Left" Width="650" Margin="0,5,0,5">
+              <GroupBox.ToolTip>
+                <StackPanel>
+                  <TextBlock FontWeight="Bold">
+                    Tablet Area
+                  </TextBlock>
+                  <TextBlock>
+                    - You can drag the tablet area with a mouse.
+                    <LineBreak/>
+                    - Drag + Control = Move area in X direction.
+                    <LineBreak/>
+                    - Drag + Shift = Move area Y direction.
+                    <LineBreak/>
+                    - For left handed mode, use rotation value of 180 degrees.
+                    <LineBreak/>
+                    - Click Wacom Area button to type in the Wacom driver area settings.
+                  </TextBlock>
+                </StackPanel>
+              </GroupBox.ToolTip>
+
               <StackPanel>
 
                 <Grid>
@@ -144,30 +170,21 @@
                       MouseMove="Canvas_MouseMove"
                       MouseUp="Canvas_MouseUp"
                       >
-                    <Canvas.ToolTip>
-                      <TextBlock>
-                    You can drag the area with a mouse.
-                    <LineBreak/>
-                    Left Control = Only in X direction.
-                    <LineBreak/>
-                    Left Shift = Only Y direction.
-                      </TextBlock>
-                    </Canvas.ToolTip>
                   </Canvas>
 
                   <StackPanel Grid.Column="2">
 
                     <CheckBox Name="checkBoxForceFullArea" Margin="5"
                             Checked="CheckboxChanged"
-                            Unchecked="CheckboxChanged">Full area</CheckBox>
+                            Unchecked="CheckboxChanged">Full Area</CheckBox>
 
                     <!-- Output mode-->
                     <GroupBox Header="Mode" Width="130" HorizontalAlignment="Left">
                       <StackPanel>
-                        <RadioButton Name="radioModeAbsolute" GroupName="OutputMode" Margin="2" Content="Absolute" 
+                        <RadioButton Name="radioModeAbsolute" GroupName="OutputMode" Margin="2" Content="Absolute (osu!)" 
                                      IsChecked="True"
                                      Checked="CheckboxChanged" />
-                        <RadioButton Name="radioModeRelative" GroupName="OutputMode" Margin="2" Content="Relative" 
+                        <RadioButton Name="radioModeRelative" GroupName="OutputMode" Margin="2" Content="Relative (mouse)" 
                                      Checked="CheckboxChanged" />
                         <RadioButton Name="radioModeDigitizer" GroupName="OutputMode" Margin="2" Content="Windows Ink" 
                                      Checked="CheckboxChanged" />
@@ -221,6 +238,7 @@
                     </Grid>
                   </GroupBox>
 
+                  <!-- Force Aspect Ratio -->
                   <CheckBox Name="checkBoxForceAspect" VerticalAlignment="Center" Margin="5" VerticalContentAlignment="Center"
                             Checked="CheckboxChanged" Unchecked="CheckboxChanged">
                     <StackPanel Orientation="Vertical">
@@ -235,10 +253,24 @@
               </StackPanel>
             </GroupBox>
 
+
+            <!-- Button Mapping and Smoothing Filter -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
               <!-- Button mapping -->
               <GroupBox Header="Button mapping" Height="73">
+                <GroupBox.ToolTip>
+                  <StackPanel>
+                    <TextBlock FontWeight="Bold">
+                    Button Mapping
+                    </TextBlock>
+                    <TextBlock>
+                      - You can disable single button by selecting "Disable" from the list.
+                      <LineBreak/>
+                      - The "Disable buttons" checkbox will disable all tablet buttons.
+                    </TextBlock>
+                  </StackPanel>
+                </GroupBox.ToolTip>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                   <Button Name="EditButtonMapping" Content="Edit" Width="70" Padding="5,5,5,5" Click="EditButtonMapping_Click" />
                 </StackPanel>
@@ -248,18 +280,49 @@
 
 
               <!-- Smoothing -->
-              <GroupBox Name="groupFilter" Header="Smoothing Filter" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left">
+              <GroupBox Name="groupFilter" Header="Smoothing Filter" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left"
+                        >
+                <GroupBox.ToolTip>
+                  <StackPanel>
+                    <TextBlock FontWeight="Bold">
+                    Cursor position smoothing filter
+                    </TextBlock>
+                    <TextBlock>
+                      - Smoothing filter adds latency to the input, so don't enable it if you want to have the lowest possible input lag.
+                      <LineBreak/>
+                      - On Wacom tablets you can use latency value between 15 and 25 to have a similar smoothing as in the Wacom drivers.
+                      <LineBreak/>
+                      - You can test out different filter values, but recommended maximum for osu! is around 50 milliseconds.
+                      <LineBreak/>
+                      - Filter latency value lower than 4 milliseconds isn't recommended. It is just better to disable the smoothing filter.
+                      <LineBreak/>
+                      - You don't have to change the filter rate, but you can use the highest rate your computer can run without performance problems.
+                    </TextBlock>
+                  </StackPanel>
+                </GroupBox.ToolTip>
+
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
-                  <!-- Desktop Width -->
+                  <!-- Filter Latency -->
                   <GroupBox Header="Latency" Height="50" Width="80" Margin="0,0,0,0">
                     <Grid>
-                      <TextBox Name="textFilterValue" Padding="4,0,0,0"
-                             ToolTip="In Windows 7 you need to manually type in main monitor size!"
+                      <TextBox Name="textFilterLatency" Padding="4,0,0,0"
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">0</TextBox>
                       <Label Width="30" HorizontalAlignment="Right">ms</Label>
                     </Grid>
+                  </GroupBox>
+
+                  <!-- Filter Rate -->
+                  <GroupBox Header="Rate" VerticalAlignment="Top" HorizontalAlignment="Left" Width="85" Height="50">
+                    <ComboBox Name="comboBoxFilterRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
+
+
+                      <ComboBoxItem>500 Hz</ComboBoxItem>
+                      <ComboBoxItem>333 Hz</ComboBoxItem>
+                      <ComboBoxItem Selector.IsSelected="True">250 Hz</ComboBoxItem>
+                      <ComboBoxItem>125 Hz</ComboBoxItem>
+                    </ComboBox>
                   </GroupBox>
 
                   <!-- Filter enabled -->
@@ -267,11 +330,6 @@
                             VerticalAlignment="Center"
                             Margin="5"
                             Checked="CheckboxChanged" Unchecked="CheckboxChanged">
-                    <CheckBox.ToolTip>
-                      <TextBlock>
-                      Enables cursor position filter
-                      </TextBlock>
-                    </CheckBox.ToolTip>
                     Enabled
                   </CheckBox>
                 </StackPanel>
@@ -282,16 +340,30 @@
 
             </StackPanel>
 
+
+            <!-- Desktop Size -->
             <StackPanel Orientation="Horizontal"  HorizontalAlignment="Center">
               <!-- Desktop size -->
-              <GroupBox Name="groupDesktopSize" Header="Desktop size" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left">
+              <GroupBox Name="groupDesktopSize" Header="Desktop Size" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left"
+                        >
+                <GroupBox.ToolTip>
+                  <StackPanel>
+                    <TextBlock FontWeight="Bold">
+                    Desktop Size
+                    </TextBlock>
+                    <TextBlock>
+                      - In some cases you may have to disable the auto size and manually type in the main monitor resolution.
+                      <LineBreak/>
+                      - If you don't have problems with screen mapping, leave the automatic desktop size enabled.
+                    </TextBlock>
+                  </StackPanel>
+                </GroupBox.ToolTip>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
                   <!-- Desktop Width -->
                   <GroupBox Header="Width" Height="50" Width="80" Margin="0,0,0,0">
                     <Grid>
                       <TextBox Name="textDesktopWidth" Padding="4,0,0,0"
-                             ToolTip="In Windows 7 you need to manually type in main monitor size!"
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">1920</TextBox>
                       <Label Width="30" HorizontalAlignment="Right">px</Label>
@@ -302,7 +374,6 @@
                   <GroupBox Header="Height" Height="50" Width="80" Margin="5,0,0,0">
                     <Grid>
                       <TextBox Name="textDesktopHeight" Padding="4,0,0,0"
-                             ToolTip="In Windows 7 you need to manually type in main monitor size!"
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">1080</TextBox>
                       <Label Width="30" HorizontalAlignment="Right">px</Label>
@@ -310,18 +381,8 @@
                   </GroupBox>
 
                   <CheckBox Name="checkBoxAutomaticDesktopSize"
-                            VerticalAlignment="Center"
-                            Margin="5"
-                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">
-                    <CheckBox.ToolTip>
-                      <TextBlock>
-                      Automatic desktop size selection.
-                      <LineBreak /> 
-                      In Windows 7 you need to disable this and type in main monitor size!!!
-                      </TextBlock>
-                    </CheckBox.ToolTip>
-                    Auto
-                  </CheckBox>
+                            VerticalAlignment="Center" Margin="5"
+                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">Auto</CheckBox>
                 </StackPanel>
               </GroupBox>
 
@@ -373,31 +434,36 @@
                         VerticalScrollBarVisibility="Auto"
                         HorizontalScrollBarVisibility="Auto">
 
+            <!-- Console output -->
             <TextBlock Name="textConsole"  TextWrapping="NoWrap" Text=""
                      Background="Black"
                      Foreground="White"
                      FontFamily="Courier New" FontSize="12"                   
                      >
+              
+              <!-- Menu -->
               <TextBlock.ContextMenu>
                 <ContextMenu>
-                  <MenuItem Header="Copy all" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Header="Open GitHub page" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuCopyAll" Header="Copy all" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuCopyDebug" Header="Copy [DEBUG] messages" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuCopyErrors" Header="Copy [ERROR] messages" Click="ConsoleMenuClick"></MenuItem>
+                  <Separator/>
+                  <MenuItem Name="menuStartDebug" Header="Start Debug Log" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuStopDebug" Header="Stop Debug Log" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuOpenDebug" Header="Open Latest Debug Log" Click="ConsoleMenuClick"></MenuItem>
+                  <Separator/>
+                  <MenuItem Name="menuOpenStartup" Header="Open Startup Log" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuOpenFolder" Header="Open TabletDriver Folder" Click="ConsoleMenuClick"></MenuItem>
+                  <Separator/>
+                  <MenuItem Name="menuOpenGithub" Header="Open GitHub page" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuOpenLatestURL" Header="Open Latest URL" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuReportProblem" Header="Report a problem" Click="ConsoleMenuClick"></MenuItem>
                 </ContextMenu>
               </TextBlock.ContextMenu>
             </TextBlock>
           </ScrollViewer>
 
-          <!--
-          <TextBox IsReadOnly="True" Name="textConsole2" Margin="5,5,5,30" TextWrapping="NoWrap" Text=""
-                  Background="Black" Foreground="White"
-                  FontFamily="Courier New" FontSize="12"
-                  TabIndex="1"
-                  Focusable="True"
-                  IsEnabled="True"
-                  VerticalScrollBarVisibility="Auto"
-                  HorizontalScrollBarVisibility="Auto"
-                  />
-          -->
+          <!-- Console input -->
           <TextBox Name="textConsoleInput" Margin="5,0,5,5" VerticalAlignment="Bottom"  Height="20" TextWrapping="Wrap" Text=""
                    FontFamily="Courier New" Background="White" Foreground="Black"
                    FontSize="12"
@@ -410,17 +476,28 @@
       </TabItem>
     </TabControl>
 
-    <StackPanel Orientation="Horizontal" Margin="5,5,5,25" Height="35" VerticalAlignment="Bottom">
-      <Button Name="buttonSaveSettings" Margin="0,5,0,5" Width="50" Click="SaveSettings">Save</Button>
-      <Button Name="buttonApplySettings" Margin="5,5,0,5" Width="50" Click="ApplySettings">Apply</Button>
-    </StackPanel>
+    <Grid Margin="5,5,5,25" Height="35" VerticalAlignment="Bottom">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+        <Button Name="buttonSaveSettings" Margin="0,5,0,5" Width="50" Click="SaveSettings"
+                ToolTip="Saves settings to Config.xml">Save</Button>
+        <Button Name="buttonApplySettings" Margin="5,5,0,5" Width="50" Click="ApplySettings"
+                ToolTip="Applies driver settings.">Apply</Button>
+      </StackPanel>
+      <CheckBox Name="checkRunAtStartup"
+                HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center"
+                Checked="CheckboxChanged" Unchecked="CheckboxChanged"
+                ToolTip="Starts and hides the TabletDriverGUI at Windows startup">Run at Windows startup</CheckBox>
+    </Grid>
 
     <StatusBar Height="25" VerticalAlignment="Bottom">
-      <StatusBarItem>
+      <StatusBarItem HorizontalAlignment="Left">
         <TextBlock Name="textStatus"></TextBlock>
       </StatusBarItem>
       <StatusBarItem HorizontalAlignment="Right">
-        <TextBlock Name="textVersion"></TextBlock>
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Name="textStatusWarning" Foreground="#F60" Margin="0,0,5,0" MouseDown="StatusWarning_MouseDown"></TextBlock>
+          <TextBlock Name="textVersion">0.0.0</TextBlock>
+        </StackPanel>
       </StatusBarItem>
 
     </StatusBar>

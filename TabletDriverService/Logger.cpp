@@ -5,7 +5,7 @@
 // Constructor
 //
 Logger::Logger() {
-	verbosity = 8;
+	verbosity = LogLevelDebug;
 	newMessage = false;
 	directPrint = false;
 }
@@ -230,6 +230,7 @@ bool Logger::OpenLogFile(string filename) {
 	if(!logFile) {
 		return false;
 	}
+	logFilename = filename;
 	return true;
 }
 

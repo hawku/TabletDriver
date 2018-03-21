@@ -40,6 +40,9 @@
 #define LOG_NOTE(...)  logger.LogMessage(logger.LogLevelNote, LOG_MODULE, __VA_ARGS__)
 #define LOG_NOTEBUFFER(buf, len, ...) logger.LogBuffer(logger.LogLevelNote, LOG_MODULE, buf, len, __VA_ARGS__)
 
+#define LOG_STATUS(...)  logger.LogMessage(logger.LogLevelStatus, LOG_MODULE, __VA_ARGS__)
+#define LOG_STATUSBUFFER(buf, len, ...) logger.LogBuffer(logger.LogLevelStatus, LOG_MODULE, buf, len, __VA_ARGS__)
+
 #define LOG_INFO(...)  logger.LogMessage(logger.LogLevelInfo, LOG_MODULE, __VA_ARGS__)
 #define LOG_INFOBUFFER(buf, len, ...) logger.LogBuffer(logger.LogLevelInfo, LOG_MODULE, buf, len, __VA_ARGS__)
 
@@ -66,8 +69,9 @@ public:
 		LogLevelError,
 		LogLevelWarning,
 		LogLevelNote,
+		LogLevelStatus,
 		LogLevelInfo,
-		LogLevelDebug,
+		LogLevelDebug
 	};
 	typedef struct {
 		tm time;
@@ -76,18 +80,20 @@ public:
 		string text;
 	} LogItem;
 	vector<LogItem> messages;
-	string levelNames[8] = {
+	string levelNames[9] = {
 		"",
 		"",
 		"CRITICAL",
 		"ERROR",
 		"WARNING",
 		"NOTE",
+		"STATUS",
 		"INFO",
 		"DEBUG"
 	};
 	bool isRunning;
 	bool directPrint;
+	string logFilename = "";
 
 	void OutputMessage(LogItem *message);
 	void ProcessMessages();

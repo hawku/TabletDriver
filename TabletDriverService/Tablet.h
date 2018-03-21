@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 #include "USBDevice.h"
 #include "HIDDevice.h"
@@ -90,7 +91,7 @@ public:
 
 	// Button map
 	BYTE buttonMap[16];
-	string buttonTabletMap[16];
+	std::unordered_map<int, std::vector<int>> buttonTabletMap;
 
 	//
 	string name = "Unknown";

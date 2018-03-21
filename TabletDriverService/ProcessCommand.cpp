@@ -280,20 +280,34 @@ bool ProcessCommand(CommandLine *cmd) {
 	//
 	// Tablet buttons macro
 	//
-	else if (cmd->is("TabletMacro") && cmd->valueCount == 2) {
+	else if (cmd->is("TabletMacro")) {
+		//LOG_INFO("is equal before check: %d\n", cmd->is("TabletMacro"));
+		//LOG_INFO("cmd->command is: %s\n", cmd->command);
 		if (!CheckTablet()) return true;
-		int indexToBeAssigned = cmd->GetInt(0, -1);
-		string macroToBeAssigned = cmd->GetString(1, "undefined");
-
-		if (indexToBeAssigned != -1 && macroToBeAssigned != "undefined")
+		if (true)
 		{
-			tablet->buttonTabletMap[indexToBeAssigned] = macroToBeAssigned;
-			LOG_INFO("Set the macro '%s' to the tablet button [%d]", macroToBeAssigned, indexToBeAssigned);
+			std::vector<std::string> tempSplit = Utils::split(cmd->line.substr(12).c_str(), ';');
+			std::vector<std::vector<std::string>> tabletMacros;
+
+			for (auto &it : tempSplit)
+				tabletMacros.push_back(Utils::split(it, ','));
+
+			for (auto &it : tabletMacros)
+			{
+				std::vector<int> keysMacro;
+
+				for (int i = 0; i < it.size(); ++i)
+				{
+					if (i != 0)
+						keysMacro.push_back(std::stoi(it[i]));
+				}
+
+				tablet->buttonTabletMap[std::stoi(it[0])] = keysMacro;
+				LOG_INFO("Set the macro to the button [%d]\n", std::stoi(it[0]));
+			}
 		}
 		else
-		{
-			LOG_INFO("Invalid command for TabletMacro, try this instead: TabletMacro index_to_modify macro_to_assign");
-		}
+			LOG_INFO("Invalid command for TabletMacro, try this instead: TabletMacro macro_string\n");
 	}
 
 

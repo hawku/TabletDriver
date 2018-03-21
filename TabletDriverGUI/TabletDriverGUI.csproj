@@ -80,6 +80,7 @@
     <Compile Include="ButtonMapping.xaml.cs">
       <DependentUpon>ButtonMapping.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MacroButton.cs" />
     <Compile Include="ShortcutMapWindow.xaml.cs">
       <DependentUpon>ShortcutMapWindow.xaml</DependentUpon>
     </Compile>

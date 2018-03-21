@@ -92,7 +92,6 @@ Tablet::Tablet() {
 
 	// Button map
 	memset(&buttonMap, 0, sizeof(buttonMap));
-	memset(&buttonTabletMap, 0, sizeof(buttonTabletMap));
 	buttonMap[0] = 1;
 	buttonMap[1] = 2;
 	buttonMap[2] = 3;

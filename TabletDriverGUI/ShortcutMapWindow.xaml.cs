@@ -21,9 +21,6 @@ namespace TabletDriverGUI
     /// </summary>
     public partial class ShortcutMapWindow : Window
     {
-        [DllImport("User32.Dll", EntryPoint = "PostMessageA")]
-        private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
-
         public List<ModifierKeys>   ModifierKey;
         public Key                  PressedKey;
 

@@ -4,6 +4,7 @@ using System.Collections;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
+using System.Collections.Generic;
 
 namespace TabletDriverGUI
 {
@@ -35,6 +36,7 @@ namespace TabletDriverGUI
         [XmlArray("ButtonMap")]
         [XmlArrayItem("Button")]
         public int[] ButtonMap;
+        public MacroButton[] MacroButtonMap;
         public bool DisablePenButtons;
         public bool DisableTabletButtons;
 
@@ -73,7 +75,8 @@ namespace TabletDriverGUI
             DesktopSize = new Area(0, 0, 0, 0);
             AutomaticDesktopSize = true;
 
-            ButtonMap = new int[] { 1, 2, 3 };
+            ButtonMap = new int[] { 1, 2, 3, 0, 0, 0, 0, 0, 0 };
+            MacroButtonMap = new MacroButton[] { };
             DisablePenButtons = false;
             DisableTabletButtons = false;
 

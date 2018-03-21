@@ -1168,13 +1168,14 @@ namespace TabletDriverGUI
                 SendSettingsToDriver();
                 SetStatus("Settings saved!");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 string dir = Directory.GetCurrentDirectory();
                 MessageBox.Show("Error occured while saving the configuration.\n" +
                     "Make sure that it is possible to create and edit files in the '" + dir + "' directory.\n",
                     "ERROR!", MessageBoxButton.OK, MessageBoxImage.Error
                 );
+                Console.WriteLine(ex.Message);
             }
         }
 
@@ -1285,6 +1286,20 @@ namespace TabletDriverGUI
         //
         private void ParseDriverMessage(string line)
         {
+            Dictionary<string, uint> NbTabletButtonsMap = new Dictionary<string, uint>()
+            {
+                { "Wacom CTL-470", 0 },
+                { "Wacom CTL-471", 0 },
+                { "Wacom CTL-472", 0 },
+                { "Wacom CTL-480", 4 },
+                { "Wacom CTH-480", 4 },
+                { "Wacom CTL-490", 4 },
+                { "XP Pen G430", 0 },
+                { "XP Pen G640", 0 },
+                { "Huion 420", 0 },
+                { "Huion H640P", 6 },
+                { "Gaomon S56K", 0 },
+            };
 
             //
             // Tablet Name
@@ -1401,11 +1416,28 @@ namespace TabletDriverGUI
             // Button map
             if (config.DisablePenButtons)
             {
-                driver.SendCommand("ButtonMap 0 0 0");
+                string cmd = "ButtonMap 0 0 0 " + String.Join(" ", config.ButtonMap, 3, 6);
+                driver.SendCommand(cmd);
+                if (config.MacroButtonMap.Length != 0)
+                {
+                    cmd = "TabletMacro " + string.Join(";", config.MacroButtonMap.Select(t => string.Format("{0},{1}", t.Index, string.Join(",", t.MacroKeys))));
+                    driver.SendCommand(cmd);
+                }
+            }
+            else if (config.DisableTabletButtons)
+            {
+                string cmd = String.Join(" ", config.ButtonMap, 0, 3) + " 0 0 0 0 0 0";
+                driver.SendCommand(cmd);
             }
             else
             {
-                driver.SendCommand("ButtonMap " + String.Join(" ", config.ButtonMap));
+                string cmd = "ButtonMap " + String.Join(" ", config.ButtonMap);
+                driver.SendCommand(cmd);
+                if (config.MacroButtonMap.Length != 0)
+                {
+                    cmd = "TabletMacro " + string.Join(";", config.MacroButtonMap.Select(t => string.Format("{0},{1}", t.Index, string.Join(",", t.MacroKeys))));
+                    driver.SendCommand(cmd);
+                }
             }
 
             // Filter
@@ -1689,9 +1721,80 @@ namespace TabletDriverGUI
 
                 if (bm.DialogResult == true)
                 {
-                    config.ButtonMap[0] = bm.PenTipComboBox.SelectedIndex;
-                    config.ButtonMap[1] = bm.PenBottomComboBox.SelectedIndex;
-                    config.ButtonMap[2] = bm.PenTopComboBox.SelectedIndex;
+                    List<int> macroButtonsToRemove = new List<int>();
+                    for (var i = 0; i < 3; ++i)
+                    {
+                        if (config.ButtonMap[i] != 6)
+                            macroButtonsToRemove.Add(i);
+
+                        if (bm.MacroButtonMap.ContainsKey(i) && bm.MacroButtonMap[i].Length == 1 && bm.MacroButtonMap[i][0] == 0)
+                            bm.MacroButtonMap.Remove(i);
+                        else
+                        {
+                            switch (i)
+                            {
+                                case 0:
+                                    config.ButtonMap[i] = bm.PenTipComboBox.SelectedIndex;
+                                    break;
+                                case 1:
+                                    config.ButtonMap[i] = bm.PenBottomComboBox.SelectedIndex;
+                                    break;
+                                case 2:
+                                    config.ButtonMap[i] = bm.PenTopComboBox.SelectedIndex;
+                                    break;
+                            }
+                        }
+                    }
+
+                    for (var i = 0; i < bm.TabletButtonsContainer.Children.Count; ++i)
+                    {
+                        var gb = bm.TabletButtonsContainer.Children[i] as GroupBox;
+                        var cb = gb.Content as ComboBox;
+
+
+                        if (cb.SelectedIndex != 6)
+                            macroButtonsToRemove.Add(i + 3);
+
+                        if (bm.MacroButtonMap.ContainsKey(i + 3) && bm.MacroButtonMap[i + 3].Length == 1 && bm.MacroButtonMap[i + 3][0] == 0)
+                            bm.MacroButtonMap.Remove(i + 3);
+                        else
+                            config.ButtonMap[i + 3] = cb.SelectedIndex;
+                    }
+
+                    //Delete removed or empty MacroButtons
+                    var macroButtonList = config.MacroButtonMap.ToList();
+                    for (var i = 0; i < macroButtonsToRemove.Count; ++i)
+                    {
+                        for (var j = 0; j < macroButtonList.Count; ++j)
+                        {
+                            if (macroButtonsToRemove[i] == macroButtonList[j].Index)
+                            {
+                                macroButtonList.RemoveAt(j);
+                                break;
+                            }
+                        }
+                    }
+                    config.MacroButtonMap = macroButtonList.ToArray();
+
+                    //Concat new results into the local configuration
+                    foreach (var item in bm.MacroButtonMap)
+                    {
+                        bool added = false;
+                        for (var i = 0; i < config.MacroButtonMap.Length && !added; ++i)
+                        {
+                            if (config.MacroButtonMap[i].Index == item.Key)
+                            {
+                                config.MacroButtonMap[i].MacroKeys = item.Value;
+                                added = true;
+                            }
+                        }
+                        if (!added)
+                        {
+                            var list = config.MacroButtonMap.ToList();
+                            list.Add(new MacroButton(item.Key, item.Value));
+                            config.MacroButtonMap = list.ToArray();
+                        }
+                    }
 
                     config.DisablePenButtons = bm.CheckBoxDisablePenButtons.IsChecked ?? false;
                     config.DisableTabletButtons = bm.CheckBoxDisableTabletButtons.IsChecked ?? false;

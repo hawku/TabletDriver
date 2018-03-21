@@ -31,6 +31,7 @@ namespace TabletDriverGUI
     public partial class ButtonMapping : Window
     {
         private Dictionary<string, uint> NbTabletButtonsMap;
+        public Dictionary<int, int[]> MacroButtonMap;
 
         public ButtonMapping(Configuration config, string tabletName)
         {
@@ -48,12 +49,17 @@ namespace TabletDriverGUI
                 { "Huion H640P", 6 },
                 { "Gaomon S56K", 0 },
             };
+            MacroButtonMap = new Dictionary<int, int[]>();
 
-            //if (tabletName != null && NbTabletButtonsMap.ContainsKey(tabletName))
-            //{
+            if (tabletName != null && NbTabletButtonsMap.ContainsKey(tabletName))
+            {
                 InitializeComponent();
-                //for (var i = 0; i < NbTabletButtonsMap[tabletName]; ++i)
-                for (var i = 0; i < 4; ++i)
+
+                PenTipComboBox.DropDownClosed += new EventHandler(PromptShortcutWindowEvent);
+                PenBottomComboBox.DropDownClosed += new EventHandler(PromptShortcutWindowEvent);
+                PenTopComboBox.DropDownClosed += new EventHandler(PromptShortcutWindowEvent);
+
+                for (var i = 0; i < NbTabletButtonsMap[tabletName]; ++i)
                 {
                     ComboBox cb = new ComboBox
                     {
@@ -114,22 +120,28 @@ namespace TabletDriverGUI
                 //
                 // Buttons
                 //
-                if (config.ButtonMap.Count() == 3)
+                PenTipComboBox.SelectedIndex = config.ButtonMap[0];
+                PenBottomComboBox.SelectedIndex = config.ButtonMap[1];
+                PenTopComboBox.SelectedIndex = config.ButtonMap[2];
+
+                for (var i = 0; i < NbTabletButtonsMap[tabletName]; ++i)
                 {
-                    PenTipComboBox.SelectedIndex = config.ButtonMap[0];
-                    PenBottomComboBox.SelectedIndex = config.ButtonMap[1];
-                    PenTopComboBox.SelectedIndex = config.ButtonMap[2];
+                    for (var j = 0; j < TabletButtonsContainer.Children.Count && j + 3 < config.ButtonMap.Length; ++j)
+                    {
+                        var gb = TabletButtonsContainer.Children[j] as GroupBox;
+                        var cb = gb.Content as ComboBox;
+
+                        cb.SelectedIndex = config.ButtonMap[3 + j];
+                    }
                 }
-                else
-                    config.ButtonMap = new int[] { 1, 2, 3 };
 
                 CheckBoxDisablePenButtons.IsChecked = config.DisablePenButtons;
                 CheckBoxDisableTabletButtons.IsChecked = config.DisableTabletButtons;
-            //}
-            //else
-            //{
-            //    throw new TabletNotRecognizedException("Tablet not recognized");
-            //}
+            }
+            else
+            {
+                throw new TabletNotRecognizedException("Tablet not recognized");
+            }
         }
 
         private void ButtonSet_Click(object sender, RoutedEventArgs e)
@@ -179,12 +191,26 @@ namespace TabletDriverGUI
 
                 if (shortcutMapWindow.DialogResult == true)
                 {
-                    Console.WriteLine(shortcutMapWindow.PressedKey.ToString());
+                    int idx = -1;
+                    if (cb.Name == "PenTipComboBox")
+                        idx = 0;
+                    else if (cb.Name == "PenBottomComboBox")
+                        idx = 1;
+                    else if (cb.Name == "PenTopComboBox")
+                        idx = 2;
+                    else
+                        idx = Int32.Parse(cb.Name.Remove(0, 12)) + 2;
+                    List<int> l = new List<int>();
+
                     for (var i = 0; i < shortcutMapWindow.ModifierKey.Count; ++i)
-                    {
-                        Console.WriteLine(shortcutMapWindow.ModifierKey[i].ToString());
-                    }
+                        l.Add((int)shortcutMapWindow.ModifierKey[i]);
+                    l.Add((int)shortcutMapWindow.PressedKey);
+                    if (shortcutMapWindow.PressedKey == Key.None)
+                        cb.SelectedIndex = (int)ButtonActionEnum.DISABLED;
+                    MacroButtonMap[idx] = l.ToArray();
                 }
+                else
+                    cb.SelectedIndex = (int)ButtonActionEnum.DISABLED;
 
                 shortcutMapWindow.Close();
             }

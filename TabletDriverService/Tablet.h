@@ -5,6 +5,7 @@
 
 #include "USBDevice.h"
 #include "HIDDevice.h"
+#include "Utils.h"
 
 using namespace std;
 

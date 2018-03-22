@@ -364,14 +364,16 @@ int Tablet::ReadPosition() {
 	state.buttons = 0;
 	for(buttonIndex = 0; buttonIndex < sizeof(buttonMap); buttonIndex++) {
 
-		// Button is set
-		if(buttonMap[buttonIndex] > 0) {
+		// Button is set (not a macro)
+		if(buttonMap[buttonIndex] > 0 && buttonMap[buttonIndex] < 6) {
 
 			// Button is pressed
 			if((reportData.buttons & (1 << buttonIndex)) > 0) {
 				state.buttons |= (1 << (buttonMap[buttonIndex] - 1));
 			}
 		}
+		else if (buttonMap[buttonIndex] == 6)
+			Utils::keyboardShortcutPress(buttonTabletMap[buttonIndex]);
 	}
 
 	// Convert report data to state

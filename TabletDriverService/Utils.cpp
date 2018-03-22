@@ -42,3 +42,35 @@ std::string   Utils::join(std::vector<std::string> v, std::string j) {
 	}
 	return result;
 }
+
+void		Utils::keyboardShortcutPress(std::vector<int> const& keys)
+{
+	std::vector<INPUT> keyPress;
+
+	for (auto it : keys)
+	{
+		INPUT ip;
+
+		ip.type = INPUT_KEYBOARD;
+		ip.ki.wScan = 0;
+		ip.ki.time = 0;
+		ip.ki.dwExtraInfo = 0;
+
+		if (it == VK_CONTROL || it == VK_SHIFT || it == VK_MENU || it == VK_LWIN || it == VK_RWIN)
+			ip.ki.wVk = it;
+		else
+			ip.ki.wVk = VkKeyScan(it);
+		ip.ki.dwFlags = 0;
+
+		keyPress.push_back(ip);
+	}
+	for (auto it : keyPress)
+	{
+		SendInput(1, &it, sizeof(INPUT));
+	}
+	for (int i = 0; i < keyPress.size(); ++i)
+	{
+		keyPress[i].ki.dwFlags = KEYEVENTF_KEYUP;
+		SendInput(1, &keyPress[i], sizeof(INPUT));
+	}
+}

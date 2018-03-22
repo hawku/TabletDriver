@@ -288,7 +288,7 @@ bool ProcessCommand(CommandLine *cmd) {
 		if(!CheckTablet()) return true;
 		char buttonMapBuffer[32];
 		int index = 0;
-		for(int i = 0; i < 8; i++) {
+		for(int i = 0; i < 9; i++) {
 			tablet->buttonMap[i] = cmd->GetInt(i, tablet->buttonMap[i]);
 			index += sprintf_s(buttonMapBuffer + index, 32 - index, "%d ", tablet->buttonMap[i]);
 		}

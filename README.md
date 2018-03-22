@@ -2,11 +2,11 @@ This is a my modified version of hawku's tablet driver. I've added some smoothin
 ## Download
 ### https://github.com/Devocub/TabletDriver/releases
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/6.png)
-![Alt text](images/1.png)
-![Alt text](images/2.png)
-![Alt text](images/3.png)
-![Alt text](images/4.png)
-![Alt text](images/5.png)
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/1.png)
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/2.png)
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/3.png)
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/4.png)
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/5.png)
 
 
 

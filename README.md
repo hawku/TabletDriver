@@ -3,8 +3,31 @@ For more detailed info hold mouse over antichatter settings.
 ## Download
 ### https://github.com/Devocub/TabletDriver/releases
 ### Installing
-1) If you have already Driver installed just: close it from tray, and replace files. 
+1) If you have already Driver installed just: close it from tray, and replace files.  
+
 If you have not installed the driver then: install hawku's 0.1.0 version (https://github.com/hawku/TabletDriver/releases) and go to step 1. 
+
+Antichatter feature is meant to prevent cursor chattering/rattling/shaking/trembling when it's almost doesn't moves and/or too high to prevent tablet noise.
+Antichatter in it's primary form is useful for tablets which doesn't have any smoothing (including hardware smoothing).
+Antichatter requires smoothing filter enabled for work. Latency do affect on antichatter settings.
+
+**Type**: few different types of smoothing and off. Explanation will below.
+
+**Range**: maximum distance after which antichatter eliminates. Motionless pen provides different range of noise based on height over the tablet. cm is a lie, Useful values are roughly from 0.05-0.15 up to 4-10, negative values are useless.
+
+**Strength**: is strength, useful values are from 2-3 up to 1000000. Can be negative.
+
+**Offset**: offset value for Type 2, see source code for formulas. Can be negative.
+
+
+**Type Off** disables antichatter at all, only smoothing filter left working.
+                         
+**Type 1** is dumb and simple: if cursor speed is slow (based on Range) then smooth it in Strength times stronger. Offset value doesn't affect on this.
+  
+**Type 2** is smarter - it's distance based, see code for formulas. 
+          
+Recommended values for primary idea of antichatter is: Latency 10 ms, Type 1, Range 0.15 cm, Strength 20
+Some interesting settings: Latency 40 ms, Type 1, Range 3, Strength 100 | Latency 17 ms, Type 2, Range 10, Strength 100000, Offset -2
 
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/6.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/1.png)

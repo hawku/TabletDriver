@@ -1,3 +1,15 @@
+This is a my modified version of hawku's tablet driver. I've added some smoothing algorithms.
+## Download
+### https://github.com/Devocub/TabletDriver/releases
+![Alt text](iamges/6.png)
+![Alt text](iamges/1.png)
+![Alt text](iamges/2.png)
+![Alt text](iamges/3.png)
+![Alt text](iamges/4.png)
+![Alt text](iamges/5.png)
+
+
+
 # TabletDriver
 
 This is a low latency graphics tablet driver that is meant to be used with rhythm game [osu!](https://osu.ppy.sh/home)

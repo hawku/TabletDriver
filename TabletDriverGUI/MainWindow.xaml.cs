@@ -24,7 +24,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.1.0";
+        public string Version = "0.1.0 Devocub Edition";
 
         // Console stuff
         private List<string> commandHistory;
@@ -485,15 +485,27 @@ namespace TabletDriverGUI
             checkBoxFilter.IsChecked = config.FilterEnabled;
             textFilterLatency.Text = GetNumberString(config.FilterLatency);
             comboBoxFilterRate.SelectedIndex = config.FilterInterval - 1;
+            comboBoxAntichatterType.SelectedIndex = config.AntichatterType;
+            textAntichatterRange.Text = GetNumberString(config.AntichatterRange);
+            textAntichatterStrength.Text = GetNumberString(config.AntichatterStrength);
+            textAntichatterOffset.Text = GetNumberString(config.AntichatterOffset);
             if (config.FilterEnabled)
             {
                 textFilterLatency.IsEnabled = true;
                 comboBoxFilterRate.IsEnabled = true;
+                comboBoxAntichatterType.IsEnabled = true;
+                textAntichatterRange.IsEnabled = true;
+                textAntichatterStrength.IsEnabled = true;
+                textAntichatterOffset.IsEnabled = true;
             }
             else
             {
                 textFilterLatency.IsEnabled = false;
                 comboBoxFilterRate.IsEnabled = false;
+                comboBoxAntichatterType.IsEnabled = false;
+                textAntichatterRange.IsEnabled = false;
+                textAntichatterStrength.IsEnabled = false;
+                textAntichatterOffset.IsEnabled = false;
             }
 
 
@@ -626,16 +638,31 @@ namespace TabletDriverGUI
             config.FilterInterval = comboBoxFilterRate.SelectedIndex + 1;
             if (ParseNumber(textFilterLatency.Text, out value))
                 config.FilterLatency = value;
+            config.AntichatterType = comboBoxAntichatterType.SelectedIndex;
+            if (ParseNumber(textAntichatterRange.Text, out value))
+                config.AntichatterRange = value;
+            if (ParseNumber(textAntichatterStrength.Text, out value))
+                config.AntichatterStrength = value;
+            if (ParseNumber(textAntichatterOffset.Text, out value))
+                config.AntichatterOffset = value;
 
             if (config.FilterEnabled)
             {
                 textFilterLatency.IsEnabled = true;
                 comboBoxFilterRate.IsEnabled = true;
+                comboBoxAntichatterType.IsEnabled = true;
+                textAntichatterRange.IsEnabled = true;
+                textAntichatterStrength.IsEnabled = true;
+                textAntichatterOffset.IsEnabled = true;
             }
             else
             {
                 textFilterLatency.IsEnabled = false;
                 comboBoxFilterRate.IsEnabled = false;
+                comboBoxAntichatterType.IsEnabled = false;
+                textAntichatterRange.IsEnabled = false;
+                textAntichatterStrength.IsEnabled = false;
+                textAntichatterOffset.IsEnabled = false;
             }
 
             //
@@ -1617,12 +1644,16 @@ namespace TabletDriverGUI
             {
                 driver.SendCommand("Filter " + GetNumberString(config.FilterLatency));
                 driver.SendCommand("FilterInterval " + GetNumberString(config.FilterInterval));
+                driver.SendCommand("AntichatterType " + GetNumberString(config.AntichatterType));
+                driver.SendCommand("AntichatterRange " + GetNumberString(config.AntichatterRange));
+                driver.SendCommand("AntichatterStrength " + GetNumberString(config.AntichatterStrength));
+                driver.SendCommand("AntichatterOffset " + GetNumberString(config.AntichatterOffset));
             }
             else
             {
                 driver.SendCommand("Filter 0");
+                //driver.SendCommand("AntichatterType 0");
             }
-
             // Commands after settings
             if (config.CommandsAfter.Length > 0)
             {

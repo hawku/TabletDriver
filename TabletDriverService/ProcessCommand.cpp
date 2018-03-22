@@ -457,26 +457,50 @@ bool ProcessCommand(CommandLine *cmd) {
 	//
 	// Smoothing filter interval
 	//
-	else if(cmd->is("FilterInterval")) {
+	else if (cmd->is("FilterInterval")) {
 		int interval = cmd->GetInt(0, (int)round(tablet->filter.interval));
 
 		// 10 Hz
-		if(interval > 100) interval = 100;
+		if (interval > 100) interval = 100;
 
 		// 1000 Hz
-		if(interval < 1) interval = 1;
+		if (interval < 1) interval = 1;
 
 		// Interval changed?
-		if(interval != (int)round(tablet->filter.interval)) {
+		if (interval != (int)round(tablet->filter.interval)) {
 			tablet->filter.interval = interval;
 			tablet->SetFilterLatency(tablet->filter.latency);
-			if(tablet->StopFilterTimer()) {
+			if (tablet->StopFilterTimer()) {
 				tablet->StartFilterTimer();
 			}
 		}
 
 		LOG_INFO("Filter Interval = %d (%0.2f Hz, %0.2f ms, %f)\n", interval, 1000.0 / interval, tablet->filter.latency, tablet->filter.weight);
 
+	}
+
+	//
+	// Antichatter filter
+	//
+	else if (cmd->is("AntichatterType")) {
+		double antichatterType = cmd->GetInt(0, tablet->filter.antichatterType);
+		tablet->filter.antichatterType = antichatterType;
+		LOG_INFO("Filter Antichatter Type = %d \n", tablet->filter.antichatterType);
+	}
+	else if (cmd->is("AntichatterRange")) {
+		double antichatterRange = cmd->GetDouble(0, tablet->filter.antichatterRange);
+		tablet->filter.antichatterRange = antichatterRange;
+		LOG_INFO("Filter Antichatter Range = %0.3f cm\n", tablet->filter.antichatterRange);
+	}
+	else if (cmd->is("AntichatterStrength")) {
+		double antichatterStrength = cmd->GetDouble(0, tablet->filter.antichatterStrength);
+		tablet->filter.antichatterStrength = antichatterStrength;
+		LOG_INFO("Filter Antichatter Stregth = %0.2f \n", tablet->filter.antichatterStrength);
+	}
+	else if (cmd->is("AntichatterOffset")) {
+		double antichatterOffset = cmd->GetDouble(0, tablet->filter.antichatterOffset);
+		tablet->filter.antichatterOffset = antichatterOffset;
+		LOG_INFO("Filter Antichatter Offset = %0.2f cm\n", tablet->filter.antichatterOffset);
 	}
 
 	// Debug

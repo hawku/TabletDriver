@@ -84,6 +84,10 @@ public:
 		double latency;
 		double weight;
 		double threshold;
+		int antichatterType;
+		double antichatterRange;
+		double antichatterStrength;
+		double antichatterOffset;
 		bool isEnabled;
 		double targetX;
 		double targetY;

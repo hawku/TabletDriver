@@ -29,6 +29,10 @@ namespace TabletDriverGUI
         public double FilterLatency;
         public int FilterInterval;
         public bool FilterEnabled;
+        public int AntichatterType;
+        public double AntichatterRange;
+        public double AntichatterStrength;
+        public double AntichatterOffset;
 
         public Area DesktopSize;
         public bool AutomaticDesktopSize;
@@ -81,6 +85,10 @@ namespace TabletDriverGUI
             FilterEnabled = false;
             FilterLatency = 0;
             FilterInterval = 4;
+            AntichatterType = 2;
+            AntichatterRange = 0.15;
+            AntichatterStrength = 3.0;
+            AntichatterOffset = 0.0;
 
             CommandsAfter = new string[] { "" };
             CommandsBefore = new string[] { "" };

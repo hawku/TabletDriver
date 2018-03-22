@@ -65,6 +65,10 @@ Tablet::Tablet() {
 	filter.latency = 2.0;
 	filter.weight = 1.000;
 	filter.threshold = 0.9;
+	filter.antichatterType = 2;
+	filter.antichatterRange = 0.15;
+	filter.antichatterStrength = 3;
+	filter.antichatterOffset = 0.0;
 	filter.isEnabled = false;
 	filter.targetX = 0;
 	filter.targetY = 0;
@@ -210,29 +214,39 @@ void Tablet::SetFilterLatency(double latency) {
 //
 void Tablet::ProcessFilter() {
 
-	double deltaX, deltaY, distance, weightModifier;
+	double deltaX, deltaY, distance, weightModifier, antichatterRange, antichatterStrength,antichatterOffset;
+	int antichatterType;
 
 	deltaX = filter.targetX - filter.x;
 	deltaY = filter.targetY - filter.y;
 	distance = sqrt(deltaX*deltaX + deltaY * deltaY);
+	antichatterType = (int) filter.antichatterType;
+	antichatterRange = filter.antichatterRange;
+	antichatterStrength = filter.antichatterStrength;
+	antichatterOffset = filter.antichatterOffset;
 
 	// Regular smoothing
-	if (distance > 0.17) {
+	if (antichatterType == 0 or distance > antichatterRange) {
 		filter.x += deltaX * filter.weight;
 		filter.y += deltaY * filter.weight;
 	}
-	// Strong smoothing on small distances to avoid tablet noise (it needs up to 0.3 near borders in some places or when pen is very high, but ~0.17 is enough in most cases)
-	else if (distance <= 0.17 & distance > 0.00001) {
-		weightModifier = pow(distance, 50);
-		if (weightModifier > 1) weightModifier = 1;
-		filter.x += deltaX * (filter.weight * weightModifier);
-		filter.y += deltaY * (filter.weight * weightModifier);
-	}
+	// Strong smoothing on small distances to avoid tablet noise
+	//(it needs up to 0.3 near borders in some places and/or when pen is very high, but ~0.15 is enough in most cases)
 	else {
-		filter.x = filter.targetX;
-		filter.y = filter.targetY;
+		if (antichatterType == 1)
+		{
+			weightModifier = 1 / antichatterStrength;
+			if (weightModifier > 1) weightModifier = 1;
+			filter.x += deltaX * (filter.weight * weightModifier);
+			filter.y += deltaY * (filter.weight * weightModifier);
+		} else
+		if (antichatterType == 2) {
+			weightModifier = pow(distance, antichatterStrength*-1) + antichatterOffset;
+			if (weightModifier < 1) weightModifier = 1;
+			filter.x += deltaX * (filter.weight / weightModifier);
+			filter.y += deltaY * (filter.weight / weightModifier);
+		}
 	}
-
 }
 
 

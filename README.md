@@ -1,4 +1,5 @@
 This is a my modified version of hawku's tablet driver. I've added some smoothing algorithms.
+For more detailed info hold mouse over antichatter settings.
 ## Download
 ### https://github.com/Devocub/TabletDriver/releases
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/6.png)

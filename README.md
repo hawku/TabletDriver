@@ -2,6 +2,10 @@ This is a my modified version of hawku's tablet driver. I've added some smoothin
 For more detailed info hold mouse over antichatter settings.
 ## Download
 ### https://github.com/Devocub/TabletDriver/releases
+### Installing
+1) If you have already Driver installed just: close it from tray, and replace files. 
+If you have not installed the driver then: install hawku's 0.1.0 version (https://github.com/hawku/TabletDriver/releases) and go to step 1. 
+
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/6.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/1.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/2.png)

@@ -56,10 +56,7 @@ void		Utils::keyboardShortcutPress(std::vector<int> const& keys)
 		ip.ki.time = 0;
 		ip.ki.dwExtraInfo = 0;
 
-		if (it == VK_CONTROL || it == VK_SHIFT || it == VK_MENU || it == VK_LWIN || it == VK_RWIN)
-			ip.ki.wVk = it;
-		else
-			ip.ki.wVk = VkKeyScan(it);
+		ip.ki.wVk = it;
 		ip.ki.dwFlags = 0;
 
 		keyPress.push_back(ip);

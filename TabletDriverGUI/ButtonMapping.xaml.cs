@@ -199,58 +199,32 @@ namespace TabletDriverGUI
         [DllImport("user32.dll")]
         private static extern uint MapVirtualKey(uint uCode, MapType uMapType);
 
-        private char GetVKFromModifierKey(ModifierKeys modifierKey)
+        private int GetVKFromModifierKey(ModifierKeys modifierKey)
         {
-            char ch = '\0';
+            int ch = 0;
 
             switch (modifierKey)
             {
                 case ModifierKeys.Control:
-                    ch = (char)0x11;
+                    ch = 0x11;
                     break;
                 case ModifierKeys.Shift:
-                    ch = (char)0x10;
+                    ch = 0x10;
                     break;
                 case ModifierKeys.Alt:
-                    ch = (char)0x12;
+                    ch = 0x12;
                     break;
                 case ModifierKeys.Windows:
-                    ch = (char)0x5B;
+                    ch = 0x5B;
                     break;
             }
-            return ch;
+            
+            return (ch);
         }
 
-        private char GetCharFromKey(Key key)
+        private int GetVKFromKey(Key key)
         {
-            char ch = '\0';
-
-            int virtualKey = KeyInterop.VirtualKeyFromKey(key);
-            byte[] keyboardState = new byte[256];
-            GetKeyboardState(keyboardState);
-
-            uint scanCode = MapVirtualKey((uint)virtualKey, MapType.MAPVK_VK_TO_VSC);
-            StringBuilder stringBuilder = new StringBuilder(2);
-
-            int result = ToUnicode((uint)virtualKey, scanCode, keyboardState, stringBuilder, stringBuilder.Capacity, 0);
-            switch (result)
-            {
-                case -1:
-                    break;
-                case 0:
-                    break;
-                case 1:
-                    {
-                        ch = stringBuilder[0];
-                        break;
-                    }
-                default:
-                    {
-                        ch = stringBuilder[0];
-                        break;
-                    }
-            }
-            return ch;
+            return (KeyInterop.VirtualKeyFromKey(key));
         }
 
         private void PromptShortcutWindowEvent(object sender, EventArgs e)
@@ -283,7 +257,7 @@ namespace TabletDriverGUI
 
                     for (var i = 0; i < shortcutMapWindow.ModifierKey.Count; ++i)
                         l.Add(GetVKFromModifierKey(shortcutMapWindow.ModifierKey[i]));
-                    l.Add(GetCharFromKey(shortcutMapWindow.PressedKey));
+                    l.Add(GetVKFromKey(shortcutMapWindow.PressedKey));
                     if (shortcutMapWindow.PressedKey == Key.None)
                         cb.SelectedIndex = (int)ButtonActionEnum.DISABLED;
                     MacroButtonMap[idx] = l.ToArray();

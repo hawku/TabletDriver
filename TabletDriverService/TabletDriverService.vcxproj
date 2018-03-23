@@ -177,6 +177,7 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClInclude Include="Tablet.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="USBDevice.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="VMulti.h" />
   </ItemGroup>
   <ItemGroup>
@@ -194,6 +195,7 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Utils.cpp" />
     <ClCompile Include="VMulti.cpp" />
   </ItemGroup>
   <ItemGroup>

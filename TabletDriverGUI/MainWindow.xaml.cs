@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -23,7 +24,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.0.16";
+        public string Version = "0.1.0";
 
         // Console stuff
         private List<string> commandHistory;
@@ -46,6 +47,7 @@ namespace TabletDriverGUI
         private Configuration config;
         private bool isFirstStart = false;
         private bool isLoadingSettings;
+        private string TabletName;
 
         // Screen map canvas elements
         private Rectangle[] rectangleMonitors;
@@ -159,27 +161,10 @@ namespace TabletDriverGUI
                 Interval = new TimeSpan(0, 0, 0, 0, 200)
             };
             timerConsoleUpdate.Tick += TimerConsoleUpdate_Tick;
-
-
-            //
-            // Buttom Map ComboBoxes
-            //
-            comboBoxButton1.Items.Clear();
-            comboBoxButton2.Items.Clear();
-            comboBoxButton3.Items.Clear();
-            comboBoxButton1.Items.Add("Disabled");
-            comboBoxButton2.Items.Add("Disabled");
-            comboBoxButton3.Items.Add("Disabled");
-            for (int i = 1; i <= 5; i++)
-            {
-                comboBoxButton1.Items.Add("Mouse " + i);
-                comboBoxButton2.Items.Add("Mouse " + i);
-                comboBoxButton3.Items.Add("Mouse " + i);
-            }
-            comboBoxButton1.SelectedIndex = 0;
-            comboBoxButton2.SelectedIndex = 0;
-            comboBoxButton3.SelectedIndex = 0;
-
+            
+            // Tooltip timeout
+            ToolTipService.ShowDurationProperty.OverrideMetadata(
+                typeof(DependencyObject), new FrameworkPropertyMetadata(60000));
 
             //
             // Filter rate ComboBox
@@ -191,7 +176,9 @@ namespace TabletDriverGUI
             }
             comboBoxFilterRate.SelectedIndex = 2;
 
-
+            // Process command line arguments
+            ProcessCommandLineArguments();
+            
             // Events
             Closing += MainWindow_Closing;
             Loaded += MainWindow_Loaded;
@@ -259,12 +246,48 @@ namespace TabletDriverGUI
             // Load settings from configuration
             LoadSettingsFromConfiguration();
 
-            // 
+            // Update the settings back to the configuration
             UpdateSettingsToConfiguration();
 
+            // Console timer
             timerConsoleUpdate.Start();
 
+            // Set run at startup
+            SetRunAtStartup(config.RunAtStartup);
+
+            // Hide the window if the GUI is started as minimized
+            if (WindowState == WindowState.Minimized)
+            {
+                Hide();
+            }
+
+            // Start the driver
             Start();
+        }
+
+
+        //
+        // Process command line arguments
+        //
+        void ProcessCommandLineArguments()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++)
+            {
+                // Skip values
+                if (!args[i].StartsWith("-") && !args[i].StartsWith("/")) continue;
+
+                // Remove '-' and '/' characters at the start of the argument
+                string parameter = Regex.Replace(args[i], "^[\\-/]+", "").ToLower();
+
+                //
+                // Parameter: --hide
+                //
+                if (parameter == "hide")
+                {
+                    WindowState = WindowState.Minimized;
+                }
+            }
         }
 
         #endregion
@@ -419,21 +442,6 @@ namespace TabletDriverGUI
             textTabletAreaY.Text = GetNumberString(config.TabletArea.Y);
 
 
-            //
-            // Buttons
-            //
-            if (config.ButtonMap.Count() == 3)
-            {
-                comboBoxButton1.SelectedIndex = config.ButtonMap[0];
-                comboBoxButton2.SelectedIndex = config.ButtonMap[1];
-                comboBoxButton3.SelectedIndex = config.ButtonMap[2];
-            }
-            else
-            {
-                config.ButtonMap = new int[] { 1, 2, 3 };
-            }
-            checkBoxDisableButtons.IsChecked = config.DisableButtons;
-
 
             //
             // Filter
@@ -451,6 +459,10 @@ namespace TabletDriverGUI
                 textFilterLatency.IsEnabled = false;
                 comboBoxFilterRate.IsEnabled = false;
             }
+
+
+            // Run at startup
+            checkRunAtStartup.IsChecked = config.RunAtStartup;
 
 
             //
@@ -484,6 +496,8 @@ namespace TabletDriverGUI
         {
             if (isLoadingSettings)
                 return;
+
+            bool oldValue;
 
             // Tablet area
             if (ParseNumber(textTabletAreaWidth.Text, out double value))
@@ -564,10 +578,10 @@ namespace TabletDriverGUI
 
 
             // Button map 
-            config.ButtonMap[0] = comboBoxButton1.SelectedIndex;
-            config.ButtonMap[1] = comboBoxButton2.SelectedIndex;
-            config.ButtonMap[2] = comboBoxButton3.SelectedIndex;
-            config.DisableButtons = (bool)checkBoxDisableButtons.IsChecked;
+            //config.ButtonMap[0] = comboBoxButton1.SelectedIndex;
+            //config.ButtonMap[1] = comboBoxButton2.SelectedIndex;
+            //config.ButtonMap[2] = comboBoxButton3.SelectedIndex;
+            //config.DisablePenButtons = (bool)checkBoxDisableButtons.IsChecked;
 
 
 
@@ -588,6 +602,14 @@ namespace TabletDriverGUI
                 comboBoxFilterRate.IsEnabled = false;
             }
 
+            //
+            // Run at startup
+            //
+            oldValue = config.RunAtStartup;
+            config.RunAtStartup = (bool)checkRunAtStartup.IsChecked;
+            if (config.RunAtStartup != oldValue)
+                SetRunAtStartup(config.RunAtStartup);
+
 
             // Custom commands
             List<string> commandList = new List<string>();
@@ -607,7 +629,6 @@ namespace TabletDriverGUI
             UpdateCanvasElements();
 
         }
-
 
         //
         // String to Number
@@ -635,6 +656,28 @@ namespace TabletDriverGUI
             return value.ToString(format, cultureEnglish.NumberFormat);
         }
 
+
+        //
+        // Set run at startup
+        //
+        private void SetRunAtStartup(bool enabled)
+        {
+            try
+            {
+                string path = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string entryName = "TabletDriverGUI";
+                RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+                if (enabled)
+                    rk.SetValue(entryName, "\"" + path + "\" --hide");
+                else
+                    rk.DeleteValue(entryName, false);
+
+                rk.Close();
+            }
+            catch (Exception)
+            {
+            }
+        }
 
         //
         // Get desktop size
@@ -1049,7 +1092,7 @@ namespace TabletDriverGUI
 
                 if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
                     dx = 0;
-                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.LeftCtrl))
+                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
                     dy = 0;
 
                 // Screen map canvas
@@ -1121,20 +1164,6 @@ namespace TabletDriverGUI
 
             }
 
-            // Disable button map selection when buttons are disabled
-            if (checkBoxDisableButtons.IsChecked == true)
-            {
-                comboBoxButton1.IsEnabled = false;
-                comboBoxButton2.IsEnabled = false;
-                comboBoxButton3.IsEnabled = false;
-            }
-            else
-            {
-                comboBoxButton1.IsEnabled = true;
-                comboBoxButton2.IsEnabled = true;
-                comboBoxButton3.IsEnabled = true;
-            }
-
             // Disable desktop size settings when automatic is checked
             if (checkBoxAutomaticDesktopSize.IsChecked == true)
             {
@@ -1168,8 +1197,11 @@ namespace TabletDriverGUI
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (!IsLoaded || isLoadingSettings) return;
-            config.WindowWidth = (int)e.NewSize.Width;
-            config.WindowHeight = (int)e.NewSize.Height;
+            if (WindowState != WindowState.Maximized)
+            {
+                config.WindowWidth = (int)e.NewSize.Width;
+                config.WindowHeight = (int)e.NewSize.Height;
+            }
         }
 
         // Monitor combobox clicked -> create new monitor list
@@ -1243,13 +1275,14 @@ namespace TabletDriverGUI
                 SendSettingsToDriver();
                 SetStatus("Settings saved!");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 string dir = Directory.GetCurrentDirectory();
                 MessageBox.Show("Error occured while saving the configuration.\n" +
                     "Make sure that it is possible to create and edit files in the '" + dir + "' directory.\n",
                     "ERROR!", MessageBoxButton.OK, MessageBoxImage.Error
                 );
+                Console.WriteLine(ex.Message);
             }
         }
 
@@ -1282,6 +1315,33 @@ namespace TabletDriverGUI
         }
 
         //
+        // Update statusbar
+        //
+        private void SetStatusWarning(string text)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                textStatusWarning.Text = text;
+            });
+            timerStatusbar.Stop();
+            timerStatusbar.Start();
+        }
+
+
+        //
+        // Statusbar warning text click
+        //
+        private void StatusWarning_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Open Task Manager 
+            if (textStatusWarning.Text.ToLower().Contains("priority"))
+            {
+                try { Process.Start("taskmgr.exe"); } catch (Exception) { }
+            }
+        }
+
+
+        //
         // Statusbar timer tick
         //
         private void TimerStatusbar_Tick(object sender, EventArgs e)
@@ -1289,6 +1349,7 @@ namespace TabletDriverGUI
             Application.Current.Dispatcher.Invoke(() =>
             {
                 textStatus.Text = "";
+                textStatusWarning.Text = "";
             });
             timerStatusbar.Stop();
         }
@@ -1315,7 +1376,8 @@ namespace TabletDriverGUI
         // Error
         private void OnDriverErrorReceived(object sender, TabletDriver.DriverEventArgs e)
         {
-            //ConsoleAddText("ERROR! " + e.Message);
+            SetStatusWarning(e.Message);
+
         }
         // Started
         private void OnDriverStarted(object sender, EventArgs e)
@@ -1395,9 +1457,10 @@ namespace TabletDriverGUI
             //
             if (variableName == "tablet")
             {
-                Title = "TabletDriverGUI - " + stringValue;
+                TabletName = stringValue;
+                Title = "TabletDriverGUI - " + TabletName;
                 notifyIcon.Text = Title;
-                SetStatus("Connected to " + stringValue);
+                SetStatus("Connected to " + TabletName);
             }
 
             //
@@ -1405,7 +1468,7 @@ namespace TabletDriverGUI
             //
             if (variableName == "width")
             {
-                if (ParseNumber(stringValue, out double value))
+                if (ParseNumber(TabletName, out double value))
                 {
                     config.TabletFullArea.Width = value;
                     config.TabletFullArea.X = value / 2.0;
@@ -1421,7 +1484,7 @@ namespace TabletDriverGUI
             //
             if (variableName == "height")
             {
-                if (ParseNumber(stringValue, out double value))
+                if (ParseNumber(TabletName, out double value))
                 {
                     config.TabletFullArea.Height = value;
                     config.TabletFullArea.Y = value / 2.0;
@@ -1491,13 +1554,30 @@ namespace TabletDriverGUI
 
 
             // Button map
-            if (config.DisableButtons)
+            if (config.DisablePenButtons)
             {
-                driver.SendCommand("ButtonMap 0 0 0");
+                string cmd = "ButtonMap 0 0 0 " + String.Join(" ", config.ButtonMap, 3, 6);
+                driver.SendCommand(cmd);
+                if (config.MacroButtonMap.Length != 0)
+                {
+                    cmd = "TabletMacro " + string.Join(";", config.MacroButtonMap.Select(t => string.Format("{0},{1}", t.Index, string.Join(",", t.MacroKeys))));
+                    driver.SendCommand(cmd);
+                }
+            }
+            else if (config.DisableTabletButtons)
+            {
+                string cmd = String.Join(" ", config.ButtonMap, 0, 3) + " 0 0 0 0 0 0";
+                driver.SendCommand(cmd);
             }
             else
             {
-                driver.SendCommand("ButtonMap " + String.Join(" ", config.ButtonMap));
+                string cmd = "ButtonMap " + String.Join(" ", config.ButtonMap);
+                driver.SendCommand(cmd);
+                if (config.MacroButtonMap.Length != 0)
+                {
+                    cmd = "TabletMacro " + string.Join(";", config.MacroButtonMap.Select(t => string.Format("{0},{1}", t.Index, string.Join(",", t.MacroKeys))));
+                    driver.SendCommand(cmd);
+                }
             }
 
             // Filter
@@ -1932,8 +2012,105 @@ namespace TabletDriverGUI
 
             return IntPtr.Zero;
         }
+        
+        private void EditButtonMapping_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Console.WriteLine("TabletName = " + TabletName);
+                ButtonMapping bm = new ButtonMapping(config, TabletName);
+
+                bm.ShowDialog();
+
+                if (bm.DialogResult == true)
+                {
+                    List<int> macroButtonsToRemove = new List<int>();
+                    for (var i = 0; i < 3; ++i)
+                    {
+                        if (config.ButtonMap[i] != 6)
+                            macroButtonsToRemove.Add(i);
+
+                        if (bm.MacroButtonMap.ContainsKey(i) && bm.MacroButtonMap[i].Length == 1 && bm.MacroButtonMap[i][0] == 0)
+                            bm.MacroButtonMap.Remove(i);
+                        else
+                        {
+                            switch (i)
+                            {
+                                case 0:
+                                    config.ButtonMap[i] = bm.PenTipComboBox.SelectedIndex;
+                                    break;
+                                case 1:
+                                    config.ButtonMap[i] = bm.PenBottomComboBox.SelectedIndex;
+                                    break;
+                                case 2:
+                                    config.ButtonMap[i] = bm.PenTopComboBox.SelectedIndex;
+                                    break;
+                            }
+                        }
+                    }
+
+                    for (var i = 0; i < bm.TabletButtonsContainer.Children.Count; ++i)
+                    {
+                        var gb = bm.TabletButtonsContainer.Children[i] as GroupBox;
+                        var cb = gb.Content as ComboBox;
+
+
+                        if (cb.SelectedIndex != 6)
+                            macroButtonsToRemove.Add(i + 3);
+
+                        if (bm.MacroButtonMap.ContainsKey(i + 3) && bm.MacroButtonMap[i + 3].Length == 1 && bm.MacroButtonMap[i + 3][0] == 0)
+                            bm.MacroButtonMap.Remove(i + 3);
+                        else
+                            config.ButtonMap[i + 3] = cb.SelectedIndex;
+                    }
+
+                    //Delete removed or empty MacroButtons
+                    var macroButtonList = config.MacroButtonMap.ToList();
+                    for (var i = 0; i < macroButtonsToRemove.Count; ++i)
+                    {
+                        for (var j = 0; j < macroButtonList.Count; ++j)
+                        {
+                            if (macroButtonsToRemove[i] == macroButtonList[j].Index)
+                            {
+                                macroButtonList.RemoveAt(j);
+                                break;
+                            }
+                        }
+                    }
+                    config.MacroButtonMap = macroButtonList.ToArray();
+
+                    //Concat new results into the local configuration
+                    foreach (var item in bm.MacroButtonMap)
+                    {
+                        bool added = false;
+                        for (var i = 0; i < config.MacroButtonMap.Length && !added; ++i)
+                        {
+                            if (config.MacroButtonMap[i].Index == item.Key)
+                            {
+                                config.MacroButtonMap[i].MacroKeys = item.Value;
+                                added = true;
+                            }
+                        }
+                        if (!added)
+                        {
+                            var list = config.MacroButtonMap.ToList();
+                            list.Add(new MacroButton(item.Key, item.Value));
+                            config.MacroButtonMap = list.ToArray();
+                        }
+                    }
+
+                    config.DisablePenButtons = bm.CheckBoxDisablePenButtons.IsChecked ?? false;
+                    config.DisableTabletButtons = bm.CheckBoxDisableTabletButtons.IsChecked ?? false;
+                }
+
+                bm.Close();
+            }
+            catch (TabletNotRecognizedException)
+            {
+                MessageBox.Show("Your tablet needs to be recognized before changing its control mapping.", "Tablet not recognized", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
+        }
 
         #endregion
-
     }
 }

@@ -23,6 +23,7 @@ Tablet *tablet;
 VMulti *vmulti;
 ScreenMapper *mapper;
 thread *tabletThread;
+thread *tabletButtonThread;
 
 //
 // Init console parameters
@@ -161,6 +162,13 @@ void RunTabletThread() {
 
 }
 
+void RunTabletButtonThread() {
+	while (true)
+	{
+
+	}
+}
+
 //
 // Tablet filter timer callback
 //
@@ -249,6 +257,7 @@ int main(int argc, char**argv) {
 	vmulti = NULL;
 	tablet = NULL;
 	tabletThread = NULL;
+	tabletButtonThread = NULL;
 
 	// Init console
 	InitConsole();
@@ -344,6 +353,7 @@ int main(int argc, char**argv) {
 
 				// Start the tablet thread
 				tabletThread = new thread(RunTabletThread);
+				tabletButtonThread = new thread(RunTabletButtonThread);
 
 				LOG_INFO("TabletDriver started!\n");
 				LogStatus();

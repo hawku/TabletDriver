@@ -1,9 +1,11 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 #include "USBDevice.h"
 #include "HIDDevice.h"
+#include "Utils.h"
 
 using namespace std;
 
@@ -41,6 +43,7 @@ public:
 		int maxY;
 		int maxPressure;
 		int clickPressure;
+		int keepTipDown;
 		double width;
 		double height;
 		BYTE reportId;
@@ -90,8 +93,21 @@ public:
 		double y;
 	} filter;
 
+	//
+	// Benchmark
+	//
+	struct {
+		double minX;
+		double maxX;
+		double minY;
+		double maxY;
+		int totalPackets;
+		int packetCounter;
+	} benchmark;
+
 	// Button map
 	BYTE buttonMap[16];
+	std::unordered_map<int, std::vector<int>> buttonTabletMap;
 
 	//
 	string name = "Unknown";
@@ -99,6 +115,8 @@ public:
 	bool debugEnabled;
 	int skipPackets;
 
+	// Pen tip button keep down
+	int tipDownCounter;
 
 	// Tablet initialize buffers
 	BYTE *initFeature;
@@ -123,6 +141,8 @@ public:
 	void ProcessFilter();
 	bool StartFilterTimer();
 	bool StopFilterTimer();
+
+	void StartBenchmark(int packetCount);
 	
 	int ReadPosition();
 	bool Write(void *buffer, int length);

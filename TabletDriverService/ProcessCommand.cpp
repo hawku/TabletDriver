@@ -175,6 +175,14 @@ bool ProcessCommand(CommandLine *cmd) {
 	}
 
 
+	// Keep pen tip down
+	else if(cmd->is("KeepTipDown")) {
+		if(tablet == NULL) return false;
+		tablet->settings.keepTipDown = cmd->GetInt(0, tablet->settings.keepTipDown);
+		LOG_INFO("Tablet pen tip keep down = %d packets\n", tablet->settings.keepTipDown);
+	}
+
+
 	// Width
 	else if(cmd->is("Width")) {
 		if(tablet == NULL) return false;
@@ -280,11 +288,46 @@ bool ProcessCommand(CommandLine *cmd) {
 		if(!CheckTablet()) return true;
 		char buttonMapBuffer[32];
 		int index = 0;
-		for(int i = 0; i < 8; i++) {
+		for(int i = 0; i < 9; i++) {
 			tablet->buttonMap[i] = cmd->GetInt(i, tablet->buttonMap[i]);
 			index += sprintf_s(buttonMapBuffer + index, 32 - index, "%d ", tablet->buttonMap[i]);
 		}
 		LOG_INFO("Button Map = %s\n", buttonMapBuffer);
+	}
+
+
+
+	//
+	// Tablet buttons macro
+	//
+	else if (cmd->is("TabletMacro")) {
+		//LOG_INFO("is equal before check: %d\n", cmd->is("TabletMacro"));
+		//LOG_INFO("cmd->command is: %s\n", cmd->command);
+		if (!CheckTablet()) return true;
+		if (true)
+		{
+			std::vector<std::string> tempSplit = Utils::split(cmd->line.substr(12).c_str(), ';');
+			std::vector<std::vector<std::string>> tabletMacros;
+
+			for (auto &it : tempSplit)
+				tabletMacros.push_back(Utils::split(it, ','));
+
+			for (auto &it : tabletMacros)
+			{
+				std::vector<int> keysMacro;
+
+				for (int i = 0; i < it.size(); ++i)
+				{
+					if (i != 0)
+						keysMacro.push_back(std::stoi(it[i]));
+				}
+
+				tablet->buttonTabletMap[std::stoi(it[0])] = keysMacro;
+				LOG_INFO("Set the macro to the button [%d]\n", std::stoi(it[0]));
+			}
+		}
+		else
+			LOG_INFO("Invalid command for TabletMacro, try this instead: TabletMacro macro_string\n");
 	}
 
 
@@ -528,6 +571,59 @@ bool ProcessCommand(CommandLine *cmd) {
 		LogStatus();
 	}
 
+	// Info
+	else if(cmd->is("Benchmark") || cmd->is("Bench")) {
+		if(!CheckTablet()) return true;
+
+		int timeLimit;
+		int packetCount = cmd->GetInt(0, 200);
+		if(packetCount < 10) packetCount = 10;
+		if(packetCount > 1000) packetCount = 1000;
+		timeLimit = packetCount * 10;
+		if(timeLimit < 1000) timeLimit = 1000;
+
+		LOG_INFO("Tablet benchmark starting in 3 seconds!\n");
+		LOG_INFO("Keep the pen stationary on top of the tablet!\n");
+		Sleep(3000);
+		LOG_INFO("Benchmark started!\n");
+		tablet->StartBenchmark(packetCount);
+
+		// Log the benchmark result
+		for(int i = 0; i < timeLimit / 100; i++) {
+			Sleep(100);
+			if(tablet->benchmark.packetCounter <= 0) {
+
+				double width = tablet->benchmark.maxX - tablet->benchmark.minX;
+				double height = tablet->benchmark.maxY - tablet->benchmark.minY;
+				LOG_INFO("Benchmark done!\n");
+				LOG_INFO("Results from %d tablet positions:\n", tablet->benchmark.totalPackets);
+				LOG_INFO("  X range: %0.3f mm <-> %0.3f mm\n", tablet->benchmark.minX, tablet->benchmark.maxX);
+				LOG_INFO("  Y range: %0.3f mm <-> %0.3f mm\n", tablet->benchmark.minY, tablet->benchmark.maxY);
+				LOG_INFO("  Width: %0.3f mm, %0.2f pixels @ %0.0f px, %0.2f mm\n",
+					width,
+					mapper->areaScreen.width / mapper->areaTablet.width * width,
+					mapper->areaScreen.width,
+					mapper->areaTablet.width
+				);
+				LOG_INFO("  Height: %0.3f mm, %0.2f pixels @ %0.0f px, %0.2f mm\n",
+					height,
+					mapper->areaScreen.height / mapper->areaTablet.height* height,
+					mapper->areaScreen.height,
+					mapper->areaTablet.height
+				);
+				break;
+			}
+		}
+		if(tablet->benchmark.packetCounter > 0) {
+			LOG_ERROR("Benchmark failed!\n");
+			LOG_ERROR("Not enough packets captured in %0.2f seconds!\n",
+				timeLimit / 1000.0
+			);
+		}
+
+
+	}
+
 
 	// Info
 	else if(cmd->is("Include")) {
@@ -620,8 +716,9 @@ void LogInformation() {
 	LOG_INFO("  Max Y = %d\n", tablet->settings.maxY);
 	LOG_INFO("  Max Pressure = %d\n", tablet->settings.maxPressure);
 	LOG_INFO("  Click Pressure = %d\n", tablet->settings.clickPressure);
+	LOG_INFO("  Keep Tip Down = %d packets\n", tablet->settings.keepTipDown);
 	LOG_INFO("  Report Id = %02X\n", tablet->settings.reportId);
-	LOG_INFO("  Report Length = %d\n", tablet->settings.reportLength);
+	LOG_INFO("  Report Length = %d bytes\n", tablet->settings.reportLength);
 	LOG_INFO("  Button Mask = 0x%02X\n", tablet->settings.buttonMask);
 
 	for(int i = 0; i < 8; i++) {
@@ -664,18 +761,18 @@ void LogInformation() {
 //
 void LogStatus() {
 	LOG_STATUS("TABLET %s\n", tablet->name.c_str());
+
 	if(tablet->hidDevice != NULL) {
-		LOG_STATUS("HID %04X %04X %04X %04X\n", 
+		LOG_STATUS("HID %04X %04X %04X %04X\n",
 			tablet->hidDevice->vendorId,
 			tablet->hidDevice->productId,
 			tablet->hidDevice->usagePage,
 			tablet->hidDevice->usage
 		);
-	}
-	else if(tablet->usbDevice != NULL) {
+	} else if(tablet->usbDevice != NULL) {
 		LOG_STATUS("USB %d %s\n",
 			tablet->usbDevice->stringId,
-			tablet->usbDevice->stringMatch
+			tablet->usbDevice->stringMatch.c_str()
 		);
 	}
 	LOG_STATUS("WIDTH %0.5f\n", tablet->settings.width);

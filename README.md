@@ -1,20 +1,30 @@
 # TabletDriver
 
+This is a low latency graphics tablet driver that is meant to be used with rhythm game [osu!](https://osu.ppy.sh/home)
+
 Currently the driver only works when the TabletDriverGUI is running.
 
-The GUI minimizes to system tray / notification area.
-
-You can reopen the GUI by double clicking the system tray icon.
-
-&nbsp;
+The GUI minimizes to system tray / notification area. You can reopen the GUI by double clicking the system tray icon.
 
 **If you have problems with the driver, please read the FAQ:**
 
 **https://github.com/hawku/TabletDriver/wiki/FAQ**
 
+## Download
+
+### http://hwk.fi/TabletDriver/TabletDriverV0.1.0.zip
+
 #
 
-#### Supported tablets:
+### Supported operating systems:
+  - Windows 7 64-bit
+  - Windows 8 64-bit
+  - Windows 8.1 64-bit
+  - Windows 10 64-bit
+
+#
+
+### Supported tablets:
   - Wacom CTL-470
   - Wacom CTL-471
   - Wacom CTL-472
@@ -27,7 +37,7 @@ You can reopen the GUI by double clicking the system tray icon.
   - Huion H640P
   - Gaomon S56K
   
-#### Configured, but not properly tested:
+### Configured, but not properly tested:
   - Huion H420
   - Wacom CTH-470
   - Wacom CTH-670
@@ -38,36 +48,32 @@ You can reopen the GUI by double clicking the system tray icon.
   - Wacom CTH-490
   - Wacom PTH-451
 
-
 #
 
-#### Download
-
-* http://hwk.fi/TabletDriver/TabletDriverV0.0.15.zip
-
-#
-
-#### Install
+## Installation
 
 1. You might need to install these libraries, but usually these are already installed:
-* https://aka.ms/vs/15/release/vc_redist.x86.exe
-* https://aka.ms/vs/15/release/vc_redist.x64.exe
-* https://www.microsoft.com/en-us/download/details.aspx?id=53587 (x64 and x86)
+    * https://www.microsoft.com/net/download/dotnet-framework-runtime
+    * https://aka.ms/vs/15/release/vc_redist.x86.exe
 
-2. Unzip the driver to a folder (Shorter path is recommended, for example C:\Temp\TabletDriver)
+2. Unzip the driver to a folder (Shorter path is recommended, for example `C:\Temp\TabletDriver`)
 3. Uninstall all other tablet drivers.
-4. Run "install_vmulti_driver.bat". It might need a restart if there is another vmulti driver installed.
-5. If you have Huion or Gaomon tablet, you need to run "install_huion_64.bat", which is located at the "driver_huion" directory.
+4. Run `install_vmulti_driver.bat`. It might need a restart if there is another vmulti driver installed.
+5. If you have Huion or Gaomon tablet, you need to run `install_huion_64.bat`, which is in the `driver_huion` directory.
 6. Start the TabletDriverGUI.exe
 
+## Updating to a new version
+1. Unzip the new version
+2. Start the TabletDriverGUI.exe
 
-#### Uninstall
-1. Run "remove_vmulti_driver.bat"
-2. Run "remove_huion_64.bat", which is located at the "driver_huion" directory.
+## Uninstallation
+1. Uncheck the "Run at Windows startup" option in the GUI.
+2. Run `remove_vmulti_driver.bat`
+3. Run `remove_huion_64.bat`, which is in the `driver_huion` directory.
 
 #
 
-#### VMulti and Huion drivers
+## VMulti and Huion driver binaries
 
 If you want to compile the code and don't want to install anything from the TabletDriver binary package, you will need extract the missing drivers from these installation packages:
 
@@ -79,7 +85,29 @@ If you want to compile the code and don't want to install anything from the Tabl
 
 #
 
-#### Changelog
+## Changelog
+
+>**v0.1.0:**
+> - Added `Bench` / `Benchmark` command.
+> - Added `-hide` GUI command line parameter. GUI will start as minimized when you run `TabletDriverGUI.exe -hide` 
+> - Added an option to run the TabletDriverGUI at Windows startup.
+
+>**v0.0.18:**
+> - Added TabletDriverService.exe multi-instance prevention.
+> - Added yet another Wacom 490 tip click fix.
+>   `KeepTipDown` command sets how long the pen tip button output should be kept down after the pen tip is released.
+
+>**v0.0.17:**
+> - Fixed driver crashing when used with the Huion or Gaomon tablets.
+
+>**v0.0.16:**
+> - Added smoothing filter rate selector. Use a lower rate if you have filter performance problems.
+> - Added TabletDriverService.exe process priority warning when the priority isn't set to High.
+> - Desktop size settings are now available to everyone.
+>   Previously shown only when the developer mode was enabled.
+>   Automatic size should be used, but if you have problems with the screen mapping:
+>   https://github.com/hawku/TabletDriver/issues/4
+> - First few tablet position packets are now ignored to prevent the cursor jumping to a wrong position when driver is started.
 
 >**v0.0.15:**
 > - Added more debug information to startuplog.txt. It now includes a list of connected input devices.

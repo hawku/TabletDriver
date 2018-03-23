@@ -12,7 +12,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-### http://hwk.fi/TabletDriver/TabletDriverV0.1.0.zip
+### http://hwk.fi/TabletDriver/TabletDriverV0.1.1.zip
 
 #
 
@@ -31,7 +31,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   - Wacom CTL-480
   - Wacom CTH-480
   - Wacom CTL-490
-  - XP Pen G430
+  - XP Pen G430 (New 2016-2017 "Model B")
   - XP Pen G640
   - Huion 420
   - Huion H640P
@@ -39,6 +39,8 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   
 ### Configured, but not properly tested:
   - Huion H420
+  - Wacom CTL-4100 USB
+  - Wacom CTL-4100 Bluetooth
   - Wacom CTH-470
   - Wacom CTH-670
   - Wacom CTL-671
@@ -63,10 +65,12 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 6. Start the TabletDriverGUI.exe
 
 ## Updating to a new version
+
 1. Unzip the new version
 2. Start the TabletDriverGUI.exe
 
 ## Uninstallation
+
 1. Uncheck the "Run at Windows startup" option in the GUI.
 2. Run `remove_vmulti_driver.bat`
 3. Run `remove_huion_64.bat`, which is in the `driver_huion` directory.
@@ -86,6 +90,15 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ## Changelog
+
+>**v0.1.1:**
+> - Added support for Wacom CTL-4100 (USB and Bluetooth)
+> - Added settings import / export to the main menu.
+> - Added Wacom backup reader to the Wacom area tool.
+> - Added tablet benchmark tools to the console output context menu (Right click).
+> - Moved the `config.xml` to the `config` folder.
+> - Added noise reduction filter (`Noise` command, not in the GUI)
+> - Code refactoring
 
 >**v0.1.0:**
 > - Added `Bench` / `Benchmark` command.

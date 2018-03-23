@@ -175,8 +175,14 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClInclude Include="ScreenMapper.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Tablet.h" />
+    <ClInclude Include="TabletBenchmark.h" />
+    <ClInclude Include="TabletFilter.h" />
+    <ClInclude Include="TabletFilterNoiseReduction.h" />
+    <ClInclude Include="TabletFilterSmoothing.h" />
+    <ClInclude Include="TabletSettings.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="USBDevice.h" />
+    <ClInclude Include="Vector2D.h" />
     <ClInclude Include="VMulti.h" />
   </ItemGroup>
   <ItemGroup>
@@ -186,6 +192,11 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClCompile Include="ProcessCommand.cpp" />
     <ClCompile Include="ScreenMapper.cpp" />
     <ClCompile Include="Tablet.cpp" />
+    <ClCompile Include="TabletBenchmark.cpp" />
+    <ClCompile Include="TabletFilter.cpp" />
+    <ClCompile Include="TabletFilterNoiseReduction.cpp" />
+    <ClCompile Include="TabletFilterSmoothing.cpp" />
+    <ClCompile Include="TabletSettings.cpp" />
     <ClCompile Include="USBDevice.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -194,6 +205,7 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Vector2D.cpp" />
     <ClCompile Include="VMulti.cpp" />
   </ItemGroup>
   <ItemGroup>

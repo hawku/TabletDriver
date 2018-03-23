@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TabletDriverGUI"
         mc:Ignorable="d"
-        Title="TabletDriverGUI" Height="670" Width="800"
+        Title="TabletDriverGUI" Height="670" Width="750"
         >
   <Window.Resources>
     <Style TargetType="GroupBox">
@@ -19,8 +19,21 @@
     </Style>
   </Window.Resources>
 
-  <Grid Background="Transparent">
-    <TabControl Name="tabControl" Margin="0,0,0,59"  Selector.IsSelected="True">
+  <Grid Background="Transparent" Margin="0,0,0,0">
+    
+    <DockPanel Background="White">
+      <Menu DockPanel.Dock="Top"  Background="White">
+        <MenuItem Header="_File">
+          <MenuItem Name="mainMenuImport" Header="_Import Settings" Click="MainMenuClick" />
+          <MenuItem Name="mainMenuExport" Header="_Export Settings" Click="MainMenuClick" />
+          <Separator />
+          <MenuItem Name="mainMenuExit" Header="E_xit" Click="MainMenuClick" />
+        </MenuItem>
+      </Menu>
+      <TextBox AcceptsReturn="True" />
+    </DockPanel>
+    
+    <TabControl Name="tabControl" Margin="0,20,0,59"  Selector.IsSelected="True" Background="White">
       <TabItem Header="Settings">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
           <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
@@ -48,6 +61,7 @@
               <StackPanel>
                 <!-- Screen map canvas -->
                 <Canvas Name="canvasScreenMap"
+                      Cursor="Hand"
                       Height="130" Margin="0,0,0,0"
                       Background="Transparent"
                       ClipToBounds="True"
@@ -162,7 +176,8 @@
 
                   </StackPanel>
                   <Canvas Grid.Column="1" Name="canvasTabletArea"
-                      Height="120" Margin="0"
+                      Cursor="Hand"
+                      Height="120" Margin="5,0,5,0"
                       Background="Transparent"
                       ClipToBounds="True"
                       
@@ -265,7 +280,7 @@
                     Button Mapping
                     </TextBlock>
                     <TextBlock>
-                      - You can disable single button by selecting "Disable" from the list.
+                      - You can disable a single button by selecting "Disable" from the list.
                       <LineBreak/>
                       - The "Disable buttons" checkbox will disable all tablet buttons.
                     </TextBlock>
@@ -330,7 +345,7 @@
                   <!-- Filter Latency -->
                   <GroupBox Header="Latency" Height="50" Width="80" Margin="0,0,0,0">
                     <Grid>
-                      <TextBox Name="textFilterLatency" Padding="4,0,0,0"
+                      <TextBox Name="textSmoothingLatency" Padding="4,0,0,0"
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">0</TextBox>
                       <Label Width="30" HorizontalAlignment="Right">ms</Label>
@@ -339,7 +354,7 @@
 
                   <!-- Filter Rate -->
                   <GroupBox Header="Rate" VerticalAlignment="Top" HorizontalAlignment="Left" Width="85" Height="50">
-                    <ComboBox Name="comboBoxFilterRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
+                    <ComboBox Name="comboBoxSmoothingRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
 
 
                       <ComboBoxItem>500 Hz</ComboBoxItem>
@@ -350,7 +365,7 @@
                   </GroupBox>
 
                   <!-- Filter enabled -->
-                  <CheckBox Name="checkBoxFilter"
+                  <CheckBox Name="checkBoxSmoothing"
                             VerticalAlignment="Center"
                             Margin="5"
                             Checked="CheckboxChanged" Unchecked="CheckboxChanged">
@@ -475,6 +490,8 @@
                   <MenuItem Name="menuStartDebug" Header="Start Debug Log" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuStopDebug" Header="Stop Debug Log" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuOpenDebug" Header="Open Latest Debug Log" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuRunBenchmark" Header="Run Benchmark" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuCopyBenchmark" Header="Copy Benchmark Result" Click="ConsoleMenuClick"></MenuItem>
                   <Separator/>
                   <MenuItem Name="menuOpenStartup" Header="Open Startup Log" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuOpenFolder" Header="Open TabletDriver Folder" Click="ConsoleMenuClick"></MenuItem>

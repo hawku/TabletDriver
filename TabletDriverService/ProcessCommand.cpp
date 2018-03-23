@@ -322,7 +322,7 @@ bool ProcessCommand(CommandLine *cmd) {
 						keysMacro.push_back(std::stoi(it[i]));
 				}
 
-				tablet->buttonTabletMap[std::stoi(it[0])] = keysMacro;
+				tablet->buttonMacroMap[std::stoi(it[0])] = std::make_pair(keysMacro, false);
 				LOG_INFO("Set the macro to the button [%d]\n", std::stoi(it[0]));
 			}
 		}

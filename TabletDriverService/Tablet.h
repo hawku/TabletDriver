@@ -107,7 +107,7 @@ public:
 
 	// Button map
 	BYTE buttonMap[16];
-	std::unordered_map<int, std::vector<int>> buttonTabletMap;
+	std::unordered_map<int, std::pair<std::vector<int>, bool>> buttonMacroMap;
 
 	//
 	string name = "Unknown";

@@ -373,7 +373,16 @@ int Tablet::ReadPosition() {
 			}
 		}
 		else if (buttonMap[buttonIndex] == 6)
-			Utils::keyboardShortcutPress(buttonTabletMap[buttonIndex]);
+		{
+			if ((reportData.buttons & (1 << buttonIndex)) > 0)
+			{
+				if (!buttonMacroMap[buttonIndex].second)
+					Utils::keyboardShortcutPress(buttonMacroMap[buttonIndex].first);
+				buttonMacroMap[buttonIndex].second = true;
+			}
+			else
+				buttonMacroMap[buttonIndex].second = false;
+		}
 	}
 
 	// Convert report data to state

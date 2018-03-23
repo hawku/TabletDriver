@@ -207,8 +207,14 @@ bool ProcessCommand(CommandLine *cmd) {
 	// Skew
 	else if(cmd->is("Type")) {
 		if(tablet == NULL) return false;
+
+		// Wacom Intuos (490)
 		if(cmd->GetStringLower(0, "") == "wacomintuos") {
-			tablet->settings.type = tablet->TypeWacomIntuos;
+			tablet->settings.type = TabletSettings::TypeWacomIntuos;
+
+		// Wacom CTL-4100
+		} else if(cmd->GetStringLower(0, "") == "wacom4100") {
+			tablet->settings.type = TabletSettings::TypeWacom4100;
 		}
 		LOG_INFO("Tablet type = %d\n", tablet->settings.type);
 	}
@@ -453,10 +459,10 @@ bool ProcessCommand(CommandLine *cmd) {
 	//
 	// Smoothing filter
 	//
-	else if(cmd->is("Filter")) {
+	else if(cmd->is("Smoothing")) {
 		if(!CheckTablet()) return true;
-		double latency = cmd->GetDouble(0, tablet->GetFilterLatency());
-		double threshold = cmd->GetDouble(1, tablet->filter.threshold * 100);
+		double latency = cmd->GetDouble(0, tablet->smoothing.GetLatency());
+		double threshold = cmd->GetDouble(1, tablet->smoothing.threshold * 100);
 
 		threshold /= 100;
 
@@ -474,26 +480,26 @@ bool ProcessCommand(CommandLine *cmd) {
 		if(threshold > 0.99) threshold = 0.99;
 
 		// Set threshold
-		tablet->filter.threshold = threshold;
+		tablet->smoothing.threshold = threshold;
 
-		// Set filter latency
-		tablet->SetFilterLatency(latency);
+		// Set smoothing filter latency
+		tablet->smoothing.SetLatency(latency);
 
 		// Print output
-		if(tablet->filter.weight < 1.0) {
-			tablet->filter.isEnabled = true;
-			LOG_INFO("Filter = %0.2f ms to reach %0.0f%% (weight = %f)\n", latency, tablet->filter.threshold * 100, tablet->filter.weight);
+		if(tablet->smoothing.weight < 1.0) {
+			tablet->smoothing.isEnabled = true;
+			LOG_INFO("Smoothing = %0.2f ms to reach %0.0f%% (weight = %f)\n", latency, tablet->smoothing.threshold * 100, tablet->smoothing.weight);
 		} else {
-			tablet->filter.isEnabled = false;
-			LOG_INFO("Filter = off\n");
+			tablet->smoothing.isEnabled = false;
+			LOG_INFO("Smoothing = off\n");
 		}
 	}
 
 	//
 	// Smoothing filter interval
 	//
-	else if(cmd->is("FilterInterval")) {
-		int interval = cmd->GetInt(0, (int)round(tablet->filter.interval));
+	else if(cmd->is("SmoothingInterval")) {
+		int interval = cmd->GetInt(0, (int)round(tablet->smoothing.timerInterval));
 
 		// 10 Hz
 		if(interval > 100) interval = 100;
@@ -502,15 +508,66 @@ bool ProcessCommand(CommandLine *cmd) {
 		if(interval < 1) interval = 1;
 
 		// Interval changed?
-		if(interval != (int)round(tablet->filter.interval)) {
-			tablet->filter.interval = interval;
-			tablet->SetFilterLatency(tablet->filter.latency);
-			if(tablet->StopFilterTimer()) {
-				tablet->StartFilterTimer();
+		if(interval != (int)round(tablet->smoothing.timerInterval)) {
+			tablet->smoothing.timerInterval = interval;
+			tablet->smoothing.SetLatency(tablet->smoothing.latency);
+			if(tablet->smoothing.StopTimer()) {
+				tablet->smoothing.StartTimer();
 			}
 		}
 
-		LOG_INFO("Filter Interval = %d (%0.2f Hz, %0.2f ms, %f)\n", interval, 1000.0 / interval, tablet->filter.latency, tablet->filter.weight);
+		LOG_INFO("Smoothing Interval = %d (%0.2f Hz, %0.2f ms, %f)\n", interval, 1000.0 / interval, tablet->smoothing.latency, tablet->smoothing.weight);
+
+	}
+
+
+	//
+	// Noise reduction filter
+	//
+	else if(cmd->is("Noise")) {
+
+		string stringValue = cmd->GetStringLower(0, "");
+
+		// Off / False
+		if(stringValue == "off" || stringValue == "false") {
+			tablet->noise.isEnabled = false;
+			LOG_INFO("Noise Reduction = off\n");
+
+		// Set parameters
+		} else {
+
+			int length = cmd->GetInt(0, tablet->noise.bufferLength);
+			double distanceThreshold = cmd->GetDouble(1, tablet->noise.distanceThreshold);
+			int iterations = cmd->GetInt(2, tablet->noise.iterations);
+
+			// Limits
+			if(length < 0) length = 0;
+			else if(length > 50) length = 50;
+
+			if(distanceThreshold < 0) distanceThreshold = 0;
+			else if(distanceThreshold > 100) distanceThreshold = 100;
+
+			if(iterations < 1) iterations = 1;
+			else if(iterations > 100) iterations = 100;
+
+			// Set
+			tablet->noise.SetBufferLength(length);
+			tablet->noise.distanceThreshold = distanceThreshold;
+			tablet->noise.iterations = iterations;
+
+			// Enable filter
+			if(tablet->noise.bufferLength > 0) {
+				tablet->noise.isEnabled = true;
+				LOG_INFO("Noise Reduction = %d packets, %0.3f mm threshold, %d iterations\n", length, distanceThreshold, iterations);
+			} else {
+				tablet->noise.isEnabled = false;
+				LOG_INFO("Noise Reduction = off\n");
+			}
+
+		}
+
+
+
 
 	}
 
@@ -543,7 +600,7 @@ bool ProcessCommand(CommandLine *cmd) {
 		Sleep(waitTime);
 	}
 
-	// Log
+	// Direct logging
 	else if(cmd->is("LogDirect")) {
 		logger.ProcessMessages();
 		logger.directPrint = cmd->GetBoolean(0, logger.directPrint);
@@ -565,55 +622,71 @@ bool ProcessCommand(CommandLine *cmd) {
 		LogInformation();
 	}
 
-	// Info
+	// Status
 	else if(cmd->is("Status")) {
 		if(!CheckTablet()) return true;
 		LogStatus();
 	}
 
-	// Info
+	// Benchmark
 	else if(cmd->is("Benchmark") || cmd->is("Bench")) {
 		if(!CheckTablet()) return true;
 
 		int timeLimit;
 		int packetCount = cmd->GetInt(0, 200);
+
+		// Limit packet count
 		if(packetCount < 10) packetCount = 10;
 		if(packetCount > 1000) packetCount = 1000;
+
+		// Time limit
 		timeLimit = packetCount * 10;
 		if(timeLimit < 1000) timeLimit = 1000;
 
-		LOG_INFO("Tablet benchmark starting in 3 seconds!\n");
-		LOG_INFO("Keep the pen stationary on top of the tablet!\n");
+		// Log
+		LOG_DEBUG("Tablet benchmark starting in 3 seconds!\n");
+		LOG_DEBUG("Keep the pen stationary on top of the tablet!\n");
 		Sleep(3000);
-		LOG_INFO("Benchmark started!\n");
-		tablet->StartBenchmark(packetCount);
+		LOG_DEBUG("Benchmark started!\n");
 
-		// Log the benchmark result
+		// Benchmark
+		tablet->benchmark.Start(packetCount);
+
+		// Wait for the benchmark to finish
 		for(int i = 0; i < timeLimit / 100; i++) {
 			Sleep(100);
+
+			// Benchmark result
 			if(tablet->benchmark.packetCounter <= 0) {
 
 				double width = tablet->benchmark.maxX - tablet->benchmark.minX;
 				double height = tablet->benchmark.maxY - tablet->benchmark.minY;
-				LOG_INFO("Benchmark done!\n");
-				LOG_INFO("Results from %d tablet positions:\n", tablet->benchmark.totalPackets);
-				LOG_INFO("  X range: %0.3f mm <-> %0.3f mm\n", tablet->benchmark.minX, tablet->benchmark.maxX);
-				LOG_INFO("  Y range: %0.3f mm <-> %0.3f mm\n", tablet->benchmark.minY, tablet->benchmark.maxY);
-				LOG_INFO("  Width: %0.3f mm, %0.2f pixels @ %0.0f px, %0.2f mm\n",
-					width,
-					mapper->areaScreen.width / mapper->areaTablet.width * width,
+				LOG_DEBUG("\n");
+				LOG_DEBUG("Benchmark result (%d positions):\n", tablet->benchmark.totalPackets);
+				LOG_DEBUG("  Tablet: %s\n", tablet->name.c_str());
+				LOG_DEBUG("  Area: %0.2f mm x %0.2f mm (%0.0f px x %0.0f px)\n",
+					mapper->areaTablet.width,
+					mapper->areaTablet.height,
 					mapper->areaScreen.width,
-					mapper->areaTablet.width
+					mapper->areaScreen.height
 				);
-				LOG_INFO("  Height: %0.3f mm, %0.2f pixels @ %0.0f px, %0.2f mm\n",
+				LOG_DEBUG("  X range: %0.3f mm <-> %0.3f mm\n", tablet->benchmark.minX, tablet->benchmark.maxX);
+				LOG_DEBUG("  Y range: %0.3f mm <-> %0.3f mm\n", tablet->benchmark.minY, tablet->benchmark.maxY);
+				LOG_DEBUG("  Width: %0.3f mm (%0.2f px)\n",
+					width,
+					mapper->areaScreen.width / mapper->areaTablet.width * width
+				);
+				LOG_DEBUG("  Height: %0.3f mm (%0.2f px)\n",
 					height,
-					mapper->areaScreen.height / mapper->areaTablet.height* height,
-					mapper->areaScreen.height,
-					mapper->areaTablet.height
+					mapper->areaScreen.height / mapper->areaTablet.height* height
 				);
+				LOG_DEBUG("\n");
+				LOG_STATUS("BENCHMARK %d %0.3f %0.3f %s\n", tablet->benchmark.totalPackets, width, height, tablet->name.c_str());
 				break;
 			}
 		}
+
+		// Benchmark failed
 		if(tablet->benchmark.packetCounter > 0) {
 			LOG_ERROR("Benchmark failed!\n");
 			LOG_ERROR("Not enough packets captured in %0.2f seconds!\n",
@@ -625,7 +698,7 @@ bool ProcessCommand(CommandLine *cmd) {
 	}
 
 
-	// Info
+	// Include
 	else if(cmd->is("Include")) {
 		string filename = cmd->GetString(0, "");
 		if(filename == "") {

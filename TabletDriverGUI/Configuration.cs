@@ -27,9 +27,9 @@ namespace TabletDriverGUI
 
         public Area ScreenArea;
 
-        public double FilterLatency;
-        public int FilterInterval;
-        public bool FilterEnabled;
+        public double SmoothingLatency;
+        public int SmoothingInterval;
+        public bool SmoothingEnabled;
 
         public Area DesktopSize;
         public bool AutomaticDesktopSize;
@@ -83,15 +83,15 @@ namespace TabletDriverGUI
             DisablePenButtons = false;
             DisableTabletButtons = false;
 
-            FilterEnabled = false;
-            FilterLatency = 0;
-            FilterInterval = 4;
+            SmoothingEnabled = false;
+            SmoothingLatency = 0;
+            SmoothingInterval = 4;
 
             CommandsAfter = new string[] { "" };
             CommandsBefore = new string[] { "" };
 
             WindowWidth = 800;
-            WindowHeight = 690;
+            WindowHeight = 710;
 
             RunAtStartup = false;
 

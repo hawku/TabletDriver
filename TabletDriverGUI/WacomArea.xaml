@@ -45,6 +45,7 @@
 
 
       </StackPanel>
+      <Button Name="buttonLoad" Content="Load From Backup" Padding="5" Width="120" Margin="5" Click="ButtonLoad_Click" />
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
         <Button Name="buttonSet" Content="Set" Padding="5" Margin="5" Width="50" Click="ButtonSet_Click"/>

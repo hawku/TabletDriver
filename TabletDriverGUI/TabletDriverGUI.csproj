@@ -84,6 +84,7 @@
     <Compile Include="ShortcutMapWindow.xaml.cs">
       <DependentUpon>ShortcutMapWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utils.cs" />
     <Compile Include="TabletDriver.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="TabletNotRecognizedException.cs" />

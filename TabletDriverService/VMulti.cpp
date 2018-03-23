@@ -72,10 +72,8 @@ bool VMulti::HasReportChanged() {
 
 
 void VMulti::ResetRelativeData(double x, double y) {
-	relativeData.targetPosition.x = x;
-	relativeData.targetPosition.y = y;
-	relativeData.lastPosition.x = x;
-	relativeData.lastPosition.y = y;
+	relativeData.targetPosition.Set(x, y);
+	relativeData.lastPosition.Set(x, y);
 	relativeData.currentPosition.x = (int)x;
 	relativeData.currentPosition.y = (int)y;
 }
@@ -125,8 +123,7 @@ void VMulti::CreateReport(BYTE buttons, double x, double y, double pressure) {
 		dy *= relativeData.sensitivity;
 
 		// Move target position
-		relativeData.targetPosition.x += dx;
-		relativeData.targetPosition.y += dy;
+		relativeData.targetPosition.Add(dx, dy);
 
 		// Send difference of current position and target position
 		reportRelativeMouse.x = (BYTE)(relativeData.targetPosition.x - relativeData.currentPosition.x);
@@ -137,8 +134,7 @@ void VMulti::CreateReport(BYTE buttons, double x, double y, double pressure) {
 		relativeData.currentPosition.y += reportRelativeMouse.y;
 
 		// Last position
-		relativeData.lastPosition.x = x;
-		relativeData.lastPosition.y = y;
+		relativeData.lastPosition.Set(x, y);
 
 		memcpy(reportBuffer, &reportRelativeMouse, sizeof(reportRelativeMouse));
 		if(debugEnabled) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "HIDDevice.h"
+#include "Vector2D.h"
 
 class VMulti {
 private:
@@ -46,12 +47,6 @@ public:
 	} reportDigitizer;
 
 
-	// Position Double
-	typedef struct {
-		double x;
-		double y;
-	} PositionDouble;
-
 	// Position Integer
 	typedef struct {
 		int x;
@@ -61,8 +56,8 @@ public:
 	// Relative mouse data
 	struct {
 		PositionInt currentPosition;
-		PositionDouble lastPosition;
-		PositionDouble targetPosition;
+		Vector2D lastPosition;
+		Vector2D targetPosition;
 		double sensitivity;
 	} relativeData;
 

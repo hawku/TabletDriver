@@ -31,14 +31,6 @@ Tablet::Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage
 		delete hidDevice;
 		hidDevice = NULL;
 	}
-	hidDevice2 = new HIDDevice(vendorId, productId, usagePage, usage);
-	if (hidDevice2->isOpen) {
-		this->isOpen = true;
-	}
-	else {
-		delete hidDevice2;
-		hidDevice2 = NULL;
-	}
 }
 
 //
@@ -49,7 +41,7 @@ Tablet::Tablet() {
 	name = "Unknown";
 	usbDevice = NULL;
 	hidDevice = NULL;
-	hidDevice2 = NULL;
+	hidDeviceAux = NULL;
 
 	usbPipeId = 0;
 
@@ -95,8 +87,8 @@ Tablet::~Tablet() {
 		delete usbDevice;
 	if(hidDevice != NULL)
 		delete hidDevice;
-	if(hidDevice2 != NULL)
-		delete hidDevice2;
+	if(hidDeviceAux != NULL)
+		delete hidDeviceAux;
 	if(initReport != NULL)
 		delete initReport;
 	if(initFeature != NULL)
@@ -323,7 +315,9 @@ void Tablet::CloseDevice() {
 			usbDevice->CloseDevice();
 		} else if(hidDevice != NULL) {
 			hidDevice->CloseDevice();
-			hidDevice2->CloseDevice();
+			if(hidDeviceAux != NULL) {
+				hidDeviceAux->CloseDevice();
+			}
 		}
 	}
 	isOpen = false;

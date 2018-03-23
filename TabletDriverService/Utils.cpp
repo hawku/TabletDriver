@@ -65,7 +65,7 @@ void		Utils::keyboardShortcutPress(std::vector<int> const& keys)
 	{
 		SendInput(1, &it, sizeof(INPUT));
 	}
-	for (int i = 0; i < keyPress.size(); ++i)
+	for (int i = 0; i < (int)keyPress.size(); ++i)
 	{
 		keyPress[i].ki.dwFlags = KEYEVENTF_KEYUP;
 		SendInput(1, &keyPress[i], sizeof(INPUT));

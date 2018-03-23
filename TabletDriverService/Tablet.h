@@ -19,7 +19,7 @@ public:
 
 	USBDevice * usbDevice;
 	HIDDevice * hidDevice;
-	HIDDevice * hidDevice2;
+	HIDDevice * hidDeviceAux;
 	int usbPipeId;
 
 	//

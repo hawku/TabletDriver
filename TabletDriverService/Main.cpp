@@ -23,7 +23,7 @@ Tablet *tablet;
 VMulti *vmulti;
 ScreenMapper *mapper;
 thread *tabletThread;
-thread *tabletButtonThread;
+thread *tabletAuxThread;
 
 //
 // Init console parameters
@@ -40,7 +40,7 @@ void InitConsole() {
 }
 
 //
-// Tablet process
+// Tablet thread
 //
 void RunTabletThread() {
 	int status;
@@ -161,10 +161,53 @@ void RunTabletThread() {
 
 }
 
-void RunTabletButtonThread() {
-	while (true)
-	{
+//
+// Tablet auxiliary thread
+//
+void RunTabletAuxThread() {
 
+	BYTE buffer[256];
+	int status;
+
+	while(true) {
+
+		//
+		// Wacom 480 aux
+		//
+		if(tablet->settings.auxType == TabletSettings::AuxWacom480) {
+
+			// Read 64 bytes from the HID device
+			status = tablet->hidDeviceAux->Read(buffer, 64);
+			if(status < 0) {
+				LOG_ERROR("HID auxiliary device error!\n");
+				break;
+			}
+
+			//LOG_DEBUGBUFFER(buffer, 16, "AUX: ");
+
+			// Report Id == 2?
+			if(buffer[0] == 0x02) {
+
+				// Loop through packet items
+				for(int offset = 2; offset < 64; offset += 8) {
+
+					// Buttons
+					if(buffer[offset] == 0x80) {
+						BYTE buttons = buffer[3];
+						LOG_DEBUG("Aux buttons: %02X\n", buttons);
+					}
+
+					// Touch (max 16 points)
+					if(buffer[offset] >= 2 && buffer[offset] <= 17) {
+						BYTE touchIndex = buffer[offset] - 1;
+
+						int touchX = (buffer[offset + 2] << 4) | (buffer[offset + 4] >> 4);
+						int touchY = (buffer[offset + 3] << 4) | (buffer[offset + 4] & 0x0f);
+						LOG_DEBUG("Aux Touch(%02X): % 5d, % 5d\n", touchIndex, touchX, touchY);
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -259,7 +302,7 @@ int main(int argc, char**argv) {
 	vmulti = NULL;
 	tablet = NULL;
 	tabletThread = NULL;
-	tabletButtonThread = NULL;
+	tabletAuxThread = NULL;
 
 	// Init console
 	InitConsole();
@@ -352,7 +395,11 @@ int main(int argc, char**argv) {
 
 				// Start the tablet thread
 				tabletThread = new thread(RunTabletThread);
-				tabletButtonThread = new thread(RunTabletButtonThread);
+
+				// Start the tablet auxiliary thread
+				if(tablet->hidDeviceAux != NULL) {
+					tabletAuxThread = new thread(RunTabletAuxThread);
+				}
 
 				LOG_INFO("TabletDriver started!\n");
 				LogStatus();

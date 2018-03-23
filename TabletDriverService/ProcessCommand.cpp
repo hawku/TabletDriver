@@ -97,22 +97,30 @@ bool ProcessCommand(CommandLine *cmd) {
 	}
 
 
-	// HID Device 2
-	else if(cmd->is("HID2")) {
+	// HID Auxiliary Device
+	else if(cmd->is("HIDAux")) {
+		if(tablet == NULL) return false;
 
-		if(cmd->valueCount == 4) {
+		if(cmd->valueCount == 5) {
 			USHORT vendorID = cmd->GetInt(0, 0);
 			USHORT productID = cmd->GetInt(1, 0);
 			USHORT usagePage = cmd->GetInt(2, 0);
 			USHORT usage = cmd->GetInt(3, 0);
-			if(tablet->hidDevice2 == NULL) {
-				tablet->hidDevice2 = new HIDDevice(vendorID, productID, usagePage, usage);
-				if(tablet->hidDevice2->isOpen) {
+			string auxTypeString = cmd->GetStringLower(4, "");
+			if(tablet->hidDeviceAux == NULL) {
+				tablet->hidDeviceAux = new HIDDevice(vendorID, productID, usagePage, usage);
+				if(tablet->hidDeviceAux->isOpen) {
 					LOG_INFO("HID Device found!\n");
+
+					// Aux Wacom 480
+					if(auxTypeString == "wacom480") {
+						tablet->settings.auxType = TabletSettings::AuxWacom480;
+					}
+
 				} else {
 					LOG_ERROR("Can't open HID device 0x%04X 0x%04X 0x%04X 0x%04X\n", vendorID, productID, usagePage, usage);
-					delete tablet->hidDevice2;
-					tablet->hidDevice2 = NULL;
+					delete tablet->hidDeviceAux;
+					tablet->hidDeviceAux = NULL;
 				}
 			}
 		}
@@ -322,7 +330,7 @@ bool ProcessCommand(CommandLine *cmd) {
 			{
 				std::vector<int> keysMacro;
 
-				for (int i = 0; i < it.size(); ++i)
+				for (int i = 0; i < (int)it.size(); ++i)
 				{
 					if (i != 0)
 						keysMacro.push_back(std::stoi(it[i]));

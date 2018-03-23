@@ -8,6 +8,12 @@ public:
 		TypeWacom4100
 	};
 
+
+	enum TabletAuxType {
+		AuxUnknown,
+		AuxWacom480
+	};
+
 	BYTE buttonMask;
 	int maxX;
 	int maxY;
@@ -20,6 +26,7 @@ public:
 	int reportLength;
 	double skew;
 	TabletType type;
+	TabletAuxType auxType;
 
 	TabletSettings();
 	~TabletSettings();

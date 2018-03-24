@@ -5,7 +5,8 @@ public:
 	enum TabletType {
 		TabletNormal,
 		TypeWacomIntuos,
-		TypeWacom4100
+		TypeWacom4100,
+		TypeWacomDrivers
 	};
 
 	BYTE buttonMask;

@@ -171,7 +171,7 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 	return false;
 }
 
-
+// Read HID report
 int HIDDevice::Read(void *buffer, int length) {
 	//return HidD_GetInputReport(_deviceHandle, buffer, length);
 	DWORD bytesRead;
@@ -181,6 +181,7 @@ int HIDDevice::Read(void *buffer, int length) {
 	return 0;
 }
 
+// Write HID report
 int HIDDevice::Write(void *buffer, int length) {
 	DWORD bytesWritten;
 	if(WriteFile(_deviceHandle, buffer, length, &bytesWritten, 0)) {
@@ -189,10 +190,17 @@ int HIDDevice::Write(void *buffer, int length) {
 	return 0;
 }
 
+// Set feature report
 bool HIDDevice::SetFeature(void *buffer, int length) {
 	return HidD_SetFeature(_deviceHandle, buffer, length);
 }
 
+// Get feature report
+bool HIDDevice::GetFeature(void *buffer, int length) {
+	return HidD_GetFeature(_deviceHandle, buffer, length);
+}
+
+// Close the device
 void HIDDevice::CloseDevice() {
 	if(isOpen && _deviceHandle != NULL && _deviceHandle != INVALID_HANDLE_VALUE) {
 		try {

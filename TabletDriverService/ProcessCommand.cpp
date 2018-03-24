@@ -211,11 +211,18 @@ bool ProcessCommand(CommandLine *cmd) {
 		// Wacom Intuos (490)
 		if(cmd->GetStringLower(0, "") == "wacomintuos") {
 			tablet->settings.type = TabletSettings::TypeWacomIntuos;
+		}
 
 		// Wacom CTL-4100
-		} else if(cmd->GetStringLower(0, "") == "wacom4100") {
+		else if(cmd->GetStringLower(0, "") == "wacom4100") {
 			tablet->settings.type = TabletSettings::TypeWacom4100;
 		}
+
+		// Wacom Drivers
+		else if(cmd->GetStringLower(0, "") == "wacomdrivers") {
+			tablet->settings.type = TabletSettings::TypeWacomDrivers;
+		}
+
 		LOG_INFO("Tablet type = %d\n", tablet->settings.type);
 	}
 
@@ -245,34 +252,54 @@ bool ProcessCommand(CommandLine *cmd) {
 
 
 	//
-	// Send Feature Report
+	// Set Feature Report
 	//
-	else if((cmd->is("FeatureReport") || cmd->is("Feature")) && cmd->valueCount > 0) {
+	else if((cmd->is("SetFeature") || cmd->is("Feature")) && cmd->valueCount > 1) {
 		if(tablet == NULL) return false;
 		if(tablet->hidDevice == NULL) return false;
-		int length = cmd->valueCount;
+		int length = cmd->GetInt(0, 1);
 		BYTE *buffer = new BYTE[length];
 		for(int i = 0; i < length; i++) {
-			buffer[i] = cmd->GetInt(i, 0);
+			buffer[i] = cmd->GetInt(i + 1, 0);
 		}
+		LOG_INFOBUFFER(buffer, length, "Set Feature Report (%d): ", length);
 		tablet->hidDevice->SetFeature(buffer, length);
-		LOG_INFOBUFFER(buffer, length, "Tablet HID Feature Report: ");
+		LOG_INFO("HID Feature set!\n");
 		delete buffer;
 	}
 
 	//
-	// Send Output Report
+	// Get Feature Report
 	//
-	else if((cmd->is("OutputReport") || cmd->is("Report")) && cmd->valueCount > 0) {
+	else if(cmd->is("GetFeature") && cmd->valueCount > 1) {
 		if(tablet == NULL) return false;
 		if(tablet->hidDevice == NULL) return false;
-		int length = cmd->valueCount;
+		int length = cmd->GetInt(0, 1);
 		BYTE *buffer = new BYTE[length];
 		for(int i = 0; i < length; i++) {
-			buffer[i] = cmd->GetInt(i, 0);
+			buffer[i] = cmd->GetInt(i + 1, 0);
 		}
+		LOG_INFOBUFFER(buffer, length, "Get Feature Report (%d): ", length);
+		tablet->hidDevice->GetFeature(buffer, length);
+		LOG_INFOBUFFER(buffer, length, "Result Feature Report (%d): ", length);
+		delete buffer;
+	}
+
+
+	//
+	// Send Output Report
+	//
+	else if((cmd->is("OutputReport") || cmd->is("Report")) && cmd->valueCount > 1) {
+		if(tablet == NULL) return false;
+		if(tablet->hidDevice == NULL) return false;
+		int length = cmd->GetInt(0, 1);
+		BYTE *buffer = new BYTE[length];
+		for(int i = 0; i < length; i++) {
+			buffer[i] = cmd->GetInt(i + 1, 0);
+		}
+		LOG_INFOBUFFER(buffer, length, "Sending HID Report: ");
 		tablet->hidDevice->Write(buffer, length);
-		LOG_INFOBUFFER(buffer, length, "Tablet HID Output Report: ");
+		LOG_INFO("Report sent!\n");
 		delete buffer;
 	}
 

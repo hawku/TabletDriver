@@ -49,6 +49,43 @@ namespace TabletDriverGUI
                     }
                 }
 
+                //
+                // Check Wacom processes
+                //
+                string[] wacomProcessNames =
+                {
+                    "Pen_Tablet",
+                    "Wacom_Tablet"
+                };
+
+                processes = Process.GetProcesses();
+                foreach (Process process in processes)
+                {
+                    foreach (string wacomProcessName in wacomProcessNames)
+                    {
+                        if (process.ProcessName.ToLower() == wacomProcessName.ToLower())
+                        {
+                            try
+                            {
+                                process.Kill();
+                            }
+                            catch (Exception)
+                            {
+                                MessageBox.Show(
+                                    "You have Wacom driver processes running in the background:\n  " +
+                                    string.Join("\n  ", wacomProcessNames) +
+                                    "\n\nPlease shutdown those before starting the GUI!",
+                                    "Error!", MessageBoxButton.OK, MessageBoxImage.Error
+                                );
+                                instanceMutex.ReleaseMutex();
+                                Shutdown();
+                                return;
+                            }
+                        }
+                    }
+                }
+
+
                 MainWindow mainWindow = new MainWindow();
                 mainWindow.Show();
                 Exit += App_Exit;

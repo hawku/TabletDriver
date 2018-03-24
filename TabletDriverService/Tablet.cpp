@@ -149,6 +149,7 @@ bool Tablet::IsConfigured() {
 //
 int Tablet::ReadPosition() {
 	UCHAR buffer[1024];
+	UCHAR *data;
 	int buttonIndex;
 
 
@@ -163,20 +164,23 @@ int Tablet::ReadPosition() {
 		return Tablet::PacketInvalid;
 	}
 
-	// Validate packet id
-	if(settings.reportId > 0 && buffer[0] != settings.reportId) {
-		return Tablet::PacketInvalid;
+
+	// Set data pointer
+	if(settings.type == TabletSettings::TypeWacomDrivers) {
+		data = buffer + 1;
+	} else {
+		data = buffer;
 	}
 
 	//
 	// Wacom Intuos data format
 	//
 	if(settings.type == TabletSettings::TypeWacomIntuos) {
-		reportData.x = ((buffer[2] * 0x100 + buffer[3]) << 1) | ((buffer[9] >> 1) & 1);
-		reportData.y = ((buffer[4] * 0x100 + buffer[5]) << 1) | (buffer[9] & 1);
-		reportData.pressure = (buffer[6] << 3) | ((buffer[7] & 0xC0) >> 5) | (buffer[1] & 1);
-		reportData.reportId = buffer[0];
-		reportData.buttons = buffer[1] & ~0x01;
+		reportData.reportId = data[0];
+		reportData.buttons = data[1] & ~0x01;
+		reportData.x = ((data[2] * 0x100 + data[3]) << 1) | ((data[9] >> 1) & 1);
+		reportData.y = ((data[4] * 0x100 + data[5]) << 1) | (data[9] & 1);
+		reportData.pressure = (data[6] << 3) | ((data[7] & 0xC0) >> 5) | (data[1] & 1);
 		//distance = buffer[9] >> 2;
 
 	//
@@ -184,20 +188,30 @@ int Tablet::ReadPosition() {
 	//
 	} else if(settings.type == TabletSettings::TypeWacom4100) {
 
-		reportData.x = (buffer[2] | (buffer[3] << 8) | (buffer[4] << 16) );
- 
-		reportData.y = (buffer[5] | (buffer[6] << 8) | (buffer[7] << 16) );
+		// Wacom driver device
+		if(settings.reportLength == 193) {
+			data = buffer + 1;
+		}
 
-		reportData.pressure = (buffer[8] | (buffer[9] << 8));
-		reportData.reportId = buffer[0];
-		reportData.buttons = buffer[1] & ~0x01;
+		reportData.reportId = data[0];
+		reportData.buttons = data[1] & ~0x01;
+		reportData.x = (data[2] | (data[3] << 8) | (data[4] << 16));
+		reportData.y = (data[5] | (data[6] << 8) | (data[7] << 16));
+		reportData.pressure = (data[8] | (data[9] << 8));
 
 	//
 	// Copy buffer to struct
 	//
 	} else {
-		memcpy(&reportData, buffer, sizeof(reportData));
+		memcpy(&reportData, data, sizeof(reportData));
 	}
+
+
+	// Validate packet id
+	if(settings.reportId > 0 && reportData.reportId != settings.reportId) {
+		return Tablet::PacketInvalid;
+	}
+
 
 
 	// Validate position

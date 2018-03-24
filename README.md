@@ -12,7 +12,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-### http://hwk.fi/TabletDriver/TabletDriverV0.1.1.zip
+### http://hwk.fi/TabletDriver/TabletDriverV0.1.2.zip
 
 #
 
@@ -90,6 +90,12 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ## Changelog
+>**v0.1.2:**
+> - Added experimental support for leaving the Wacom drivers installed on the system.
+>   Supported tablets: CTL-470, CTL-480, CTH-480, CTL-4100
+> - Added `disable_wacom_drivers.bat` and `enable_wacom_drivers.bat` to the `tools` folder.
+>   These scripts are used to disable and enable Wacom drivers when using the experimental Wacom driver support.
+> - Added driver restart button.
 
 >**v0.1.1:**
 > - Added support for Wacom CTL-4100 (USB and Bluetooth)

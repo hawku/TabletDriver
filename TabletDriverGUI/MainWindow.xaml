@@ -20,7 +20,7 @@
   </Window.Resources>
 
   <Grid Background="Transparent" Margin="0,0,0,0">
-    
+
     <DockPanel Background="White">
       <Menu DockPanel.Dock="Top"  Background="White">
         <MenuItem Header="_File">
@@ -32,7 +32,7 @@
       </Menu>
       <TextBox AcceptsReturn="True" />
     </DockPanel>
-    
+
     <TabControl Name="tabControl" Margin="0,20,0,59"  Selector.IsSelected="True" Background="White">
       <TabItem Header="Settings">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -518,22 +518,32 @@
     </TabControl>
 
     <Grid Margin="5,5,5,25" Height="35" VerticalAlignment="Bottom">
+
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-        <Button Name="buttonSaveSettings" Margin="0,5,0,5" Width="50" Click="SaveSettings"
-                ToolTip="Saves settings to Config.xml">Save</Button>
-        <Button Name="buttonApplySettings" Margin="5,5,0,5" Width="50" Click="ApplySettings"
+
+        <!-- Apply -->
+        <Button Name="buttonApplySettings" Margin="0,5,5,5" Padding="10,0,10,0" Click="ApplySettings"
                 ToolTip="Applies driver settings.">Apply</Button>
-        <Button Name="buttonRestartDriver" Margin="25,5,0,5" Width="90"
-              HorizontalAlignment="Right"
+
+        <!-- Save -->
+        <Button Name="buttonSaveSettings" Margin="0,5,5,5" Padding="10,0,10,0" Click="SaveSettings"
+                ToolTip="Saves settings to Config.xml">Save</Button>
+
+      </StackPanel>
+
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+
+        <!-- Restart Driver -->
+        <Button Name="buttonRestartDriver" Margin="5,5,15,5" Padding="5,0,5,0"
               Click="RestartDriverClick"
                 ToolTip="Restarts the TabletDriverService">Restart Driver</Button>
 
-
-      </StackPanel>
-      <CheckBox Name="checkRunAtStartup"
-                HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center"
+        <!-- Run at Startup -->
+        <CheckBox Name="checkRunAtStartup"
+                VerticalAlignment="Center" VerticalContentAlignment="Center"
                 Checked="CheckboxChanged" Unchecked="CheckboxChanged"
                 ToolTip="Starts and hides the TabletDriverGUI at Windows startup">Run at Windows startup</CheckBox>
+      </StackPanel>
     </Grid>
 
     <StatusBar Height="25" VerticalAlignment="Bottom">

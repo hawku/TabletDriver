@@ -222,7 +222,7 @@ namespace TabletDriverGUI
         // Window loaded -> Start driver
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            
+
             // Configuration filename
             configFilename = "config/config.xml";
 
@@ -268,8 +268,6 @@ namespace TabletDriverGUI
             // Update the settings back to the configuration
             UpdateSettingsToConfiguration();
 
-            // Console timer
-            timerConsoleUpdate.Start();
 
             // Set run at startup
             SetRunAtStartup(config.RunAtStartup);
@@ -1687,6 +1685,10 @@ namespace TabletDriverGUI
             try
             {
                 running = true;
+
+                // Console timer
+                timerConsoleUpdate.Start();
+
                 driver.Start(config.DriverPath, config.DriverArguments);
                 if (!driver.IsRunning)
                 {
@@ -1713,6 +1715,18 @@ namespace TabletDriverGUI
             running = false;
             driver.Stop();
             timerConsoleUpdate.Stop();
+        }
+
+        //
+        // Restart Driver button click
+        //
+        private void RestartDriverClick(object sender, RoutedEventArgs e)
+        {
+            if (running)
+            {
+                Stop();
+            }
+            Start();
         }
 
         #endregion
@@ -2119,6 +2133,7 @@ namespace TabletDriverGUI
 
             return IntPtr.Zero;
         }
+
 
         #endregion
 

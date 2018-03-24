@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TabletDriverGUI"
         mc:Ignorable="d"
-        Title="TabletDriverGUI" Height="670" Width="750"
+        Title="TabletDriverGUI" Height="703" Width="750"
         >
   <Window.Resources>
     <Style TargetType="GroupBox">
@@ -523,6 +523,12 @@
                 ToolTip="Saves settings to Config.xml">Save</Button>
         <Button Name="buttonApplySettings" Margin="5,5,0,5" Width="50" Click="ApplySettings"
                 ToolTip="Applies driver settings.">Apply</Button>
+        <Button Name="buttonRestartDriver" Margin="25,5,0,5" Width="90"
+              HorizontalAlignment="Right"
+              Click="RestartDriverClick"
+                ToolTip="Restarts the TabletDriverService">Restart Driver</Button>
+
+
       </StackPanel>
       <CheckBox Name="checkRunAtStartup"
                 HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center"

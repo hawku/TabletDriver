@@ -12,7 +12,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-### http://hwk.fi/TabletDriver/TabletDriverV0.1.2.zip
+### http://hwk.fi/TabletDriver/TabletDriverV0.1.3.zip
 
 #
 
@@ -90,6 +90,11 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ## Changelog
+>**v0.1.3:**
+> - Added left handed mode / tablet invert option.
+> - Added Wacom driver device support for the CTL-471 and 472
+> - Noise reduction filter improvement (`Noise` command)
+
 >**v0.1.2:**
 > - Added experimental support for leaving the Wacom drivers installed on the system.
 >   Supported tablets: CTL-470, CTL-480, CTH-480, CTL-4100

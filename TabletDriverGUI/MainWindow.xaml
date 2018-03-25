@@ -141,7 +141,7 @@
                     <LineBreak/>
                     - Drag + Shift = Move area Y direction.
                     <LineBreak/>
-                    - For left handed mode, use rotation value of 180 degrees.
+                    - For left handed mode, enable the "Left handed (Inverted)" checkbox or use a rotation value of 180 degrees.
                     <LineBreak/>
                     - Click Wacom Area button to type in the Wacom driver area settings.
                   </TextBlock>
@@ -156,18 +156,34 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
-                  <!-- Tablet area canvas -->
+
                   <StackPanel Grid.Column="0" HorizontalAlignment="Right">
 
-
-                    <GroupBox Header="Rotation" Height="50" Width="100" Margin="5,0,0,0" HorizontalAlignment="Left">
-                      <Grid>
-                        <TextBox Name="textTabletAreaRotation" Padding="4,0,0,0"
+                    <StackPanel Orientation="Horizontal">
+                      
+                      <!-- Invert -->
+                      <CheckBox Name="checkBoxInvert" Margin="5"
+                                VerticalAlignment="Center"
+                                VerticalContentAlignment="Center"
+                            Checked="CheckboxChanged"
+                            Unchecked="CheckboxChanged">
+                        <TextBlock>
+                          Left handed
+                          <LineBreak/>
+                          (Inverted)
+                        </TextBlock>
+                      </CheckBox>
+                      
+                      <!-- Rotation -->
+                      <GroupBox Header="Rotation" Height="50" Width="100" Margin="5,0,0,0" HorizontalAlignment="Left">
+                        <Grid>
+                          <TextBox Name="textTabletAreaRotation" Padding="4,0,0,0"
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">0</TextBox>
-                        <Label Width="30" HorizontalAlignment="Right">degrees</Label>
-                      </Grid>
-                    </GroupBox>
+                          <Label Width="30" HorizontalAlignment="Right">degrees</Label>
+                        </Grid>
+                      </GroupBox>
+                    </StackPanel>
 
                     <Button Name="buttonWacomArea" Content="Wacom Area" Width="80"
                             Padding="5 5 5 5" Margin="5"
@@ -175,6 +191,8 @@
                             Click="ButtonWacomArea_Click" />
 
                   </StackPanel>
+
+                  <!-- Tablet area canvas -->
                   <Canvas Grid.Column="1" Name="canvasTabletArea"
                       Cursor="Hand"
                       Height="120" Margin="5,0,5,0"

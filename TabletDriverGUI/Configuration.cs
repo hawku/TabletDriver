@@ -15,6 +15,7 @@ namespace TabletDriverGUI
         public Area TabletFullArea;
         public bool ForceAspectRatio;
         public double Rotation;
+        public bool Invert;
         public bool ForceFullArea;
         public OutputModes OutputMode;
         public enum OutputModes

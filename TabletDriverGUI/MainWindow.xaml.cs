@@ -390,6 +390,7 @@ namespace TabletDriverGUI
                     break;
             }
             textTabletAreaRotation.Text = Utils.GetNumberString(config.TabletArea.Rotation);
+            checkBoxInvert.IsChecked = config.Invert;
 
 
             //
@@ -545,6 +546,7 @@ namespace TabletDriverGUI
             if (Utils.ParseNumber(textTabletAreaRotation.Text, out val))
                 config.TabletArea.Rotation = val;
 
+            config.Invert = (bool)checkBoxInvert.IsChecked;
             config.ForceAspectRatio = (bool)checkBoxForceAspect.IsChecked;
             config.ForceFullArea = (bool)checkBoxForceFullArea.IsChecked;
 
@@ -1614,14 +1616,33 @@ namespace TabletDriverGUI
                 Utils.GetNumberString(config.ScreenArea.X) + " " + Utils.GetNumberString(config.ScreenArea.Y)
             );
 
-            // Tablet area
-            driver.SendCommand("Area " +
-                Utils.GetNumberString(config.TabletArea.Width) + " " + Utils.GetNumberString(config.TabletArea.Height) + " " +
-                Utils.GetNumberString(config.TabletArea.X) + " " + Utils.GetNumberString(config.TabletArea.Y)
-            );
 
-            // Rotation
-            driver.SendCommand("Rotate " + Utils.GetNumberString(config.TabletArea.Rotation));
+            //
+            // Tablet area
+            //
+            // Inverted
+            if (config.Invert)
+            {
+                driver.SendCommand("TabletArea " +
+                    Utils.GetNumberString(config.TabletArea.Width) + " " +
+                    Utils.GetNumberString(config.TabletArea.Height) + " " +
+                    Utils.GetNumberString(config.TabletFullArea.Width - config.TabletArea.X) + " " +
+                    Utils.GetNumberString(config.TabletFullArea.Height - config.TabletArea.Y)
+                );
+                driver.SendCommand("Rotate " + Utils.GetNumberString(config.TabletArea.Rotation + 180));
+            }
+            // Normal
+            else
+            {
+                driver.SendCommand("TabletArea " +
+                    Utils.GetNumberString(config.TabletArea.Width) + " " +
+                    Utils.GetNumberString(config.TabletArea.Height) + " " +
+                    Utils.GetNumberString(config.TabletArea.X) + " " +
+                    Utils.GetNumberString(config.TabletArea.Y)
+                );
+                driver.SendCommand("Rotate " + Utils.GetNumberString(config.TabletArea.Rotation));
+            }
+
 
             // Output Mode
             switch (config.OutputMode)

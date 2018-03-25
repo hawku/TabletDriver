@@ -55,7 +55,7 @@ void TabletFilterSmoothing::Update() {
 		position.x += deltaX * weight;
 		position.y += deltaY * weight;
 
-		// Too small distance -> set output values as target values
+	// Too small distance -> set output values as target values
 	} else {
 		position.x = target.x;
 		position.y = target.y;

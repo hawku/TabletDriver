@@ -39,12 +39,6 @@ void TabletFilterNoiseReduction::SetBufferLength(int length) {
 
 // Set target position
 void TabletFilterNoiseReduction::SetTarget(Vector2D targetVector) {
-	if(isValid) {
-		double distance = lastTarget.Distance(targetVector);
-		if(distance > distanceThreshold) {
-			ResetBuffer();
-		}
-	}
 	lastTarget.Set(targetVector);
 	AddBuffer(targetVector);
 }
@@ -65,6 +59,15 @@ bool TabletFilterNoiseReduction::GetPosition(Vector2D *outputVector) {
 // Update
 void TabletFilterNoiseReduction::Update() {
 	GetGeometricMedianVector(&position, iterations);
+
+	// Reset the buffer when distance to last target position is larger than the threshold
+	if(isValid) {
+		double distance = lastTarget.Distance(position);
+		if(distance > distanceThreshold) {
+			ResetBuffer();
+			position.Set(lastTarget);
+		}
+	}
 }
 
 

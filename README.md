@@ -31,7 +31,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   - Wacom CTL-480
   - Wacom CTH-480
   - Wacom CTL-490
-  - XP Pen G430 (New 2016-2017 "Model B")
+  - XP Pen G430 (New 2017+ "Model B")
   - XP Pen G640
   - Huion 420
   - Huion H640P

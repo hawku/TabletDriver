@@ -5,7 +5,7 @@ For more detailed info hold mouse over antichatter settings.
 ### Installing
 1) If you have already Driver installed just: close it from tray, and replace files.  
 
-If you have not installed the driver then: install hawku's 0.1.0 version (https://github.com/hawku/TabletDriver/releases) and go to step 1. 
+If you have not installed the driver then: install hawku's 0.1.3 version (version doesn't matter) (https://github.com/hawku/TabletDriver/releases) and go to step 1. My version based on 0.1.0 version of driver.
 
 Antichatter feature is meant to prevent cursor chattering/rattling/shaking/trembling when it's almost doesn't moves and/or too high to prevent tablet noise.
 Antichatter in it's primary form is useful for tablets which doesn't have any smoothing (including hardware smoothing).
@@ -26,8 +26,8 @@ Antichatter requires smoothing filter enabled for work. Latency do affect on ant
   
 **Type 2** is smarter - it's distance based, see code for formulas. 
           
-Recommended values for primary idea of antichatter is: Latency 10 ms, Type 1, Range 0.15 cm, Strength 20
-Some interesting settings: Latency 40 ms, Type 1, Range 3, Strength 100 | Latency 17 ms, Type 2, Range 10, Strength 100000, Offset -2
+Recommended values for primary idea of antichatter is: Latency 10 ms, Type 1 (or 2), Range 0.15 cm, Strength 20
+Some interesting (fun) settings: Latency 40 ms, Type 1, Range 3, Strength 100 | Latency 17 ms, Type 2, Range 10, Strength 100000, Offset -2
 
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/6.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/1.png)

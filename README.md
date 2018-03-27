@@ -7,6 +7,8 @@ For more detailed info hold mouse over antichatter settings.
 
 If you have not installed the driver then: install hawku's 0.1.3 version (version doesn't matter) (https://github.com/hawku/TabletDriver/releases) and go to step 1. My version based on 0.1.0 version of driver.
 
+_____
+
 Antichatter feature is meant to prevent cursor chattering/rattling/shaking/trembling when it's almost doesn't moves and/or too high to prevent tablet noise.
 Antichatter in it's primary form is useful for tablets which doesn't have any smoothing (including hardware smoothing).
 Antichatter requires smoothing filter enabled for work. Latency do affect on antichatter settings.

@@ -28,8 +28,12 @@ Antichatter requires smoothing filter enabled for work. Latency do affect on ant
   
 **Type 2** is smarter - it's distance based, see code for formulas. 
           
-Recommended values for primary idea of antichatter is: Latency 10 ms, Type 1 (or 2), Range 0.15 cm, Strength 20
-Some interesting (fun) settings: Latency 40 ms, Type 1, Range 3, Strength 100 | Latency 17 ms, Type 2, Range 10, Strength 100000, Offset -2
+Recommended values for primary idea of antichatter is: Latency 10 ms, Type 1 (or 2), Range ~0.15 cm, Strength 20
+
+
+Some interesting (fun) settings:  
+Latency 40 ms, Type 1, Range 3, Strength 100  
+Latency 17 ms, Type 2, Range 10, Strength 100000, Offset -2  
 
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/6.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/1.png)

@@ -58,6 +58,15 @@ bool TabletFilterNoiseReduction::GetPosition(Vector2D *outputVector) {
 
 // Update
 void TabletFilterNoiseReduction::Update() {
+
+	// One position in the buffer?
+	if(bufferPositionCount == 1) {
+		position.x = buffer[0].x;
+		position.y = buffer[0].y;
+		return;
+	}
+
+	// Calculate geometric median from the buffer positions
 	GetGeometricMedianVector(&position, iterations);
 
 	// Reset the buffer when distance to last target position is larger than the threshold
@@ -72,6 +81,9 @@ void TabletFilterNoiseReduction::Update() {
 
 
 
+//
+// Reset buffer
+//
 void TabletFilterNoiseReduction::ResetBuffer() {
 	bufferPositionCount = 0;
 	bufferCurrentIndex = 0;

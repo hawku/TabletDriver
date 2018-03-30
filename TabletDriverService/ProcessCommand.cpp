@@ -447,8 +447,18 @@ bool ProcessCommand(CommandLine *cmd) {
 				vmulti->ResetReport();
 			vmulti->mode = VMulti::ModeDigitizer;
 			LOG_INFO("Output Mode = Digitizer\n");
+		}
 
-		} else {
+		// SendInput
+		else if(mode.compare(0, 4, "send") == 0) {
+			if(vmulti->mode != VMulti::ModeSendInput)
+				vmulti->ResetReport();
+			vmulti->mode = VMulti::ModeSendInput;
+			vmulti->UpdateMonitorInfo();
+			LOG_INFO("Output Mode = SendInput\n");
+		}
+
+		else {
 			LOG_ERROR("Unknown output mode '%s'\n", mode.c_str());
 		}
 

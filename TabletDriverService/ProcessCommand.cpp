@@ -139,11 +139,18 @@ bool ProcessCommand(CommandLine *cmd) {
 		LOG_INFO("Tablet report length = %d\n", tablet->settings.reportLength);
 	}
 
-	// Button Mask
-	else if(cmd->is("ButtonMask")) {
+	// Detect Mask
+	else if(cmd->is("DetectMask")) {
 		if(tablet == NULL) return false;
-		tablet->settings.buttonMask = cmd->GetInt(0, tablet->settings.buttonMask);
-		LOG_INFO("Tablet button mask = %02X\n", tablet->settings.buttonMask);
+		tablet->settings.detectMask = cmd->GetInt(0, tablet->settings.detectMask);
+		LOG_INFO("Tablet detect mask = %02X\n", tablet->settings.detectMask);
+	}
+
+	// Ignore Mask
+	else if(cmd->is("IgnoreMask")) {
+		if(tablet == NULL) return false;
+		tablet->settings.ignoreMask = cmd->GetInt(0, tablet->settings.ignoreMask);
+		LOG_INFO("Tablet ignore mask = %02X\n", tablet->settings.ignoreMask);
 	}
 
 	// Max X
@@ -784,7 +791,8 @@ void LogInformation() {
 	LOG_INFO("  Keep Tip Down = %d packets\n", tablet->settings.keepTipDown);
 	LOG_INFO("  Report Id = %02X\n", tablet->settings.reportId);
 	LOG_INFO("  Report Length = %d bytes\n", tablet->settings.reportLength);
-	LOG_INFO("  Button Mask = 0x%02X\n", tablet->settings.buttonMask);
+	LOG_INFO("  Detect Mask = 0x%02X\n", tablet->settings.detectMask);
+	LOG_INFO("  Ignore Mask = 0x%02X\n", tablet->settings.ignoreMask);
 
 	for(int i = 0; i < 8; i++) {
 		stringIndex += sprintf_s(stringBuffer + stringIndex, maxLength - stringIndex, "%d ", tablet->buttonMap[i]);

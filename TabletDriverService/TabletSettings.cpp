@@ -9,7 +9,8 @@ TabletSettings::TabletSettings() {
 	// Initial settings
 	reportId = 0;
 	reportLength = 8;
-	buttonMask = 0x00;
+	detectMask = 0x00;
+	ignoreMask = 0x00;
 	maxX = 1;
 	maxY = 1;
 	maxPressure = 1;

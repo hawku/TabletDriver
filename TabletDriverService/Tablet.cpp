@@ -214,8 +214,13 @@ int Tablet::ReadPosition() {
 
 
 
-	// Validate position
-	if(settings.buttonMask > 0 && (reportData.buttons & settings.buttonMask) != settings.buttonMask) {
+	// Detect mask
+	if(settings.detectMask > 0 && (reportData.buttons & settings.detectMask) != settings.detectMask) {
+		return Tablet::PacketPositionInvalid;
+	}
+
+	// Ignore mask
+	if(settings.ignoreMask > 0 && (reportData.buttons & settings.ignoreMask) == settings.ignoreMask) {
 		return Tablet::PacketPositionInvalid;
 	}
 

@@ -9,7 +9,8 @@ public:
 		TypeWacomDrivers
 	};
 
-	BYTE buttonMask;
+	BYTE detectMask;
+	BYTE ignoreMask;
 	int maxX;
 	int maxY;
 	int maxPressure;

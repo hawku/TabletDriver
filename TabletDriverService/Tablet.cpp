@@ -119,13 +119,15 @@ bool Tablet::Init() {
 	// USB (Huion)
 	if(usbDevice != NULL) {
 		BYTE buffer[64];
-		if(usbDevice->ControlTransfer(0x80, 0x06, (0x03 << 8) | 100, 0x0409, buffer, 64) > 0) {
+		int status;
+		status = usbDevice->ControlTransfer(0x80, 0x06, (0x03 << 8) | 200, 0x0409, buffer, 64);
+		status += usbDevice->ControlTransfer(0x80, 0x06, (0x03 << 8) | 100, 0x0409, buffer, 64);
+		if(status > 0) {
 			return true;
 		}
 		return false;
 	}
-
-
+	
 	return true;
 }
 

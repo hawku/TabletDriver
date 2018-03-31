@@ -12,7 +12,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-### http://hwk.fi/TabletDriver/TabletDriverV0.1.3.zip
+### http://hwk.fi/TabletDriver/TabletDriverV0.1.4.zip
 
 #
 
@@ -39,6 +39,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   
 ### Configured, but not properly tested:
   - Huion H420
+  - Huion H430P
   - Wacom CTL-4100 USB
   - Wacom CTL-4100 Bluetooth
   - Wacom CTH-470
@@ -49,6 +50,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   - Wacom CTH-680
   - Wacom CTH-490
   - Wacom PTH-451
+  - Wacom PTH-850
 
 #
 
@@ -90,6 +92,12 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ## Changelog
+>**v0.1.4:**
+> - Modified the Wacom CTL-471 full area size (147.20 x 92.25 mm to 152 x 95 mm)
+> - New tablet configurations: Wacom PTH-850 and Huion H430P
+>   The PTH-850 configuration is made by [mojobojo](https://github.com/mojobojo)
+> - Regenerated the wacom.cfg with new parameters, so it now includes PTH-450/650/850 and PTK-450/650
+
 >**v0.1.3:**
 > - Added left handed mode / tablet invert option.
 > - Added Wacom driver device support for the CTL-471 and 472

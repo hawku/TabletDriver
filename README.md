@@ -5,7 +5,7 @@ For more detailed info hold mouse over antichatter settings.
 ### Installing
 1) If you have already Driver installed just: close it from tray, and replace files.  
 
-If you have not installed the driver then: install hawku's 0.1.3 version (version doesn't matter) (https://github.com/hawku/TabletDriver/releases) and go to step 1. My version based on 0.1.0 version of driver.
+If you have not installed the driver then: install hawku's latest version (version doesn't matter) (https://github.com/hawku/TabletDriver/releases) and go to step 1. My version based on 0.1.0 version of driver.
 
 _____
 

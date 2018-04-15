@@ -7,6 +7,7 @@
 #include "TabletSettings.h"
 #include "TabletFilterSmoothing.h"
 #include "TabletFilterNoiseReduction.h"
+#include "TabletFilterPeak.h"
 #include "TabletBenchmark.h"
 #include "Vector2D.h"
 
@@ -66,11 +67,16 @@ public:
 	// Noise reduction filter
 	TabletFilterNoiseReduction noise;
 
+	// Peak filter
+	TabletFilterPeak peak;
+
 	// Timed filter
-	TabletFilter *filterTimed;
+	TabletFilter *filterTimed[10];
+	int filterTimedCount;
 
 	// Packet filter
-	TabletFilter *filterPacket;
+	TabletFilter *filterPacket[10];
+	int filterPacketCount;
 
 	// Benchmark
 	TabletBenchmark benchmark;

@@ -1,15 +1,13 @@
 #pragma once
 
 #include "PositionRingBuffer.h"
+#include "Vector2D.h"
 
-class TabletFilterNoiseReduction : public TabletFilter {
+class TabletFilterPeak : public TabletFilter {
 public:
 
 	PositionRingBuffer buffer;
 	Vector2D position;
-	Vector2D lastTarget;
-
-	int iterations;
 	double distanceThreshold;
 
 	void SetTarget(Vector2D targetVector);
@@ -17,10 +15,8 @@ public:
 	bool GetPosition(Vector2D *outputVector);
 	void Update();
 
-	bool GetAverageVector(Vector2D *output);
-	bool GetGeometricMedianVector(Vector2D *output, int iterations);
 
-	TabletFilterNoiseReduction();
-	~TabletFilterNoiseReduction();
+	TabletFilterPeak();
+	~TabletFilterPeak();
 };
 

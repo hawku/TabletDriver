@@ -46,6 +46,8 @@ void RunTabletThread() {
 	bool isFirstReport = true;
 	bool isResent = false;
 	double x, y;
+	TabletFilter *filter;
+	bool filterTimedEnabled;
 
 	chrono::high_resolution_clock::time_point timeBegin = chrono::high_resolution_clock::now();
 	chrono::high_resolution_clock::time_point timeNow = chrono::high_resolution_clock::now();
@@ -60,10 +62,10 @@ void RunTabletThread() {
 		// Read tablet position
 		//
 		status = tablet->ReadPosition();
+
 		// Position OK
 		if(status == Tablet::PacketValid) {
 			isResent = false;
-			// Position invalid
 
 		// Invalid packet id
 		} else if(status == Tablet::PacketInvalid) {
@@ -111,17 +113,40 @@ void RunTabletThread() {
 		}
 
 		//
-		// Packet filter
+		// Packet filters
 		//
-		if(tablet->filterPacket != NULL && tablet->filterPacket->isEnabled) {
-			tablet->filterPacket->SetTarget(tablet->state.position);
-			tablet->filterPacket->Update();
-			tablet->filterPacket->GetPosition(&tablet->state.position);
+		// Is there any filters?
+		if(tablet->filterPacketCount > 0) {
+
+			// Loop through filters
+			for(int filterIndex = 0; filterIndex < tablet->filterPacketCount; filterIndex++) {
+
+				// Filter
+				filter = tablet->filterPacket[filterIndex];
+
+				// Enabled?
+				if(filter != NULL && filter->isEnabled) {
+
+					// Process
+					filter->SetTarget(tablet->state.position);
+					filter->Update();
+					filter->GetPosition(&tablet->state.position);
+				}
+
+			}
+		}
+
+
+		// Timed filter enabled?
+		filterTimedEnabled = false;
+		for(int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
+			if(tablet->filterTimed[filterIndex]->isEnabled)
+				filterTimedEnabled = true;
 		}
 
 
 		// Do not write report when timed filter is enabled
-		if(tablet->filterTimed == NULL || !tablet->filterTimed->isEnabled) {
+		if(tablet->filterTimedCount == 0 || !filterTimedEnabled) {
 
 			// Relative mode
 			if(vmulti->mode == VMulti::ModeRelativeMouse) {
@@ -165,33 +190,39 @@ void RunTabletThread() {
 //
 VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWaitFired) {
 	Vector2D position;
+	TabletFilter *filter;
 
-	TabletFilter *filter = tablet->filterTimed;
+	// Set position
+	position.Set(tablet->state.position);
 
-	// Filter enabled?
-	if(!filter->isEnabled) return;
+	// Loop through filters
+	for(int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
 
-	// Set filter targets
-	filter->SetTarget(tablet->state.position);
+		// Filter
+		filter = tablet->filterTimed[filterIndex];
 
-	// Update filter position
-	filter->Update();
+		// Filter enabled?
+		if(!filter->isEnabled) return;
 
-	// Set output vector
-	filter->GetPosition(&position);
+		// Set filter targets
+		filter->SetTarget(position);
+
+		// Update filter position
+		filter->Update();
+
+		// Set output vector
+		filter->GetPosition(&position);
+
+	}
 
 
+	//
 	// Relative mode
+	//
 	if(vmulti->mode == VMulti::ModeRelativeMouse) {
 
 		// Map position to virtual screen (values between 0 and 1)
 		mapper->GetRotatedTabletPosition(&position.x, &position.y);
-
-		// Large distance -> Reset relative position
-		double distance = tablet->state.position.Distance(vmulti->relativeData.lastPosition);
-		if(distance > 10) {
-			vmulti->ResetRelativeData(position.x, position.y);
-		}
 
 		// Create VMulti report
 		vmulti->CreateReport(
@@ -207,12 +238,17 @@ VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWa
 			vmulti->reportRelativeMouse.x != 0
 			||
 			vmulti->reportRelativeMouse.y != 0
-		) {
+			) {
 			vmulti->WriteReport();
 		}
 
+
+	}
+
+	//
 	// Absolute / Digitizer mode
-	} else {
+	//
+	else {
 
 
 		// Map position to virtual screen (values betweeb 0->1)
@@ -338,8 +374,10 @@ int main(int argc, char**argv) {
 				running = true;
 
 				// Timed filter timer
-				tablet->filterTimed->callback = FilterTimerCallback;
-				tablet->filterTimed->StartTimer();
+				if(tablet->filterPacketCount > 0) {
+					tablet->filterTimed[0]->callback = FilterTimerCallback;
+					tablet->filterTimed[0]->StartTimer();
+				}
 
 				// Start the tablet thread
 				tabletThread = new thread(RunTabletThread);
@@ -389,8 +427,8 @@ void CleanupAndExit(int code) {
 
 	// Delete filter timer
 	if(tablet != NULL) {
-		if(tablet->filterTimed != NULL) {
-			tablet->filterTimed->StopTimer();
+		if(tablet->filterTimedCount != 0) {
+			tablet->filterTimed[0]->StopTimer();
 		}
 	}
 

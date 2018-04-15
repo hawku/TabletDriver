@@ -211,7 +211,7 @@ bool ProcessCommand(CommandLine *cmd) {
 		LOG_INFO("Tablet skew = Shift X-axis %0.2f mm per Y-axis mm\n", tablet->settings.skew);
 	}
 
-	// Skew
+	// Type
 	else if(cmd->is("Type")) {
 		if(tablet == NULL) return false;
 
@@ -418,6 +418,15 @@ bool ProcessCommand(CommandLine *cmd) {
 		LOG_INFO("Relative mode sensitivity = %0.2f px/mm\n", vmulti->relativeData.sensitivity);
 	}
 
+	//
+	// Relative mode reset distance
+	//
+	else if(cmd->is("ResetDistance")) {
+		if(!CheckTablet()) return true;
+		vmulti->relativeData.resetDistance = cmd->GetDouble(0, vmulti->relativeData.resetDistance);
+		LOG_INFO("Relative mode reset distance = %0.2f mm\n", vmulti->relativeData.resetDistance);
+	}
+
 
 	//
 	// VMulti output mode
@@ -545,7 +554,7 @@ bool ProcessCommand(CommandLine *cmd) {
 		// Set parameters
 		} else {
 
-			int length = cmd->GetInt(0, tablet->noise.bufferLength);
+			int length = cmd->GetInt(0, tablet->noise.buffer.length);
 			double distanceThreshold = cmd->GetDouble(1, tablet->noise.distanceThreshold);
 			int iterations = cmd->GetInt(2, tablet->noise.iterations);
 
@@ -560,12 +569,12 @@ bool ProcessCommand(CommandLine *cmd) {
 			else if(iterations > 100) iterations = 100;
 
 			// Set
-			tablet->noise.SetBufferLength(length);
+			tablet->noise.buffer.SetLength(length);
 			tablet->noise.distanceThreshold = distanceThreshold;
 			tablet->noise.iterations = iterations;
 
 			// Enable filter
-			if(tablet->noise.bufferLength > 0) {
+			if(tablet->noise.buffer.length > 0) {
 				tablet->noise.isEnabled = true;
 				LOG_INFO("Noise Reduction = %d packets, %0.3f mm threshold, %d iterations\n", length, distanceThreshold, iterations);
 			} else {

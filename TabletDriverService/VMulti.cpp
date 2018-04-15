@@ -38,6 +38,7 @@ VMulti::VMulti() {
 	// Relative mouse data
 	memset(&relativeData, 0, sizeof(relativeData));
 	relativeData.sensitivity = 1;
+	relativeData.resetDistance = 50;
 
 	// Monitor info
 	UpdateMonitorInfo();
@@ -131,8 +132,8 @@ void VMulti::CreateReport(BYTE buttons, double x, double y, double pressure) {
 		dy = y - relativeData.lastPosition.y;
 		distance = sqrt(dx * dx + dy * dy);
 
-		// Reset position when position jumps 10 millimeters
-		if(distance > 10) {
+		// Reset relative position when the move distance is long enough
+		if(distance > relativeData.resetDistance) {
 			ResetRelativeData(x, y);
 			dx = 0;
 			dy = 0;

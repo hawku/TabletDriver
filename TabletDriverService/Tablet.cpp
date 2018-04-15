@@ -54,8 +54,13 @@ Tablet::Tablet() {
 	memset(&state, 0, sizeof(state));
 
 	// Filters
-	filterTimed = &smoothing;
-	filterPacket = &noise;
+	filterTimed[0] = &smoothing;
+	filterTimedCount = 1;
+	filterPacket[0] = &noise;
+	//filterPacket[1] = &peak;
+	filterPacketCount = 1;
+
+	peak.isEnabled = true;
 
 	// Button map
 	memset(&buttonMap, 0, sizeof(buttonMap));
@@ -120,8 +125,13 @@ bool Tablet::Init() {
 	if(usbDevice != NULL) {
 		BYTE buffer[64];
 		int status;
+
+		// String Id 200
 		status = usbDevice->ControlTransfer(0x80, 0x06, (0x03 << 8) | 200, 0x0409, buffer, 64);
+
+		// String Id 100
 		status += usbDevice->ControlTransfer(0x80, 0x06, (0x03 << 8) | 100, 0x0409, buffer, 64);
+
 		if(status > 0) {
 			return true;
 		}

@@ -12,7 +12,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-### http://hwk.fi/TabletDriver/TabletDriverV0.1.4.zip
+### http://hwk.fi/TabletDriver/TabletDriverV0.1.5.zip
 
 #
 
@@ -61,7 +61,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
     * https://aka.ms/vs/15/release/vc_redist.x86.exe
 
 2. Unzip the driver to a folder (Shorter path is recommended, for example `C:\Temp\TabletDriver`)
-3. Uninstall all other tablet drivers.
+3. Uninstall all other tablet drivers. If you have problems with uninstalling the Wacom drivers, check the GitHub issue [#1](https://github.com/hawku/TabletDriver/issues/1)
 4. Run `install_vmulti_driver.bat`. It might need a restart if there is another vmulti driver installed.
 5. If you have Huion or Gaomon tablet, you need to run `install_huion_64.bat`, which is in the `driver_huion` directory.
 6. Start the TabletDriverGUI.exe
@@ -92,6 +92,12 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ## Changelog
+>**v0.1.5:**
+> - New tablet configurations: Wacom CTL-4100 (USB only model), XP-Pen G540 Pro, XP-Pen Deco 01 and Huion osu!tablet
+>   Thanks to /u/THEqrunt for capturing the XP-Pen Deco 01 USB data.
+> - Added `ResetDistance` command, it controls the relative mode position reset distance.
+> - Code refactoring.
+
 >**v0.1.4:**
 > - Modified the Wacom CTL-471 full area size (147.20 x 92.25 mm to 152 x 95 mm)
 > - New tablet configurations: Wacom PTH-850 and Huion H430P

@@ -60,6 +60,7 @@ public:
 		Vector2D lastPosition;
 		Vector2D targetPosition;
 		double sensitivity;
+		double resetDistance;
 	} relativeData;
 
 

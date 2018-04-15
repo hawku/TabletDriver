@@ -6,10 +6,6 @@
 // Constructor
 //
 TabletFilterNoiseReduction::TabletFilterNoiseReduction() {
-	bufferMaxLength = sizeof(buffer) / sizeof(Vector2D);
-	bufferLength = 0;
-	bufferPositionCount = 0;
-	bufferCurrentIndex = 0;
 	distanceThreshold = 0;
 	iterations = 10;
 }
@@ -20,19 +16,6 @@ TabletFilterNoiseReduction::TabletFilterNoiseReduction() {
 TabletFilterNoiseReduction::~TabletFilterNoiseReduction() {
 }
 
-
-//
-// Set buffer length
-//
-void TabletFilterNoiseReduction::SetBufferLength(int length) {
-	if(length > bufferMaxLength) {
-		bufferLength = bufferMaxLength;
-	} else {
-		bufferLength = length;
-	}
-}
-
-
 //
 // TabletFilter methods
 //
@@ -40,16 +23,16 @@ void TabletFilterNoiseReduction::SetBufferLength(int length) {
 // Set target position
 void TabletFilterNoiseReduction::SetTarget(Vector2D targetVector) {
 	lastTarget.Set(targetVector);
-	AddBuffer(targetVector);
+	buffer.Add(targetVector);
 }
 
-// Get current position
+// Set position
 void TabletFilterNoiseReduction::SetPosition(Vector2D vector) {
 	position.x = vector.x;
 	position.y = vector.y;
 }
 
-// Get current position
+// Get position
 bool TabletFilterNoiseReduction::GetPosition(Vector2D *outputVector) {
 	outputVector->x = position.x;
 	outputVector->y = position.y;
@@ -60,9 +43,9 @@ bool TabletFilterNoiseReduction::GetPosition(Vector2D *outputVector) {
 void TabletFilterNoiseReduction::Update() {
 
 	// One position in the buffer?
-	if(bufferPositionCount == 1) {
-		position.x = buffer[0].x;
-		position.y = buffer[0].y;
+	if(buffer.count == 1) {
+		position.x = buffer[0]->x;
+		position.y = buffer[0]->y;
 		return;
 	}
 
@@ -70,41 +53,13 @@ void TabletFilterNoiseReduction::Update() {
 	GetGeometricMedianVector(&position, iterations);
 
 	// Reset the buffer when distance to last target position is larger than the threshold
-	if(isValid) {
+	if(buffer.isValid) {
 		double distance = lastTarget.Distance(position);
 		if(distance > distanceThreshold) {
-			ResetBuffer();
+			buffer.Reset();
 			position.Set(lastTarget);
 		}
 	}
-}
-
-
-
-//
-// Reset buffer
-//
-void TabletFilterNoiseReduction::ResetBuffer() {
-	bufferPositionCount = 0;
-	bufferCurrentIndex = 0;
-	isValid = false;
-}
-
-//
-// Add position to buffer
-//
-void TabletFilterNoiseReduction::AddBuffer(Vector2D vector) {
-	buffer[bufferCurrentIndex].x = vector.x;
-	buffer[bufferCurrentIndex].y = vector.y;
-	bufferCurrentIndex++;
-	bufferPositionCount++;
-	if(bufferPositionCount > bufferLength) {
-		bufferPositionCount = bufferLength;
-	}
-	if(bufferCurrentIndex >= bufferLength) {
-		bufferCurrentIndex = 0;
-	}
-	isValid = true;
 }
 
 //
@@ -112,15 +67,15 @@ void TabletFilterNoiseReduction::AddBuffer(Vector2D vector) {
 //
 bool TabletFilterNoiseReduction::GetAverageVector(Vector2D *output) {
 	double x, y;
-	if(!isValid) return false;
+	if(!buffer.isValid) return false;
 
 	x = y = 0;
-	for(int i = 0; i < bufferPositionCount; i++) {
-		x += buffer[i].x;
-		y += buffer[i].y;
+	for(int i = 0; i < buffer.count; i++) {
+		x += buffer[i]->x;
+		y += buffer[i]->y;
 	}
-	output->x = x / bufferPositionCount;
-	output->y = y / bufferPositionCount;
+	output->x = x / buffer.count;
+	output->y = y / buffer.count;
 	return true;
 }
 
@@ -147,9 +102,9 @@ bool TabletFilterNoiseReduction::GetGeometricMedianVector(Vector2D *output, int 
 		denominator = 0;
 
 		// Loop through the buffer and calculate a denominator.
-		for(i = 0; i < bufferPositionCount; i++) {
-			dx = candidate.x - buffer[i].x;
-			dy = candidate.y - buffer[i].y;
+		for(i = 0; i < buffer.count; i++) {
+			dx = candidate.x - buffer[i]->x;
+			dy = candidate.y - buffer[i]->y;
 			distance = sqrt(dx*dx + dy * dy);
 			if(distance > minimumDistance) {
 				denominator += 1.0 / distance;
@@ -163,9 +118,9 @@ bool TabletFilterNoiseReduction::GetGeometricMedianVector(Vector2D *output, int 
 		next.y = 0;
 
 		// Loop through the buffer and calculate a weighted average
-		for(i = 0; i < bufferPositionCount; i++) {
-			dx = candidate.x - buffer[i].x;
-			dy = candidate.y - buffer[i].y;
+		for(i = 0; i < buffer.count; i++) {
+			dx = candidate.x - buffer[i]->x;
+			dy = candidate.y - buffer[i]->y;
 			distance = sqrt(dx*dx + dy * dy);
 			if(distance > minimumDistance) {
 				weight = 1.0 / distance;
@@ -173,8 +128,8 @@ bool TabletFilterNoiseReduction::GetGeometricMedianVector(Vector2D *output, int 
 				weight = 1.0 / minimumDistance;
 			}
 
-			next.x += buffer[i].x * weight / denominator;
-			next.y += buffer[i].y * weight / denominator;
+			next.x += buffer[i]->x * weight / denominator;
+			next.y += buffer[i]->y * weight / denominator;
 		}
 
 		// Set the new candidate vector

@@ -171,6 +171,7 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClInclude Include="CommandLine.h" />
     <ClInclude Include="HIDDevice.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="PositionRingBuffer.h" />
     <ClInclude Include="ProcessCommand.h" />
     <ClInclude Include="ScreenMapper.h" />
     <ClInclude Include="stdafx.h" />
@@ -178,6 +179,7 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClInclude Include="TabletBenchmark.h" />
     <ClInclude Include="TabletFilter.h" />
     <ClInclude Include="TabletFilterNoiseReduction.h" />
+    <ClInclude Include="TabletFilterPeak.h" />
     <ClInclude Include="TabletFilterSmoothing.h" />
     <ClInclude Include="TabletSettings.h" />
     <ClInclude Include="targetver.h" />
@@ -189,12 +191,14 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClCompile Include="CommandLine.cpp" />
     <ClCompile Include="HIDDevice.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="PositionRingBuffer.cpp" />
     <ClCompile Include="ProcessCommand.cpp" />
     <ClCompile Include="ScreenMapper.cpp" />
     <ClCompile Include="Tablet.cpp" />
     <ClCompile Include="TabletBenchmark.cpp" />
     <ClCompile Include="TabletFilter.cpp" />
     <ClCompile Include="TabletFilterNoiseReduction.cpp" />
+    <ClCompile Include="TabletFilterPeak.cpp" />
     <ClCompile Include="TabletFilterSmoothing.cpp" />
     <ClCompile Include="TabletSettings.cpp" />
     <ClCompile Include="USBDevice.cpp" />

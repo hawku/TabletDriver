@@ -24,7 +24,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.1.4";
+        public string Version = "0.1.5";
 
         // Console stuff
         private List<string> commandHistory;
@@ -1546,8 +1546,17 @@ namespace TabletDriverGUI
             //
             if (variableName == "tablet")
             {
-                Title = "TabletDriverGUI - " + stringValue;
-                notifyIcon.Text = Title;
+                string title = "TabletDriverGUI - " + stringValue;
+                Title = title;
+
+                // Limit notify icon text length
+                if (title.Length > 63)
+                {
+                    notifyIcon.Text = title.Substring(0, 63);
+                } else
+                {
+                    notifyIcon.Text = title;
+                }
                 SetStatus("Connected to " + stringValue);
             }
 

@@ -26,31 +26,34 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ### Supported tablets:
   - Wacom CTL-470
+  - Wacom CTH-470
   - Wacom CTL-471
   - Wacom CTL-472
   - Wacom CTL-480
   - Wacom CTH-480
   - Wacom CTL-490
-  - XP Pen G430 (New 2017+ "Model B")
-  - XP Pen G640
-  - Huion 420
-  - Huion H640P
-  - Gaomon S56K
-  
-### Configured, but not properly tested:
-  - Huion H420
-  - Huion H430P
-  - Wacom CTL-4100 USB
-  - Wacom CTL-4100 Bluetooth
-  - Wacom CTH-470
-  - Wacom CTH-670
+  - Wacom CTH-490
   - Wacom CTL-671
   - Wacom CTL-672
   - Wacom CTL-680
   - Wacom CTH-680
-  - Wacom CTH-490
   - Wacom PTH-451
   - Wacom PTH-850
+  - XP-Pen G430 (New 2017+ "Model B")
+  - XP-Pen G540 Pro
+  - XP-Pen G640
+  - Huion 420
+  - Huion H420
+  - Huion H430P
+  - Huion H640P
+  - Gaomon S56K
+  
+### Configured, but not properly tested:
+  - Huion osu!tablet
+  - XP-Pen Deco 01
+  - Wacom CTL-4100 USB
+  - Wacom CTL-4100 Bluetooth
+  - https://github.com/hawku/TabletDriver/blob/master/TabletDriverService/config/wacom.cfg
 
 #
 
@@ -177,7 +180,7 @@ If you want to compile the code and don't want to install anything from the Tabl
 > - New tablet configurations: Wacom CTH-470, CTH-670, PTH-451
 > - Fix for the smoothing filter. The filter didn't turn on when the settings were applied.
 > - Fix for the Huion H640P clicking problem and also added better data validation for Huion 420,
->   Gaomon S56K, XP Pen G430 and G640.
+>   Gaomon S56K, XP-Pen G430 and G640.
 > - Modified click detection on CTL-490 and CTH-490 (tablet.cfg ClickPressure).
 
 >**v0.0.9:**

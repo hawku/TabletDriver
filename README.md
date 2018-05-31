@@ -28,7 +28,7 @@ Antichatter requires smoothing filter enabled for work. Latency do affect on ant
   
 **Type 2** is smarter - it's distance based, see code for formulas. 
           
-Recommended values for primary idea of antichatter is: Latency 10 ms, Type 1 (or 2), Range ~0.15 cm, Strength 20
+Recommended values for primary idea of antichatter is: 500-1000Hz, Latency 10-12 ms, Type 2, Range 0.3 cm, Strength 2 
 
 
 Some interesting (fun) settings:  

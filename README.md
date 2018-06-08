@@ -30,20 +30,14 @@ Antichatter requires smoothing filter enabled for work. Latency do affect on ant
 
 **Type 3** is same as Type 2 except one - if you exceed range then it provides raw data giving lowest latency for movement.
           
-Presets:
-Optimal: Latency 10-12 ms, Type 2, Range 0.3 cm, Strength 2
-Really low latency: Latency 1 ms, Type 3, Range 1+ cm, Strength 1.5-2
-Feelin frisky: Latency 10-30 ms, Type 2, Range ~1.5 cm, Strehgth 2.7, Offset -0.7
-
-Wacomlike: Latency 25 ms, Type 2, Range 3 cm, Strength 1.8, Offset 1
-IThinkImOld: 500+ Hz, Latency 10 ms, Type 1, Range 0.3 ms, Strength -0.05
-ItsNotMe!: 500+ Hz, Latency 10 ms, Type 2, Range 20 cm, Strength -1.3, Offset -1.2
-
-
-
-Some interesting (fun) settings:  
-Latency 40 ms, Type 1, Range 3, Strength 100  
-Latency 17 ms, Type 2, Range 10, Strength 100000, Offset -2  
+**Presets**:  
+**Optimal**: Latency 10-12 ms, Type 2, Range 0.3 cm, Strength 2  
+**Really low latency**: Latency 1 ms, Type 3, Range 1+ cm, Strength 1.5-2  
+**Feelin frisky**: Latency 10-30 ms, Type 2, Range ~1.5 cm, Strehgth 2.7, Offset -0.7  
+  
+**Wacomlike**: Latency 25 ms, Type 2, Range 3 cm, Strength 1.8, Offset 1  
+**IThinkImOld**: 500+ Hz, Latency 10 ms, Type 1, Range 0.3 ms, Strength -0.05  
+**ItsNotMe!**: 500+ Hz, Latency 10 ms, Type 2, Range 20 cm, Strength -1.3, Offset -1.2  
 
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/6.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/1.png)

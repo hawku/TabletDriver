@@ -4,6 +4,12 @@
 
 #include "USBDevice.h"
 #include "HIDDevice.h"
+#include "TabletSettings.h"
+#include "TabletFilterSmoothing.h"
+#include "TabletFilterNoiseReduction.h"
+#include "TabletFilterPeak.h"
+#include "TabletBenchmark.h"
+#include "Vector2D.h"
 
 using namespace std;
 
@@ -18,38 +24,17 @@ public:
 	//
 	// Enums
 	//
-	enum TabletType {
-		TabletNormal,
-		TypeWacomIntuos
-	};
 	enum TabletButtons {
 		Button1, Button2, Button3, Button4,
 		Button5, Button6, Button7, Button8
 	};
-	enum TabletState {
+
+	// Tablet packet state
+	enum TabletPacketState {
 		PacketPositionInvalid = 0,
 		PacketValid = 1,
 		PacketInvalid = 2
 	};
-
-	//
-	// Settings
-	//
-	struct {
-		BYTE buttonMask;
-		int maxX;
-		int maxY;
-		int maxPressure;
-		int clickPressure;
-		int keepTipDown;
-		double width;
-		double height;
-		BYTE reportId;
-		int reportLength;
-		double skew;
-		TabletType type;
-	} settings;
-
 
 	//
 	// Position report data
@@ -69,43 +54,32 @@ public:
 	struct {
 		bool isValid;
 		BYTE buttons;
-		double x;
-		double y;
+		Vector2D position;
 		double pressure;
 	} state;
 
-	//
-	// Filter
-	//
-	struct {
-		HANDLE timer;
-		WAITORTIMERCALLBACK callback;
-		double interval;
-		double latency;
-		double weight;
-		double threshold;
-		int antichatterType;
-		double antichatterRange;
-		double antichatterStrength;
-		double antichatterOffset;
-		bool isEnabled;
-		double targetX;
-		double targetY;
-		double x;
-		double y;
-	} filter;
+	// Settings
+	TabletSettings settings;
 
-	//
+	// Smoothing filter
+	TabletFilterSmoothing smoothing;
+
+	// Noise reduction filter
+	TabletFilterNoiseReduction noise;
+
+	// Peak filter
+	TabletFilterPeak peak;
+
+	// Timed filter
+	TabletFilter *filterTimed[10];
+	int filterTimedCount;
+
+	// Packet filter
+	TabletFilter *filterPacket[10];
+	int filterPacketCount;
+
 	// Benchmark
-	//
-	struct {
-		double minX;
-		double maxX;
-		double minY;
-		double maxY;
-		int totalPackets;
-		int packetCounter;
-	} benchmark;
+	TabletBenchmark benchmark;
 
 	// Button map
 	BYTE buttonMap[16];
@@ -133,18 +107,6 @@ public:
 	bool Init();
 	bool IsConfigured();
 
-	double GetFilterLatency(double filterWeight, double interval, double threshold);
-	double GetFilterLatency(double filterWeight);
-	double GetFilterLatency();
-	double GetFilterWeight(double latency, double interval, double threshold);
-	double GetFilterWeight(double latency);
-	void SetFilterLatency(double latency);
-	void ProcessFilter();
-	bool StartFilterTimer();
-	bool StopFilterTimer();
-
-	void StartBenchmark(int packetCount);
-	
 	int ReadPosition();
 	bool Write(void *buffer, int length);
 	bool Read(void *buffer, int length);

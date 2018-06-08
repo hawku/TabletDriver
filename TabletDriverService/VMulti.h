@@ -1,6 +1,7 @@
 #pragma once
 
 #include "HIDDevice.h"
+#include "Vector2D.h"
 
 class VMulti {
 private:
@@ -12,7 +13,8 @@ public:
 	enum VMultiMode {
 		ModeAbsoluteMouse,
 		ModeRelativeMouse,
-		ModeDigitizer
+		ModeDigitizer,
+		ModeSendInput
 	};
 
 	struct {
@@ -46,12 +48,6 @@ public:
 	} reportDigitizer;
 
 
-	// Position Double
-	typedef struct {
-		double x;
-		double y;
-	} PositionDouble;
-
 	// Position Integer
 	typedef struct {
 		int x;
@@ -61,15 +57,27 @@ public:
 	// Relative mouse data
 	struct {
 		PositionInt currentPosition;
-		PositionDouble lastPosition;
-		PositionDouble targetPosition;
+		Vector2D lastPosition;
+		Vector2D targetPosition;
 		double sensitivity;
+		double resetDistance;
 	} relativeData;
+
+
+	struct {
+		double primaryWidth = GetSystemMetrics(SM_CXSCREEN);
+		double primaryHeight = GetSystemMetrics(SM_CYSCREEN);
+		double virtualWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+		double virtualHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+		double virtualX = GetSystemMetrics(SM_XVIRTUALSCREEN);
+		double virtualY = GetSystemMetrics(SM_YVIRTUALSCREEN);
+	} monitorInfo;
 
 	VMultiMode mode;
 	bool isOpen;
 	bool debugEnabled;
 	bool outputEnabled;
+	int lastButtons;
 
 
 
@@ -77,6 +85,7 @@ public:
 	~VMulti();
 	bool HasReportChanged();
 	void ResetRelativeData(double x, double y);
+	void UpdateMonitorInfo();
 	void CreateReport(BYTE buttons, double x, double y, double pressure);
 	int ResetReport();
 	int WriteReport();

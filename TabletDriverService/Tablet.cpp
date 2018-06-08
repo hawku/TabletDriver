@@ -9,7 +9,6 @@
 // USB Device Constructor
 //
 Tablet::Tablet(string usbGUID, int stringId, string stringMatch) : Tablet() {
-	//_construct();
 	usbDevice = new USBDevice(usbGUID, stringId, stringMatch);
 	if(usbDevice->isOpen) {
 		this->isOpen = true;
@@ -24,7 +23,6 @@ Tablet::Tablet(string usbGUID, int stringId, string stringMatch) : Tablet() {
 // HID Device Constructor
 //
 Tablet::Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage) : Tablet() {
-	//_construct();
 	hidDevice = new HIDDevice(vendorId, productId, usagePage, usage);
 	if(hidDevice->isOpen) {
 		this->isOpen = true;
@@ -46,35 +44,6 @@ Tablet::Tablet() {
 
 	usbPipeId = 0;
 
-	// Initial settings
-	settings.reportId = 0;
-	settings.reportLength = 8;
-	settings.buttonMask = 0x00;
-	settings.maxX = 1;
-	settings.maxY = 1;
-	settings.maxPressure = 1;
-	settings.clickPressure = 0;
-	settings.width = 1;
-	settings.height = 1;
-	settings.skew = 0;
-	settings.type = TabletNormal;
-
-	// Initial filter settings
-	filter.timer = NULL;
-	filter.interval = 2.0;
-	filter.latency = 2.0;
-	filter.weight = 1.000;
-	filter.threshold = 0.9;
-	filter.antichatterType = 2;
-	filter.antichatterRange = 0.15;
-	filter.antichatterStrength = 3;
-	filter.antichatterOffset = 0.0;
-	filter.isEnabled = false;
-	filter.targetX = 0;
-	filter.targetY = 0;
-	filter.x = 0;
-	filter.y = 0;
-
 	// Init reports
 	initFeature = NULL;
 	initFeatureLength = 0;
@@ -84,8 +53,14 @@ Tablet::Tablet() {
 	// Reset state
 	memset(&state, 0, sizeof(state));
 
-	// Reset benchmark
-	memset(&benchmark, 0, sizeof(benchmark));
+	// Filters
+	filterTimed[0] = &smoothing;
+	filterTimedCount = 1;
+	filterPacket[0] = &noise;
+	//filterPacket[1] = &peak;
+	filterPacketCount = 1;
+
+	peak.isEnabled = true;
 
 	// Button map
 	memset(&buttonMap, 0, sizeof(buttonMap));
@@ -149,13 +124,20 @@ bool Tablet::Init() {
 	// USB (Huion)
 	if(usbDevice != NULL) {
 		BYTE buffer[64];
-		if(usbDevice->ControlTransfer(0x80, 0x06, (0x03 << 8) | 100, 0x0409, buffer, 64) > 0) {
+		int status;
+
+		// String Id 200
+		status = usbDevice->ControlTransfer(0x80, 0x06, (0x03 << 8) | 200, 0x0409, buffer, 64);
+
+		// String Id 100
+		status += usbDevice->ControlTransfer(0x80, 0x06, (0x03 << 8) | 100, 0x0409, buffer, 64);
+
+		if(status > 0) {
 			return true;
 		}
 		return false;
 	}
-
-
+	
 	return true;
 }
 
@@ -174,129 +156,12 @@ bool Tablet::IsConfigured() {
 	return false;
 }
 
-
-//
-// Calculate filter latency
-//
-double Tablet::GetFilterLatency(double filterWeight, double interval, double threshold) {
-	double target = 1 - threshold;
-	double stepCount = -log(1 / target) / log(1 - filterWeight);
-	return stepCount * interval;
-}
-double Tablet::GetFilterLatency(double filterWeight) {
-	return this->GetFilterLatency(filterWeight, filter.interval, filter.threshold);
-}
-double Tablet::GetFilterLatency() {
-	return this->GetFilterLatency(filter.weight, filter.interval, filter.threshold);
-}
-
-
-//
-// Calculate filter weight
-//
-double Tablet::GetFilterWeight(double latency, double interval, double threshold) {
-	double stepCount = latency / interval;
-	double target = 1 - threshold;
-	return 1 - 1 / pow(1 / target, 1 / stepCount);
-}
-double Tablet::GetFilterWeight(double latency) {
-	return this->GetFilterWeight(latency, filter.interval, filter.threshold);
-}
-
-// Set filter values
-void Tablet::SetFilterLatency(double latency) {
-	tablet->filter.weight = tablet->GetFilterWeight(latency);
-	tablet->filter.latency = latency;
-}
-
-//
-// Process filter
-//
-void Tablet::ProcessFilter() {
-
-	double deltaX, deltaY, distance, weightModifier, antichatterRange, antichatterStrength,antichatterOffset;
-	int antichatterType;
-
-	deltaX = filter.targetX - filter.x;
-	deltaY = filter.targetY - filter.y;
-	distance = sqrt(deltaX*deltaX + deltaY * deltaY);
-	antichatterType = (int) filter.antichatterType;
-	antichatterRange = filter.antichatterRange;
-	antichatterStrength = filter.antichatterStrength;
-	antichatterOffset = filter.antichatterOffset;
-
-	// Regular smoothing
-	if (antichatterType == 0 or distance > antichatterRange) {
-		filter.x += deltaX * filter.weight;
-		filter.y += deltaY * filter.weight;
-	}
-	// Strong smoothing on small distances to avoid tablet noise
-	//(it needs up to 0.3 near borders in some places and/or when pen is very high, but ~0.15 is enough in most cases)
-	else {
-		if (antichatterType == 1)
-		{
-			weightModifier = 1 / antichatterStrength;
-			if (weightModifier > 1) weightModifier = 1;
-			filter.x += deltaX * (filter.weight * weightModifier);
-			filter.y += deltaY * (filter.weight * weightModifier);
-		} else
-		if (antichatterType == 2) {
-			weightModifier = pow(distance, antichatterStrength*-1) + antichatterOffset;
-			if (weightModifier < 1) weightModifier = 1;
-			filter.x += deltaX * (filter.weight / weightModifier);
-			filter.y += deltaY * (filter.weight / weightModifier);
-		}
-	}
-}
-
-
-//
-// Start Filter Timer
-//
-bool Tablet::StartFilterTimer() {
-	return CreateTimerQueueTimer(
-		&filter.timer,
-		NULL, filter.callback,
-		NULL,
-		0,
-		(int)filter.interval,
-		WT_EXECUTEDEFAULT
-	);
-}
-
-
-//
-// Stop Filter Timer
-//
-bool Tablet::StopFilterTimer() {
-	if(tablet->filter.timer == NULL) return false;
-	bool result = DeleteTimerQueueTimer(NULL, filter.timer, NULL);
-	if(result) {
-		filter.timer = NULL;
-	}
-	return result;
-}
-
-
-//
-// Start tablet benchmark
-//
-void Tablet::StartBenchmark(int packetCount) {
-	tablet->benchmark.maxX = -10000;
-	tablet->benchmark.maxY = -10000;
-	tablet->benchmark.minX = 10000;
-	tablet->benchmark.minY = 10000;
-	tablet->benchmark.totalPackets = packetCount;
-	tablet->benchmark.packetCounter = packetCount;
-}
-
-
-
 //
 // Read Position
 //
 int Tablet::ReadPosition() {
-	UCHAR buffer[256];
+	UCHAR buffer[1024];
+	UCHAR *data;
 	int buttonIndex;
 
 
@@ -311,32 +176,63 @@ int Tablet::ReadPosition() {
 		return Tablet::PacketInvalid;
 	}
 
-	// Validate packet id
-	if(settings.reportId > 0 && buffer[0] != settings.reportId) {
-		return Tablet::PacketInvalid;
+
+	// Set data pointer
+	if(settings.type == TabletSettings::TypeWacomDrivers) {
+		data = buffer + 1;
+	} else {
+		data = buffer;
 	}
 
 	//
 	// Wacom Intuos data format
 	//
-	if(settings.type == TypeWacomIntuos) {
-		reportData.x = ((buffer[2] * 0x100 + buffer[3]) << 1) | ((buffer[9] >> 1) & 1);
-		reportData.y = ((buffer[4] * 0x100 + buffer[5]) << 1) | (buffer[9] & 1);
-		reportData.pressure = (buffer[6] << 3) | ((buffer[7] & 0xC0) >> 5) | (buffer[1] & 1);
-		reportData.reportId = buffer[0];
-		reportData.buttons = buffer[1] & ~0x01;
+	if(settings.type == TabletSettings::TypeWacomIntuos) {
+		reportData.reportId = data[0];
+		reportData.buttons = data[1] & ~0x01;
+		reportData.x = ((data[2] * 0x100 + data[3]) << 1) | ((data[9] >> 1) & 1);
+		reportData.y = ((data[4] * 0x100 + data[5]) << 1) | (data[9] & 1);
+		reportData.pressure = (data[6] << 3) | ((data[7] & 0xC0) >> 5) | (data[1] & 1);
 		//distance = buffer[9] >> 2;
+
+	//
+	// Wacom 4100 data format
+	//
+	} else if(settings.type == TabletSettings::TypeWacom4100) {
+
+		// Wacom driver device
+		if(settings.reportLength == 193) {
+			data = buffer + 1;
+		}
+
+		reportData.reportId = data[0];
+		reportData.buttons = data[1] & ~0x01;
+		reportData.x = (data[2] | (data[3] << 8) | (data[4] << 16));
+		reportData.y = (data[5] | (data[6] << 8) | (data[7] << 16));
+		reportData.pressure = (data[8] | (data[9] << 8));
 
 	//
 	// Copy buffer to struct
 	//
 	} else {
-		memcpy(&reportData, buffer, sizeof(reportData));
+		memcpy(&reportData, data, sizeof(reportData));
 	}
 
 
-	// Validate position
-	if(settings.buttonMask > 0 && (reportData.buttons & settings.buttonMask) != settings.buttonMask) {
+	// Validate packet id
+	if(settings.reportId > 0 && reportData.reportId != settings.reportId) {
+		return Tablet::PacketInvalid;
+	}
+
+
+
+	// Detect mask
+	if(settings.detectMask > 0 && (reportData.buttons & settings.detectMask) != settings.detectMask) {
+		return Tablet::PacketPositionInvalid;
+	}
+
+	// Ignore mask
+	if(settings.ignoreMask > 0 && (reportData.buttons & settings.ignoreMask) == settings.ignoreMask) {
 		return Tablet::PacketPositionInvalid;
 	}
 
@@ -349,7 +245,7 @@ int Tablet::ReadPosition() {
 			reportData.buttons |= 1;
 		}
 
-	// Force tip button if pressure is detected
+	// Force tip button down if pressure is detected
 	} else if(reportData.pressure > 10) {
 		reportData.buttons |= 1;
 	}
@@ -363,8 +259,6 @@ int Tablet::ReadPosition() {
 			reportData.buttons |= 1;
 		}
 	}
-
-
 
 
 	// Set valid
@@ -386,26 +280,15 @@ int Tablet::ReadPosition() {
 	}
 
 	// Convert report data to state
-	state.x = ((double)reportData.x / (double)settings.maxX) * settings.width;
-	state.y = ((double)reportData.y / (double)settings.maxY) * settings.height;
+	state.position.x = ((double)reportData.x / (double)settings.maxX) * settings.width;
+	state.position.y = ((double)reportData.y / (double)settings.maxY) * settings.height;
 	if(settings.skew != 0) {
-		state.x += state.y * settings.skew;
+		state.position.x += state.position.y * settings.skew;
 	}
 	state.pressure = ((double)reportData.pressure / (double)settings.maxPressure);
 
-	//
-	// Tablet benchmark
-	//
-	if(benchmark.packetCounter > 0) {
-
-		// Set min & max
-		if(state.x < benchmark.minX) benchmark.minX = state.x;
-		if(state.x > benchmark.maxX) benchmark.maxX = state.x;
-		if(state.y < benchmark.minY) benchmark.minY = state.y;
-		if(state.y > benchmark.maxY) benchmark.maxY = state.y;
-
-		benchmark.packetCounter--;
-	}
+	// Tablet benchmark update
+	benchmark.Update(state.position);
 
 	// Packet and position is valid
 	return Tablet::PacketValid;

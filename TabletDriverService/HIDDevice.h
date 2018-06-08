@@ -31,5 +31,6 @@ public:
 	int Read(void *buffer, int length);
 	int Write(void *buffer, int length);
 	bool SetFeature(void *buffer, int length);
+	bool GetFeature(void *buffer, int length);
 	void CloseDevice();
 };

@@ -15,6 +15,7 @@ namespace TabletDriverGUI
         public Area TabletFullArea;
         public bool ForceAspectRatio;
         public double Rotation;
+        public bool Invert;
         public bool ForceFullArea;
         public OutputModes OutputMode;
         public enum OutputModes
@@ -26,9 +27,9 @@ namespace TabletDriverGUI
 
         public Area ScreenArea;
 
-        public double FilterLatency;
-        public int FilterInterval;
-        public bool FilterEnabled;
+        public double SmoothingLatency;
+        public int SmoothingInterval;
+        public bool SmoothingEnabled;
         public int AntichatterType;
         public double AntichatterRange;
         public double AntichatterStrength;
@@ -82,9 +83,9 @@ namespace TabletDriverGUI
             ButtonMap = new int[] { 1, 2, 3 };
             DisableButtons = false;
 
-            FilterEnabled = false;
-            FilterLatency = 0;
-            FilterInterval = 4;
+            SmoothingEnabled = false;
+            SmoothingLatency = 0;
+            SmoothingInterval = 4;
             AntichatterType = 2;
             AntichatterRange = 0.15;
             AntichatterStrength = 3.0;
@@ -94,7 +95,7 @@ namespace TabletDriverGUI
             CommandsBefore = new string[] { "" };
 
             WindowWidth = 800;
-            WindowHeight = 690;
+            WindowHeight = 710;
 
             RunAtStartup = false;
 

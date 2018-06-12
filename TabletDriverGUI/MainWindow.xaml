@@ -5,7 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TabletDriverGUI"
         mc:Ignorable="d"
-        Title="TabletDriverGUI" Height="703" Width="750"
+        Title="TabletDriverGUI" 
+        ResizeMode="NoResize"
+        Height="703" Width="750"
         >
   <Window.Resources>
     <Style TargetType="GroupBox">

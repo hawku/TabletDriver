@@ -33,7 +33,9 @@ namespace TabletDriverGUI
         public int AntichatterType;
         public double AntichatterRange;
         public double AntichatterStrength;
-        public double AntichatterOffset;
+        public double AntichatterMultiplier;
+        public double AntichatterOffsetX;
+        public double AntichatterOffsetY;
 
         public Area DesktopSize;
         public bool AutomaticDesktopSize;
@@ -87,9 +89,11 @@ namespace TabletDriverGUI
             SmoothingLatency = 0;
             SmoothingInterval = 4;
             AntichatterType = 2;
-            AntichatterRange = 0.15;
-            AntichatterStrength = 3.0;
-            AntichatterOffset = 0.0;
+            AntichatterRange = 1.0;
+            AntichatterStrength = 2.0;
+            AntichatterMultiplier = 1.0;
+            AntichatterOffsetX = 0.0;
+            AntichatterOffsetY = 0.0;
 
             CommandsAfter = new string[] { "" };
             CommandsBefore = new string[] { "" };

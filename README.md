@@ -29,16 +29,20 @@ Antichatter requires smoothing filter enabled for work. Latency do affect on ant
 **Type 2** is smarter - it's distance based, feels more smooth and better than Type 1, see code for formulas. If you exceed range it works as regular smoothing.
 
 **Type 3** is same as Type 2 except one - if you exceed range then it provides raw data giving lowest latency for movement.
-          
+
 **Presets**:  
 **Optimal**: Latency 10-12 ms, Type 2, Range 0.3 cm, Strength 2  
 **Really low latency**: Latency 1 ms, Type 3, Range 1+ cm, Strength 1.5-2  
-**Feelin frisky**: Latency 10-30 ms, Type 2, Range ~1.5 cm, Strehgth 2.7, Offset -0.7  
+**Feelin frisky**: Latency 10-30 ms, Type 2, Range ~1.5 cm, Strehgth 2.7, OffsetY -0.7  
+**Smooth&Nice**: Latency 6-30 ms, Type 2, Range 100 cm, Strehgth 6, Multiplier 10, OffsetX 0.7, OffsetY 0.85-1  
+Example of **Smooth&Nice**: http://yotx.ru/#!1/3_PgyctrZ/sL91sG/EEP7X9j1k0hqcRuY//gkf/xV/f2Q%40EE7bP9jfOtg3Ygj/a/sbe9ADCGJ3feMUvLm1C946gG7tH%40yTaNiNnVPG4%40kW43Hr8mJ3f2sfAw==
   
-**Wacomlike**: Latency 25 ms, Type 2, Range 3 cm, Strength 1.8, Offset 1  
+**Wacomlike**: Latency 25 ms, Type 2, Range 3 cm, Strength 1.8, OffsetY 1  
 **IThinkImOld**: 500+ Hz, Latency 10 ms, Type 1, Range 0.3 ms, Strength -0.05  
-**ItsNotMe!**: 500+ Hz, Latency 10 ms, Type 2, Range 20 cm, Strength -1.3, Offset -1.2  
+**ItsNotMe!**: 500+ Hz, Latency 10 ms, Type 2, Range 20 cm, Strength -1.3, OffsetY -1.2  
 
+
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/7.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/6.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/1.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/2.png)

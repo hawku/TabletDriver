@@ -483,15 +483,35 @@ namespace TabletDriverGUI
             comboBoxAntichatterType.SelectedIndex = config.AntichatterType;
             textAntichatterRange.Text = Utils.GetNumberString(config.AntichatterRange);
             textAntichatterStrength.Text = Utils.GetNumberString(config.AntichatterStrength);
-            textAntichatterOffset.Text = Utils.GetNumberString(config.AntichatterOffset);
+            textAntichatterMultiplier.Text = Utils.GetNumberString(config.AntichatterMultiplier);
+            textAntichatterOffsetX.Text = Utils.GetNumberString(config.AntichatterOffsetX);
+            textAntichatterOffsetY.Text = Utils.GetNumberString(config.AntichatterOffsetY);
             if (config.SmoothingEnabled)
             {
                 textSmoothingLatency.IsEnabled = true;
                 comboBoxSmoothingRate.IsEnabled = true;
                 comboBoxAntichatterType.IsEnabled = true;
-                textAntichatterRange.IsEnabled = true;
-                textAntichatterStrength.IsEnabled = true;
-                textAntichatterOffset.IsEnabled = true;
+                if (comboBoxAntichatterType.SelectedIndex == 0)
+                {
+                    textAntichatterRange.IsEnabled = false;
+                    textAntichatterStrength.IsEnabled = false;
+                    textAntichatterMultiplier.IsEnabled = false;
+                    textAntichatterOffsetX.IsEnabled = false;
+                    textAntichatterOffsetY.IsEnabled = false;
+                } else 
+                if (comboBoxAntichatterType.SelectedIndex == 1) {
+                    textAntichatterRange.IsEnabled = true;
+                    textAntichatterStrength.IsEnabled = true;
+                    textAntichatterMultiplier.IsEnabled = false;
+                    textAntichatterOffsetX.IsEnabled = false;
+                    textAntichatterOffsetY.IsEnabled = false;
+                } else {
+                    textAntichatterRange.IsEnabled = true;
+                    textAntichatterStrength.IsEnabled = true;
+                    textAntichatterMultiplier.IsEnabled = true;
+                    textAntichatterOffsetX.IsEnabled = true;
+                    textAntichatterOffsetY.IsEnabled = true;
+                }
             }
             else
             {
@@ -500,7 +520,9 @@ namespace TabletDriverGUI
                 comboBoxAntichatterType.IsEnabled = false;
                 textAntichatterRange.IsEnabled = false;
                 textAntichatterStrength.IsEnabled = false;
-                textAntichatterOffset.IsEnabled = false;
+                textAntichatterMultiplier.IsEnabled = false;
+                textAntichatterOffsetX.IsEnabled = false;
+                textAntichatterOffsetY.IsEnabled = false;
             }
 
             //
@@ -643,17 +665,43 @@ namespace TabletDriverGUI
                 config.AntichatterRange = value;
             if (Utils.ParseNumber(textAntichatterStrength.Text, out value))
                 config.AntichatterStrength = value;
-            if (Utils.ParseNumber(textAntichatterOffset.Text, out value))
-                config.AntichatterOffset = value;
+            if (Utils.ParseNumber(textAntichatterMultiplier.Text, out value))
+                config.AntichatterMultiplier = value;
+            if (Utils.ParseNumber(textAntichatterOffsetX.Text, out value))
+                config.AntichatterOffsetX = value;
+            if (Utils.ParseNumber(textAntichatterOffsetY.Text, out value))
+                config.AntichatterOffsetY = value;
 
             if (config.SmoothingEnabled)
             {
                 textSmoothingLatency.IsEnabled = true;
                 comboBoxSmoothingRate.IsEnabled = true;
                 comboBoxAntichatterType.IsEnabled = true;
-                textAntichatterRange.IsEnabled = true;
-                textAntichatterStrength.IsEnabled = true;
-                textAntichatterOffset.IsEnabled = true;
+                if (comboBoxAntichatterType.SelectedIndex == 0)
+                {
+                    textAntichatterRange.IsEnabled = false;
+                    textAntichatterStrength.IsEnabled = false;
+                    textAntichatterMultiplier.IsEnabled = false;
+                    textAntichatterOffsetX.IsEnabled = false;
+                    textAntichatterOffsetY.IsEnabled = false;
+                }
+                else
+                if (comboBoxAntichatterType.SelectedIndex == 1)
+                {
+                    textAntichatterRange.IsEnabled = true;
+                    textAntichatterStrength.IsEnabled = true;
+                    textAntichatterMultiplier.IsEnabled = false;
+                    textAntichatterOffsetX.IsEnabled = false;
+                    textAntichatterOffsetY.IsEnabled = false;
+                }
+                else
+                {
+                    textAntichatterRange.IsEnabled = true;
+                    textAntichatterStrength.IsEnabled = true;
+                    textAntichatterMultiplier.IsEnabled = true;
+                    textAntichatterOffsetX.IsEnabled = true;
+                    textAntichatterOffsetY.IsEnabled = true;
+                }
             }
             else
             {
@@ -662,7 +710,9 @@ namespace TabletDriverGUI
                 comboBoxAntichatterType.IsEnabled = false;
                 textAntichatterRange.IsEnabled = false;
                 textAntichatterStrength.IsEnabled = false;
-                textAntichatterOffset.IsEnabled = false;
+                textAntichatterMultiplier.IsEnabled = false;
+                textAntichatterOffsetX.IsEnabled = false;
+                textAntichatterOffsetY.IsEnabled = false;
             }
 
             //
@@ -1715,7 +1765,9 @@ namespace TabletDriverGUI
                 driver.SendCommand("AntichatterType " + Utils.GetNumberString(config.AntichatterType));
                 driver.SendCommand("AntichatterRange " + Utils.GetNumberString(config.AntichatterRange));
                 driver.SendCommand("AntichatterStrength " + Utils.GetNumberString(config.AntichatterStrength));
-                driver.SendCommand("AntichatterOffset " + Utils.GetNumberString(config.AntichatterOffset));
+                driver.SendCommand("AntichatterMultiplier " + Utils.GetNumberString(config.AntichatterMultiplier));
+                driver.SendCommand("AntichatterOffsetX " + Utils.GetNumberString(config.AntichatterOffsetX));
+                driver.SendCommand("AntichatterOffsetY " + Utils.GetNumberString(config.AntichatterOffsetY));
             }
             else
             {

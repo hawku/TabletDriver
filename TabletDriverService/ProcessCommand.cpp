@@ -480,9 +480,7 @@ bool ProcessCommand(CommandLine *cmd) {
 	else if(cmd->is("Smoothing")) {
 		if(!CheckTablet()) return true;
 		double latency = cmd->GetDouble(0, tablet->smoothing.GetLatency());
-		double threshold = cmd->GetDouble(1, tablet->smoothing.threshold * 100);
-
-		threshold /= 100;
+		double threshold = cmd->GetDouble(1, tablet->smoothing.threshold);
 
 		string stringValue = cmd->GetStringLower(0, "");
 
@@ -494,8 +492,8 @@ bool ProcessCommand(CommandLine *cmd) {
 		// Limits
 		if(latency < 0) latency = 1;
 		if(latency > 1000) latency = 1000;
-		if(threshold < 0.01) threshold = 0.01;
-		if(threshold > 0.99) threshold = 0.99;
+		if(threshold < 0.001) threshold = 0.001;
+		if(threshold > 0.999) threshold = 0.999;
 
 		// Set threshold
 		tablet->smoothing.threshold = threshold;
@@ -532,11 +530,22 @@ bool ProcessCommand(CommandLine *cmd) {
 		tablet->smoothing.antichatterStrength = antichatterStrength;
 		LOG_INFO("Filter Antichatter Stregth = %0.2f \n", tablet->smoothing.antichatterStrength);
 	}
-	else if (cmd->is("AntichatterOffset")) {
-		double antichatterOffset = cmd->GetDouble(0, tablet->smoothing.antichatterOffset);
-		tablet->smoothing.antichatterOffset = antichatterOffset;
-		LOG_INFO("Filter Antichatter Offset = %0.2f cm\n", tablet->smoothing.antichatterOffset);
+	else if (cmd->is("AntichatterMultiplier")) {
+		double antichatterMultiplier = cmd->GetDouble(0, tablet->smoothing.antichatterMultiplier);
+		tablet->smoothing.antichatterMultiplier = antichatterMultiplier;
+		LOG_INFO("Filter Antichatter Multiplier = %0.2f \n", tablet->smoothing.antichatterMultiplier);
 	}
+	else if (cmd->is("AntichatterOffsetX")) {
+		double antichatterOffsetX = cmd->GetDouble(0, tablet->smoothing.antichatterOffsetX);
+		tablet->smoothing.antichatterOffsetX = antichatterOffsetX;
+		LOG_INFO("Filter Antichatter Offset X = %0.2f cm\n", tablet->smoothing.antichatterOffsetX);
+	}
+	else if (cmd->is("AntichatterOffsetY")) {
+		double antichatterOffsetY = cmd->GetDouble(0, tablet->smoothing.antichatterOffsetY);
+		tablet->smoothing.antichatterOffsetY = antichatterOffsetY;
+		LOG_INFO("Filter Antichatter Offset Y = %0.2f cm\n", tablet->smoothing.antichatterOffsetY);
+	}
+
 
 
 	//

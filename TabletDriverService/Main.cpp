@@ -97,12 +97,13 @@ void RunTabletThread() {
 		if(tablet->debugEnabled) {
 			timeNow = chrono::high_resolution_clock::now();
 			double delta = (timeNow - timeBegin).count() / 1000000.0;
-			LOG_DEBUG("STATE: %0.3f, %d, %0.3f, %0.3f, %0.3f\n",
+			LOG_DEBUG("STATE: %0.3f, %d, %0.3f, %0.3f, %0.3f, %0.3f\n",
 				delta,
 				tablet->state.buttons,
 				tablet->state.position.x,
 				tablet->state.position.y,
-				tablet->state.pressure
+				tablet->state.pressure,
+				tablet->state.z
 			);
 		}
 
@@ -128,7 +129,7 @@ void RunTabletThread() {
 				if(filter != NULL && filter->isEnabled) {
 
 					// Process
-					filter->SetTarget(tablet->state.position);
+					filter->SetTarget(tablet->state.position, tablet->state.z);
 					filter->Update();
 					filter->GetPosition(&tablet->state.position);
 				}
@@ -190,10 +191,12 @@ void RunTabletThread() {
 //
 VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWaitFired) {
 	Vector2D position;
+	double z;
 	TabletFilter *filter;
 
 	// Set position
 	position.Set(tablet->state.position);
+	z = tablet->state.z;
 
 	// Loop through filters
 	for(int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
@@ -205,7 +208,8 @@ VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWa
 		if(!filter->isEnabled) return;
 
 		// Set filter targets
-		filter->SetTarget(position);
+		filter->SetTarget(position, z);
+		//filter->z = tablet->state.z;
 
 		// Update filter position
 		filter->Update();

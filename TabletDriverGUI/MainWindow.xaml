@@ -361,103 +361,125 @@
 								<StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
 									<!-- Filter Latency -->
-									<GroupBox Header="Latency" Height="50" Width="80" Margin="0,0,0,0">
+
+									<!-- Filter Rate -->
+									<!-- Filter Latency -->
+									<Grid Width="166">
+										<CheckBox x:Name="checkBoxSmoothing"
+                            VerticalAlignment="Top"
+                            Checked="CheckboxChanged" Unchecked="CheckboxChanged" Content="Enabled" Width="62" Margin="50,7,54,0"/>
+									<GroupBox Header="Latency" Height="50" Width="80" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
 										<Grid>
 											<TextBox Name="textSmoothingLatency" Padding="4,0,0,0"
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">0</TextBox>
 											<Label Width="30" HorizontalAlignment="Right">ms</Label>
 										</Grid>
-									</GroupBox>
 
-									<!-- Filter Rate -->
-									<GroupBox Header="Rate" VerticalAlignment="Center" HorizontalAlignment="Left" Width="85" Height="50">
-										<ComboBox Name="comboBoxSmoothingRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
+							</GroupBox>
+							<!-- Filter Latency -->
+										
+											<!-- Filter Rate -->
+									<GroupBox Header="Rate" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="85" Height="50">
+										<ComboBox x:Name="comboBoxSmoothingRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
 
-											<ComboBoxItem>1000 Hz</ComboBoxItem>
-											<ComboBoxItem>500 Hz</ComboBoxItem>
-											<ComboBoxItem>333 Hz</ComboBoxItem>
-											<ComboBoxItem Selector.IsSelected="True">250 Hz</ComboBoxItem>
-											<ComboBoxItem>125 Hz</ComboBoxItem>
+											<ComboBoxItem Content="1000 Hz"/>
+											<ComboBoxItem Content="500 Hz"/>
+											<ComboBoxItem Content="333 Hz"/>
+											<ComboBoxItem Selector.IsSelected="True" Content="250 Hz"/>
+											<ComboBoxItem Content="125 Hz"/>
 										</ComboBox>
 									</GroupBox>
-									<GroupBox Header="Antichatter" Height="72" Width="248" Margin="0,0,0,0" VerticalAlignment="Center">
+							</Grid>
+
+									<!-- Antichatter -->
+										<GroupBox Header="Antichatter" Height="72" Width="333" Margin="0,0,0,0" VerticalAlignment="Center">
 										<GroupBox.ToolTip>
 											<StackPanel>
-												<TextBlock FontWeight="Bold">
-                    Cursor position smoothing filter
+												<TextBlock FontWeight="Bold"><Run Text="Cursor position smoothing filter"/></TextBlock>
+												<TextBlock><Run Text="Antichatter feature is meant to prevent cursor chattering/rattling/shaking/trembling when it's almost doesn't moves and/or too high to prevent tablet noise."/><LineBreak/><Run Text="Antichatter in it's primary form is useful for tablets which doesn't have any smoothing (including hardware smoothing)."/><LineBreak/><Run Text="Antichatter requires smoothing filter enabled for work. Latency do affect on antichatter settings."/><LineBreak/><InlineUIContainer>
+														<TextBlock FontWeight="Bold"><Run Text="Type:"/></TextBlock>
+													</InlineUIContainer><Run Text=" few different types of smoothing and off. Explanation will below."/><LineBreak/><InlineUIContainer>
+														<TextBlock FontWeight="Bold"><Run Text="Range:"/></TextBlock>
+													</InlineUIContainer><Run Text=" maximum distance after which antichatter eliminates. Motionless pen provides different range of noise based on height over the tablet."/><LineBreak/><Run Text="cm is a lie, Useful values are roughly from 0.05-0.15 up to 4-10, negative values are useless."/><LineBreak/><InlineUIContainer>
+														<TextBlock FontWeight="Bold"><Run Text="Strength:"/></TextBlock>
+													</InlineUIContainer><Run Text=" is strength, useful values are from 2-3 up to 1000000. Can be negative."/><LineBreak/><InlineUIContainer>
+														<TextBlock FontWeight="Bold"><Run Text="Offset:"/></TextBlock>
+													</InlineUIContainer><Run Text=" offset value for Type 2, see source code for formulas. Can be negative."/><LineBreak/><LineBreak/><InlineUIContainer>
+														<TextBlock FontWeight="Bold"><Run Text="Type Off"/></TextBlock>
+													</InlineUIContainer><Run Text=" disables antichatter at all, only smoothing filter left working."/><LineBreak/><InlineUIContainer>                         
+														<TextBlock FontWeight="Bold"><Run Text="Type 1"/></TextBlock>
+													</InlineUIContainer><Run Text=" is dumb and simple: if cursor speed is slow (based on Range) then smooth it in Strength times stronger. Offset value doesn't affect on this."/><LineBreak/><InlineUIContainer>  
+														<TextBlock FontWeight="Bold"><Run Text="Type 2"/></TextBlock>
+													</InlineUIContainer><Run Text=" is smarter - it's distance based, feels more smooth and better than Type 1, see code for formulas. If you exceed range it works as regular smoothing."/><LineBreak/><InlineUIContainer> 
+														<TextBlock FontWeight="Bold"><Run Text="Type 3"/></TextBlock>
+													</InlineUIContainer><Run Text=" is same as Type 2 except one - if you exceed range then it provides raw data giving lowest latency for movement."/><LineBreak/><LineBreak/><InlineUIContainer>       
+														<TextBlock FontWeight="Bold"><Run Text="Presets"/></TextBlock>
+													</InlineUIContainer><Run Text=":"/><LineBreak/><InlineUIContainer>
+													
+														<TextBlock FontWeight="Bold"><Run Text="Optimal"/></TextBlock>
+													</InlineUIContainer><Run Text=": Latency 10-12 ms, Type 2, Range 0.3 cm, Strength 2"/><LineBreak/><InlineUIContainer>
+														<TextBlock FontWeight="Bold"><Run Text="Really low latency"/></TextBlock>
+													</InlineUIContainer><Run Text=": Latency 1 ms, Type 3, Range 1+ cm, Strength 1.5-2"/><LineBreak/><InlineUIContainer>
+														<TextBlock FontWeight="Bold"><Run Text="Feelin frisky"/></TextBlock>
+													</InlineUIContainer><Run Text=": Latency 10-30 ms, Type 2, Range ~1.5 cm, Strehgth 2.7, OffsetY -0.7"/><LineBreak/><InlineUIContainer>
+														<TextBlock FontWeight="Bold"><Run Text="Smooth&amp;Nice"/></TextBlock>
+													</InlineUIContainer><Run Text=": Latency 6-30 ms, Type 2, Range 100 cm, Strehgth 6, Multiplier 10, OffsetX 0.7, OffsetY 0.85-1"/><LineBreak/>
+													
+													<LineBreak/><InlineUIContainer>
+													
+														<TextBlock FontWeight="Bold"><Run Text="Wacomlike"/></TextBlock>
+													</InlineUIContainer><Run Text=": Latency 25 ms, Type 2, Range 3 cm, Strength 1.8, Offset 1"/><LineBreak/><InlineUIContainer>
+														<TextBlock FontWeight="Bold"><Run Text="IThinkImOld"/></TextBlock>
+													</InlineUIContainer><Run Text=": 500+ Hz, Latency 10 ms, Type 1, Range 0.3 ms, Strength -0.05"/><LineBreak/><InlineUIContainer>
+														<TextBlock FontWeight="Bold"><Run Text="ItsNotMe!"/></TextBlock>
+													</InlineUIContainer><Run Text=": 500+ Hz, Latency 10 ms, Type 2, Range 20 cm, Strength -1.3, Offset -1.2"/><LineBreak/><LineBreak/>
+													<Run FontWeight="Bold" Text="Info, pictures, source: https://github.com/Devocub/TabletDriver"/>
 												</TextBlock>
-												<TextBlock>
-                      Antichatter feature is meant to prevent cursor chattering/rattling/shaking/trembling when it's almost doesn't moves and/or too high to prevent tablet noise.<LineBreak/>
-                      Antichatter in it's primary form is useful for tablets which doesn't have any smoothing (including hardware smoothing).<LineBreak/>
-                      Antichatter requires smoothing filter enabled for work. Latency do affect on antichatter settings.
-                      <LineBreak/>
-                      <TextBlock FontWeight="Bold">Type:</TextBlock> few different types of smoothing and off. Explanation will below.
-                      <LineBreak/>
-                      <TextBlock FontWeight="Bold">Range:</TextBlock> maximum distance after which antichatter eliminates. Motionless pen provides different range of noise based on height over the tablet.<LineBreak/>
-                                                    cm is a lie, Useful values are roughly from 0.05-0.15 up to 4-10, negative values are useless.
-                      <LineBreak/>
-                      <TextBlock FontWeight="Bold">Strength:</TextBlock> is strength, useful values are from 2-3 up to 1000000. Can be negative.
-                      <LineBreak/>
-                      <TextBlock FontWeight="Bold">Offset:</TextBlock> offset value for Type 2, see source code for formulas. Can be negative.
-                      <LineBreak/><LineBreak/>
-                       <TextBlock FontWeight="Bold">Type Off</TextBlock> disables antichatter at all, only smoothing filter left working.
-                      <LineBreak/>                         
-                      <TextBlock FontWeight="Bold">Type 1</TextBlock> is dumb and simple: if cursor speed is slow (based on Range) then smooth it in Strength times stronger. Offset value doesn't affect on this.
-                      <LineBreak/>  
-                      <TextBlock FontWeight="Bold">Type 2</TextBlock> is smarter - it's distance based, feels more smooth and better than Type 1, see code for formulas. If you exceed range it works as regular smoothing. 
-                      <LineBreak/> 
-					  <TextBlock FontWeight="Bold">Type 3</TextBlock> is same as Type 2 except one - if you exceed range then it provides raw data giving lowest latency for movement.
-					  <LineBreak/>   <LineBreak/>       
-                       <TextBlock FontWeight="Bold">Presets</TextBlock>:<LineBreak/>
-					   <TextBlock FontWeight="Bold">Optimal</TextBlock>: Latency 10-12 ms, Type 2, Range 0.3 cm, Strength 2<LineBreak/>
-					   <TextBlock FontWeight="Bold">Really low latency</TextBlock>: Latency 1 ms, Type 3, Range 1+ cm, Strength 1.5-2<LineBreak/>
-					   <TextBlock FontWeight="Bold">Feelin frisky</TextBlock>: Latency 10-30 ms, Type 2, Range ~1.5 cm, Strehgth 2.7, Offset -0.7<LineBreak/><LineBreak/>
-					   <TextBlock FontWeight="Bold">Wacomlike</TextBlock>: Latency 25 ms, Type 2, Range 3 cm, Strength 1.8, Offset 1<LineBreak/>
-					   <TextBlock FontWeight="Bold">IThinkImOld</TextBlock>: 500+ Hz, Latency 10 ms, Type 1, Range 0.3 ms, Strength -0.05<LineBreak/>
-					   <TextBlock FontWeight="Bold">ItsNotMe!</TextBlock>: 500+ Hz, Latency 10 ms, Type 2, Range 20 cm, Strength -1.3, Offset -1.2<LineBreak/>
-					   <LineBreak/>Info, pictures, source: https://github.com/Devocub/TabletDriver
-                                                </TextBlock>
 											</StackPanel>
 										</GroupBox.ToolTip>
-										<GroupBox Header="Type     Range         Strength    Offset" Height="50" Margin="0,0,-2,0">
-											<Grid Margin="0,0,0,0">
+										<GroupBox Header="Type      Range        Strength  Multiplier OffsetX  OffsetY" Height="50" HorizontalAlignment="Left" Width="322">
+											<Grid HorizontalAlignment="Left" Width="312">
 
 
-												<ComboBox Name="comboBoxAntichatterType" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center" Margin="0,0,188,0">
-													<ComboBoxItem>Off</ComboBoxItem>
-													<ComboBoxItem>1</ComboBoxItem>
-													<ComboBoxItem Selector.IsSelected="True">2</ComboBoxItem>
-													<ComboBoxItem>3</ComboBoxItem>
+												<ComboBox x:Name="comboBoxAntichatterType" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center" HorizontalAlignment="Left" Width="44">
+													<ComboBoxItem Content="Off"/>
+													<ComboBoxItem Content="1"/>
+													<ComboBoxItem Selector.IsSelected="True" Content="2"/>
+													<ComboBoxItem Content="3"/>
+													<!--<ComboBoxItem Content="4"/>-->
 												</ComboBox>
 
-												<TextBox Name="textAntichatterRange" Width="60" Padding="4,0,0,0"
+												<TextBox x:Name="textAntichatterRange" Width="56" Padding="4,0,0,0"
                                       HorizontalAlignment="Left"
                                       HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
-                                      TextChanged="TextChanged" Margin="45,-1,0,1">0.15</TextBox>
-												<Label Width="30" HorizontalAlignment="Left" Margin="75,0,0,0">cm</Label>
+                                      TextChanged="TextChanged" Margin="49,0,0,0" Text="0.5"/>
+												<Label Width="30" HorizontalAlignment="Left" Margin="75,1,0,-1" Content="cm"/>
 
 
-												<TextBox Name="textAntichatterStrength" Width="55" Padding="4,0,0,0"
+												<TextBox x:Name="textAntichatterStrength" Width="48" Padding="4,0,0,0"
                                       HorizontalAlignment="Left"
                                       HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
-                                      TextChanged="TextChanged" Margin="110,-1,0,1">3</TextBox>
+                                      TextChanged="TextChanged" Margin="110,0,0,0" Text="2.0"/>
 
-												<TextBox Name="textAntichatterOffset" Width="55" Padding="4,0,0,0"
+												<TextBox x:Name="textAntichatterMultiplier" Padding="4,0,0,0"
+                                      HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                                      TextChanged="TextChanged" Margin="163,0,0,0" HorizontalAlignment="Left" Width="51" Text="1.0"/>
+
+												<TextBox x:Name="textAntichatterOffsetX" Width="42" Padding="4,0,0,0"
                                       HorizontalAlignment="Left"
                                       HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
-                                      TextChanged="TextChanged" Margin="170,-1,0,1">0.0</TextBox>
+                                      TextChanged="TextChanged" Margin="219,0,0,0" Text="0.0"/>
+
+												<TextBox x:Name="textAntichatterOffsetY" Width="42" Padding="4,0,0,0"
+                                      HorizontalAlignment="Left"
+                                      HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                                      TextChanged="TextChanged" Margin="266,0,0,0" Text="0.0"/>
 											</Grid>
 										</GroupBox>
 									</GroupBox>
 
 									<!-- Filter enabled -->
-									<CheckBox Name="checkBoxSmoothing"
-                            VerticalAlignment="Center"
-                            Margin="5"
-                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">
-										Enabled
-									</CheckBox>
 								</StackPanel>
 							</GroupBox>
 

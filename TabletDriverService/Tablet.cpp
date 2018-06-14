@@ -281,10 +281,11 @@ int Tablet::ReadPosition() {
 
 	// Convert report data to state
 	state.position.x = ((double)reportData.x / (double)settings.maxX) * settings.width;
+	//state.position.x = ((double)data[8] / 256) * settings.width;
 	state.position.y = ((double)reportData.y / (double)settings.maxY) * settings.height;
-	if(settings.skew != 0) {
+	state.z = (double)data[8];
+	if(settings.skew != 0) 
 		state.position.x += state.position.y * settings.skew;
-	}
 	state.pressure = ((double)reportData.pressure / (double)settings.maxPressure);
 
 	// Tablet benchmark update

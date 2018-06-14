@@ -28,11 +28,11 @@ TabletFilterPeak::~TabletFilterPeak() {
 // TabletFilter methods
 //
 // Set target position
-void TabletFilterPeak::SetTarget(Vector2D targetVector) {
+void TabletFilterPeak::SetTarget(Vector2D targetVector, double h) {
 	buffer.Add(targetVector);
 }
 // Set position
-void TabletFilterPeak::SetPosition(Vector2D vector) {
+void TabletFilterPeak::SetPosition(Vector2D vector, double h) {
 	position.x = vector.x;
 	position.y = vector.y;
 }

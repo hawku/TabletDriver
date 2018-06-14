@@ -21,13 +21,13 @@ TabletFilterNoiseReduction::~TabletFilterNoiseReduction() {
 //
 
 // Set target position
-void TabletFilterNoiseReduction::SetTarget(Vector2D targetVector) {
+void TabletFilterNoiseReduction::SetTarget(Vector2D targetVector, double h) {
 	lastTarget.Set(targetVector);
 	buffer.Add(targetVector);
 }
 
 // Set position
-void TabletFilterNoiseReduction::SetPosition(Vector2D vector) {
+void TabletFilterNoiseReduction::SetPosition(Vector2D vector, double h) {
 	position.x = vector.x;
 	position.y = vector.y;
 }

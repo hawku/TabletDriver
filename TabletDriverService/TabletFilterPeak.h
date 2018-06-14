@@ -10,8 +10,8 @@ public:
 	Vector2D position;
 	double distanceThreshold;
 
-	void SetTarget(Vector2D targetVector);
-	void SetPosition(Vector2D vector);
+	void SetTarget(Vector2D targetVector, double h);
+	void SetPosition(Vector2D vector, double h);
 	bool GetPosition(Vector2D *outputVector);
 	void Update();
 

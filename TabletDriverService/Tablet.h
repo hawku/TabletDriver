@@ -46,6 +46,7 @@ public:
 		USHORT x;
 		USHORT y;
 		USHORT pressure;
+		USHORT z;
 	} reportData;
 
 	//
@@ -56,6 +57,7 @@ public:
 		BYTE buttons;
 		Vector2D position;
 		double pressure;
+		double z;
 	} state;
 
 	// Settings

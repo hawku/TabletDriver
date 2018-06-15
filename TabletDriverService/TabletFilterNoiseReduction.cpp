@@ -43,7 +43,7 @@ bool TabletFilterNoiseReduction::GetPosition(Vector2D *outputVector) {
 void TabletFilterNoiseReduction::Update() {
 
 	// One position in the buffer?
-	if(buffer.count == 1) {
+	if (buffer.count == 1) {
 		position.x = buffer[0]->x;
 		position.y = buffer[0]->y;
 		return;
@@ -53,9 +53,9 @@ void TabletFilterNoiseReduction::Update() {
 	GetGeometricMedianVector(&position, iterations);
 
 	// Reset the buffer when distance to last target position is larger than the threshold
-	if(buffer.isValid) {
+	if (buffer.isValid) {
 		double distance = lastTarget.Distance(position);
-		if(distance > distanceThreshold) {
+		if (distance > distanceThreshold) {
 			buffer.Reset();
 			position.Set(lastTarget);
 		}
@@ -67,10 +67,10 @@ void TabletFilterNoiseReduction::Update() {
 //
 bool TabletFilterNoiseReduction::GetAverageVector(Vector2D *output) {
 	double x, y;
-	if(!buffer.isValid) return false;
+	if (!buffer.isValid) return false;
 
 	x = y = 0;
-	for(int i = 0; i < buffer.count; i++) {
+	for (int i = 0; i < buffer.count; i++) {
 		x += buffer[i]->x;
 		y += buffer[i]->y;
 	}
@@ -91,24 +91,26 @@ bool TabletFilterNoiseReduction::GetGeometricMedianVector(Vector2D *output, int 
 	int i;
 
 	// Calculate the starting position
-	if(GetAverageVector(&candidate)) {
-	} else {
+	if (GetAverageVector(&candidate)) {
+	}
+	else {
 		return false;
 	}
 
 	// Iterate
-	for(int iteration = 0; iteration < iterations; iteration++) {
+	for (int iteration = 0; iteration < iterations; iteration++) {
 
 		denominator = 0;
 
 		// Loop through the buffer and calculate a denominator.
-		for(i = 0; i < buffer.count; i++) {
+		for (i = 0; i < buffer.count; i++) {
 			dx = candidate.x - buffer[i]->x;
 			dy = candidate.y - buffer[i]->y;
 			distance = sqrt(dx*dx + dy * dy);
-			if(distance > minimumDistance) {
+			if (distance > minimumDistance) {
 				denominator += 1.0 / distance;
-			} else {
+			}
+			else {
 				denominator += 1.0 / minimumDistance;
 			}
 		}
@@ -118,13 +120,14 @@ bool TabletFilterNoiseReduction::GetGeometricMedianVector(Vector2D *output, int 
 		next.y = 0;
 
 		// Loop through the buffer and calculate a weighted average
-		for(i = 0; i < buffer.count; i++) {
+		for (i = 0; i < buffer.count; i++) {
 			dx = candidate.x - buffer[i]->x;
 			dy = candidate.y - buffer[i]->y;
 			distance = sqrt(dx*dx + dy * dy);
-			if(distance > minimumDistance) {
+			if (distance > minimumDistance) {
 				weight = 1.0 / distance;
-			} else {
+			}
+			else {
 				weight = 1.0 / minimumDistance;
 			}
 

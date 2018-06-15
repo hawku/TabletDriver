@@ -9,7 +9,7 @@ USBDevice::USBDevice(string Guid, int StringId, string StringMatch) {
 	this->stringId = StringId;
 	this->stringMatch = StringMatch;
 	isOpen = false;
-	if(this->OpenDevice(guid, stringId, stringMatch)) {
+	if (this->OpenDevice(guid, stringId, stringMatch)) {
 		isOpen = true;
 	}
 }
@@ -43,14 +43,14 @@ bool USBDevice::OpenDevice(string usbDeviceGUIDString, int stringId, string stri
 	_usbHandle = NULL;
 
 	HRESULT hr = CLSIDFromString(wstringGUID, (LPCLSID)&usbDeviceGUID);
-	if(hr != S_OK) {
+	if (hr != S_OK) {
 		LOG_ERROR("Can't create the USB Device GUID!\n");
 		return false;
 	}
 
 	// Setup device Info
 	deviceInfo = SetupDiGetClassDevs(&usbDeviceGUID, NULL, 0, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT);
-	if(deviceInfo == INVALID_HANDLE_VALUE) {
+	if (deviceInfo == INVALID_HANDLE_VALUE) {
 		LOG_ERROR("Device info invalid!\n");
 		SetupDiDestroyDeviceInfoList(deviceInfo);
 		return false;
@@ -60,7 +60,7 @@ bool USBDevice::OpenDevice(string usbDeviceGUIDString, int stringId, string stri
 	deviceInterfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
 	dwMemberIdx = 0;
 	SetupDiEnumDeviceInterfaces(deviceInfo, NULL, &usbDeviceGUID, dwMemberIdx, &deviceInterfaceData);
-	while(GetLastError() != ERROR_NO_MORE_ITEMS) {
+	while (GetLastError() != ERROR_NO_MORE_ITEMS) {
 
 		// Get the required buffer size. 
 		deviceInfoData.cbSize = sizeof(deviceInfoData);
@@ -71,27 +71,27 @@ bool USBDevice::OpenDevice(string usbDeviceGUIDString, int stringId, string stri
 		deviceInterfaceDetailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
 		// Get device interface detail data
-		if(SetupDiGetDeviceInterfaceDetail(deviceInfo, &deviceInterfaceData, deviceInterfaceDetailData, dwSize, &dwSize, &deviceInfoData)) {
+		if (SetupDiGetDeviceInterfaceDetail(deviceInfo, &deviceInterfaceData, deviceInterfaceDetailData, dwSize, &dwSize, &deviceInfoData)) {
 
 			//LOG_DEBUG("USB Device path: %S\n", deviceInterfaceDetailData->DevicePath);
 
 			// Create File            
 			deviceHandle = CreateFile(deviceInterfaceDetailData->DevicePath,
-									  GENERIC_READ | GENERIC_WRITE,
-									  FILE_SHARE_READ | FILE_SHARE_WRITE,
-									  NULL,
-									  OPEN_EXISTING,
-									  FILE_FLAG_OVERLAPPED,
-									  NULL);
+				GENERIC_READ | GENERIC_WRITE,
+				FILE_SHARE_READ | FILE_SHARE_WRITE,
+				NULL,
+				OPEN_EXISTING,
+				FILE_FLAG_OVERLAPPED,
+				NULL);
 
-			if(deviceHandle != INVALID_HANDLE_VALUE) {
+			if (deviceHandle != INVALID_HANDLE_VALUE) {
 				//LOG_DEBUG("Handle: %lu\n", (ULONG)deviceHandle);
 
 				// Init WinUsb
 				WinUsb_Initialize(deviceHandle, &usbHandle);
-				if(!usbHandle) {
+				if (!usbHandle) {
 					LOG_ERROR("ERROR! Unable to start WinUSB for the device!\n");
-					if(deviceHandle != INVALID_HANDLE_VALUE)
+					if (deviceHandle != INVALID_HANDLE_VALUE)
 						CloseHandle(deviceHandle);
 					return false;
 				}
@@ -99,7 +99,7 @@ bool USBDevice::OpenDevice(string usbDeviceGUIDString, int stringId, string stri
 
 				// Query interface settings
 				ZeroMemory(&usbInterfaceDescriptor, sizeof(USB_INTERFACE_DESCRIPTOR));
-				if(WinUsb_QueryInterfaceSettings(usbHandle, 0, &usbInterfaceDescriptor)) {
+				if (WinUsb_QueryInterfaceSettings(usbHandle, 0, &usbInterfaceDescriptor)) {
 
 					WINUSB_SETUP_PACKET setupPacket;
 					ULONG bytesRead;
@@ -113,32 +113,33 @@ bool USBDevice::OpenDevice(string usbDeviceGUIDString, int stringId, string stri
 					setupPacket.Length = 64;
 
 					// String request
-					if(WinUsb_ControlTransfer(usbHandle, setupPacket, buffer, 64, &bytesRead, NULL)) {
-						
+					if (WinUsb_ControlTransfer(usbHandle, setupPacket, buffer, 64, &bytesRead, NULL)) {
+
 						// Create string from bytes
-						for(int i = 2; i < (int)bytesRead; i += 2) {
+						for (int i = 2; i < (int)bytesRead; i += 2) {
 							str.push_back(buffer[i]);
 						}
 						LOG_DEBUG("USB String (%d): %s\n", stringId, str.c_str());
 
 						// Device string longer than the search string 
-						if(bytesRead >= stringSearch.length() * 2) {
+						if (bytesRead >= stringSearch.length() * 2) {
 
 							// Match!
-							if(str.compare(0, stringSearch.size(), stringSearch) == 0) {
+							if (str.compare(0, stringSearch.size(), stringSearch) == 0) {
 								_deviceHandle = deviceHandle;
 								_usbHandle = usbHandle;
 							}
 						}
 					}
-				} else {
+				}
+				else {
 					LOG_ERROR("ERROR! Can't query interface settings!\n");
 				}
 
-				if(_usbHandle == NULL && usbHandle && usbHandle != INVALID_HANDLE_VALUE)
+				if (_usbHandle == NULL && usbHandle && usbHandle != INVALID_HANDLE_VALUE)
 					WinUsb_Free(usbHandle);
 
-				if(_deviceHandle == NULL && deviceHandle && deviceHandle != INVALID_HANDLE_VALUE)
+				if (_deviceHandle == NULL && deviceHandle && deviceHandle != INVALID_HANDLE_VALUE)
 					CloseHandle(deviceHandle);
 			}
 		}
@@ -152,10 +153,10 @@ bool USBDevice::OpenDevice(string usbDeviceGUIDString, int stringId, string stri
 
 	SetupDiDestroyDeviceInfoList(deviceInfo);
 
-	if(_deviceHandle && _deviceHandle != INVALID_HANDLE_VALUE
-	   &&
-	   _usbHandle && _usbHandle != INVALID_HANDLE_VALUE
-	   )
+	if (_deviceHandle && _deviceHandle != INVALID_HANDLE_VALUE
+		&&
+		_usbHandle && _usbHandle != INVALID_HANDLE_VALUE
+		)
 		return true;
 
 	return false;
@@ -165,10 +166,11 @@ bool USBDevice::OpenDevice(string usbDeviceGUIDString, int stringId, string stri
 int USBDevice::Read(UCHAR pipeId, void *buffer, int length) {
 	ULONG bytesRead;
 	try {
-		if(WinUsb_ReadPipe(_usbHandle, pipeId, (UCHAR *)buffer, length, &bytesRead, 0)) {
+		if (WinUsb_ReadPipe(_usbHandle, pipeId, (UCHAR *)buffer, length, &bytesRead, 0)) {
 			return (int)bytesRead;
 		}
-	} catch(exception &e) {
+	}
+	catch (exception &e) {
 		LOG_ERROR("Exception USB: %s\n", e.what());
 	}
 	return 0;
@@ -176,7 +178,7 @@ int USBDevice::Read(UCHAR pipeId, void *buffer, int length) {
 
 int USBDevice::Write(UCHAR pipeId, void *buffer, int length) {
 	ULONG bytesWritten;
-	if(WinUsb_WritePipe(_usbHandle, pipeId, (UCHAR *)buffer, length, &bytesWritten, 0)) {
+	if (WinUsb_WritePipe(_usbHandle, pipeId, (UCHAR *)buffer, length, &bytesWritten, 0)) {
 		return (int)bytesWritten;
 	}
 	return 0;
@@ -191,26 +193,28 @@ int USBDevice::ControlTransfer(UCHAR requestType, UCHAR request, USHORT value, U
 	usbSetupPacket.Length = length;
 	usbSetupPacket.Value = value;
 	usbSetupPacket.Index = index;
-	if(WinUsb_ControlTransfer(_usbHandle, usbSetupPacket, (UCHAR*)buffer, length, &bytesRead, NULL)) {
+	if (WinUsb_ControlTransfer(_usbHandle, usbSetupPacket, (UCHAR*)buffer, length, &bytesRead, NULL)) {
 		return bytesRead;
 	}
 	return 0;
 }
 
 void USBDevice::CloseDevice() {
-	if(_usbHandle != NULL && _usbHandle != INVALID_HANDLE_VALUE) {
+	if (_usbHandle != NULL && _usbHandle != INVALID_HANDLE_VALUE) {
 		try {
 			printf("ASD\n");
 			WinUsb_Free(_usbHandle);
-		} catch(exception &e) {
+		}
+		catch (exception &e) {
 			printf("WinUsb ERROR! %s\n", e.what());
 		}
 	}
-	if(_deviceHandle != NULL && _deviceHandle != INVALID_HANDLE_VALUE) {
+	if (_deviceHandle != NULL && _deviceHandle != INVALID_HANDLE_VALUE) {
 		try {
 			printf("DAS\n");
 			CloseHandle(_deviceHandle);
-		} catch(exception &e) {
+		}
+		catch (exception &e) {
 			printf("HID ERROR! %s\n", e.what());
 		}
 	}

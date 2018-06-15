@@ -28,9 +28,9 @@ bool TabletFilter::StartTimer() {
 // Stop Timer
 //
 bool TabletFilter::StopTimer() {
-	if(timer == NULL) return false;
+	if (timer == NULL) return false;
 	bool result = DeleteTimerQueueTimer(NULL, timer, NULL);
-	if(result) {
+	if (result) {
 		timer = NULL;
 	}
 	return result;

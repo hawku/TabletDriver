@@ -121,10 +121,10 @@ bool ScreenMapper::GetScreenPosition(double *x, double *y) {
 	mapY += areaScreen.y;
 
 	// Limit cursor to screen area
-	if(mapX < areaScreen.x + 1) mapX = areaScreen.x + 1;
-	if(mapY < areaScreen.y + 1) mapY = areaScreen.y + 1;
-	if(mapX > areaScreen.x + areaScreen.width) mapX = areaScreen.x + areaScreen.width;
-	if(mapY > areaScreen.y + areaScreen.height) mapY = areaScreen.y + areaScreen.height;
+	if (mapX < areaScreen.x + 1) mapX = areaScreen.x + 1;
+	if (mapY < areaScreen.y + 1) mapY = areaScreen.y + 1;
+	if (mapX > areaScreen.x + areaScreen.width) mapX = areaScreen.x + areaScreen.width;
+	if (mapY > areaScreen.y + areaScreen.height) mapY = areaScreen.y + areaScreen.height;
 
 
 	// Normalize screen area
@@ -132,8 +132,8 @@ bool ScreenMapper::GetScreenPosition(double *x, double *y) {
 	mapY /= areaVirtualScreen.height;
 
 	// Limit values
-	if(mapX > 1) mapX = 1;
-	if(mapY > 1) mapY = 1;
+	if (mapX > 1) mapX = 1;
+	if (mapY > 1) mapY = 1;
 
 	// Set pointer values
 	*x = mapX;

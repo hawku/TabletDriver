@@ -34,14 +34,15 @@ void TabletBenchmark::Start(int packetCount) {
 }
 
 void TabletBenchmark::Update(Vector2D position) {
-	if(isRunning) {
-		if(packetCounter > 0) {
-			if(position.x < minX) minX = position.x;
-			if(position.x > maxX) maxX = position.x;
-			if(position.y < minY) minY = position.y;
-			if(position.y > maxY) maxY = position.y;
+	if (isRunning) {
+		if (packetCounter > 0) {
+			if (position.x < minX) minX = position.x;
+			if (position.x > maxX) maxX = position.x;
+			if (position.y < minY) minY = position.y;
+			if (position.y > maxY) maxY = position.y;
 			packetCounter--;
-		} else {
+		}
+		else {
 			isRunning = false;
 		}
 	}

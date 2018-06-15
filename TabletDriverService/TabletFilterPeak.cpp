@@ -48,15 +48,15 @@ void TabletFilterPeak::Update() {
 	double distance;
 
 	// Buffer valid?
-	if(
+	if (
 		buffer.GetLatest(&oldPosition, -1)
 		&&
 		buffer.GetLatest(&position, 0)
-	) {
+		) {
 
 		// Jump longer than the distance threshold?
 		distance = oldPosition.Distance(position);
-		if(distance > distanceThreshold) {
+		if (distance > distanceThreshold) {
 
 			/*
 			LOG_DEBUG("PEAK! %0.2f,%0.2f -> %0.2f,%0.2f = %0.2f mm\n",

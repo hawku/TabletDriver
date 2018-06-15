@@ -6,11 +6,9 @@
 class TabletFilterSmoothing : public TabletFilter {
 public:
 	double latency;
-	double latency2;
 	double weight;
 	double threshold;
-	int antichatterType;
-	double antichatterRange;
+	bool AntichatterEnabled;
 	double antichatterStrength;
 	double antichatterMultiplier;
 	double antichatterOffsetX;

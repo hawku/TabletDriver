@@ -1,54 +1,51 @@
-This is a my modified version of hawku's tablet driver. I've added some smoothing algorithms.
-For more detailed info hold mouse over antichatter settings.
+This is a my modified version of hawku's tablet driver. I've added new smoothing algorithm.
+
 ## Download
 ### https://github.com/Devocub/TabletDriver/releases
 ### Installing
-1) If you have already Driver installed just: close it, and unzip new version with replacing files. Your config will be preserved.
+1) If you have already Driver installed just: close it, and unzip new version with replacing files.
+Your config will be preserved.
 
-If you have not installed the driver then: install hawku's latest version (version doesn't matter) (https://github.com/hawku/TabletDriver/releases) and go to step 1. My version based on 0.1.5 version of driver.
+If you have not installed the driver then: install hawku's latest version (https://github.com/hawku/TabletDriver) and go to step 1. My version based on 0.1.5 version of driver.
 
 _____
 
-Antichatter feature is meant to prevent cursor chattering/rattling/shaking/trembling when it's almost doesn't moves and/or too high to prevent tablet noise.
-Antichatter in it's primary form is useful for tablets which doesn't have any smoothing (including hardware smoothing).
-Antichatter requires smoothing filter enabled for work. Latency do affect on antichatter settings.
+Antichatter feature is meant to prevent cursor chattering/rattling/shaking/trembling when it's almost doesn't moves and/or too high to prevent tablet noise.  
+Antichatter in it's primary form is useful for tablets which doesn't have any smoothing (including hardware smoothing).  
+Antichatter requires smoothing filter enabled for work. Latency and Rate values do affect on antichatter settings.  
 
-**Type**: few different types of smoothing and off. Explanation will below.
+Formula for smoothing is:  
+y(x) = (x + OffsetX)^(Strength*-1)*Multiplier+OffsetY  
+Where **x** is pen speed. And **y(x)** is value on which smoothing will be increased. Slower speed - more smoothing. Faster speed - less smoothing.  
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/formula_example.png)
+[Link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF)
 
-**Range**: maximum distance after which antichatter eliminates. Motionless pen provides different range of noise based on height over the tablet. cm is a lie, Useful values are roughly from 0.05-0.15 up to 4-10, negative values are useless.
+Strength, Multiplier, OffsetX and OffsetY is values which you can change in driver.
 
-**Strength**: is strength, useful values are from 2-3 up to 1000000. Can be negative.
+**Strength**: is strength, useful values are from 1 up to 10. Makes smoothing harder.
 
-**Offset**: offset value for Type 2, see source code for formulas. Can be negative.
+**Multiplier**: zoomIns and zoomOuts the [plot](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF). Useful values are from 1 up to 1000. Makes smoothing softer. Default value is 1, means nothing changed.
 
+**Offset X**: Moves the [plot](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF) to the right. Negative values moves the [plot](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF) to the left. Useful values are from -1 to 1. Default values is 0.
 
-**Type Off** disables antichatter at all, only smoothing filter left working.
-                         
-**Type 1** is dumb and simple: if cursor speed is slow (based on Range) then smooth it in Strength times stronger. Offset value doesn't affect on this.
-  
-**Type 2** is smarter - it's distance based, feels more smooth and better than Type 1, see code for formulas. If you exceed range it works as regular smoothing.
-
-**Type 3** is same as Type 2 except one - if you exceed range then it provides raw data giving lowest latency for movement.
-
-**Presets**:  
-**Optimal**: Latency 10-12 ms, Type 2, Range 0.3 cm, Strength 2  
-**Really low latency**: Latency 1 ms, Type 3, Range 1+ cm, Strength 1.5-2  
-**Feelin frisky**: Latency 10-30 ms, Type 2, Range ~1.5 cm, Strehgth 2.7, OffsetY -0.7  
-**Smooth&Nice**: Latency 6-30 ms, Type 2, Range 100 cm, Strehgth 6, Multiplier 10, OffsetX 0.7, OffsetY 0.85-1  
-Example of **Smooth&Nice**: http://yotx.ru/#!1/3_PgyctrZ/sL91sG/EEP7X9j1k0hqcRuY//gkf/xV/f2Q%40EE7bP9jfOtg3Ygj/a/sbe9ADCGJ3feMUvLm1C946gG7tH%40yTaNiNnVPG4%40kW43Hr8mJ3f2sfAw==
-  
-**Wacomlike**: Latency 25 ms, Type 2, Range 3 cm, Strength 1.8, OffsetY 1  
-**IThinkImOld**: 500+ Hz, Latency 10 ms, Type 1, Range 0.3 ms, Strength -0.05  
-**ItsNotMe!**: 500+ Hz, Latency 10 ms, Type 2, Range 20 cm, Strength -1.3, OffsetY -1.2  
+**Offset Y**: Moves the [plot](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF) up. Useful values are from 0 up to 10. Look at the plot, if strength of smoothing is near 0 then it provides almost raw data with lowest delay. If value is near 1 then it's usual smoothing. Also it defines minimal amount of smoothing. Default value is 1.
 
 
-![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/7.png)
-![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/6.png)
-![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/1.png)
-![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/2.png)
+**How to setup**:  
+**Simple**: Latency 5-50 ms, Strength 2-3, Multiplier 1, OffsetX 0, OffsetY 1.  
+**Low latency**: Set Offset Y to 0 and set Latency to 1-10 ms to being able to go to lowest latency. 
+[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh70YHd94wK8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rHwM=)
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/simple.png)
+
+**Smooth**: Latency ~10 ms, Strength 3, Multiplier 100, OffsetX 1.5, OffsetY 1.
+Change OffsetX between 0-2 to switch between stickyness and smooth.  
+Increase Strength to 4-10 to get more sharp. Decrease Strength to 1-2 to get more smoothing.
+[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u75xAd7c2gVvHRxAt/YP9kk07MbOKePxdIvxuHV5sbu/tQ8E)
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/smooth.png)
+
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/3.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/4.png)
-![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/5.png)
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/7.png)
 
 
 # TabletDriver

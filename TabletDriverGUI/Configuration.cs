@@ -30,8 +30,7 @@ namespace TabletDriverGUI
         public double SmoothingLatency;
         public int SmoothingInterval;
         public bool SmoothingEnabled;
-        public int AntichatterType;
-        public double AntichatterRange;
+        public bool AntichatterEnabled;
         public double AntichatterStrength;
         public double AntichatterMultiplier;
         public double AntichatterOffsetX;
@@ -59,7 +58,7 @@ namespace TabletDriverGUI
         public bool RunAtStartup;
 
         public string DriverPath;
-        public string DriverArguments;        
+        public string DriverArguments;
 
         public bool DeveloperMode;
 
@@ -88,12 +87,11 @@ namespace TabletDriverGUI
             SmoothingEnabled = false;
             SmoothingLatency = 0;
             SmoothingInterval = 4;
-            AntichatterType = 2;
-            AntichatterRange = 1.0;
-            AntichatterStrength = 2.0;
+            AntichatterEnabled = true;
+            AntichatterStrength = 3.0;
             AntichatterMultiplier = 1.0;
             AntichatterOffsetX = 0.0;
-            AntichatterOffsetY = 0.0;
+            AntichatterOffsetY = 1.0;
 
             CommandsAfter = new string[] { "" };
             CommandsBefore = new string[] { "" };

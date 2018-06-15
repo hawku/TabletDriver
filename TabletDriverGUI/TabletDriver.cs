@@ -73,7 +73,7 @@ namespace TabletDriverGUI
                 }
 
                 processService.Refresh();
-                switch(processService.PriorityClass)
+                switch (processService.PriorityClass)
                 {
                     case ProcessPriorityClass.High:
                     case ProcessPriorityClass.RealTime:

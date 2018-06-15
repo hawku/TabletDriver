@@ -36,13 +36,13 @@ Strength, Multiplier, OffsetX and OffsetY is values which you can change in driv
 **How to setup**:  
 **Simple**: Latency 5-50 ms, Strength 2-3, Multiplier 1, OffsetX 0, OffsetY 1.  
 **Low latency**: Set Offset Y to 0 and set Latency to 1-10 ms to being able to go to lowest latency.  
-[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh70YHd94wK8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rHwM=)
+[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh70YHd94wK8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rHwM=)  
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/simple.png)
 
 **Smooth**: Latency ~10 ms, Strength 3, Multiplier 100, OffsetX 1.5, OffsetY 1.
 Change OffsetX between 0-2 to switch between stickyness and smooth.  
 Increase Strength to 4-10 to get more sharp. Decrease Strength to 1-2 to get more smoothing.  
-[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u75xAd7c2gVvHRxAt/YP9kk07MbOKePxdIvxuHV5sbu/tQ8E)
+[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u75xAd7c2gVvHRxAt/YP9kk07MbOKePxdIvxuHV5sbu/tQ8E)  
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/smooth.png)
 
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/3.png)

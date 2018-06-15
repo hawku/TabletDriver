@@ -6,7 +6,8 @@ This is a my modified version of hawku's tablet driver. I've added new smoothing
 1) If you have already Driver installed just: close it, and unzip new version with replacing files.
 Your config will be preserved.
 
-If you have not installed the driver then: install hawku's latest version (https://github.com/hawku/TabletDriver) and go to step 1. My version based on 0.1.5 version of driver.
+If you have not installed the driver then: install hawku's latest version (https://github.com/hawku/TabletDriver) and go to step 1.  
+My version based on 0.1.5 version of driver.
 
 _____
 
@@ -17,8 +18,8 @@ Antichatter requires smoothing filter enabled for work. Latency and Rate values 
 Formula for smoothing is:  
 y(x) = (x + OffsetX)^(Strength*-1)*Multiplier+OffsetY  
 Where **x** is pen speed. And **y(x)** is value on which smoothing will be increased. Slower speed - more smoothing. Faster speed - less smoothing.  
-![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/formula_example.png)
-[Link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF)
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/formula_example.png)  
+[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF)
 
 Strength, Multiplier, OffsetX and OffsetY is values which you can change in driver.
 
@@ -33,13 +34,13 @@ Strength, Multiplier, OffsetX and OffsetY is values which you can change in driv
 
 **How to setup**:  
 **Simple**: Latency 5-50 ms, Strength 2-3, Multiplier 1, OffsetX 0, OffsetY 1.  
-**Low latency**: Set Offset Y to 0 and set Latency to 1-10 ms to being able to go to lowest latency. 
+**Low latency**: Set Offset Y to 0 and set Latency to 1-10 ms to being able to go to lowest latency.  
 [Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh70YHd94wK8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rHwM=)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/simple.png)
 
 **Smooth**: Latency ~10 ms, Strength 3, Multiplier 100, OffsetX 1.5, OffsetY 1.
 Change OffsetX between 0-2 to switch between stickyness and smooth.  
-Increase Strength to 4-10 to get more sharp. Decrease Strength to 1-2 to get more smoothing.
+Increase Strength to 4-10 to get more sharp. Decrease Strength to 1-2 to get more smoothing.  
 [Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u75xAd7c2gVvHRxAt/YP9kk07MbOKePxdIvxuHV5sbu/tQ8E)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/smooth.png)
 

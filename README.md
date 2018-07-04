@@ -40,6 +40,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   - Wacom PTH-451
   - Wacom PTH-850
   - XP-Pen G430 (New 2017+ "Model B")
+  - XP-Pen G430s (Must disable G430 config in config/tablet.cfg)
   - XP-Pen G540 Pro
   - XP-Pen G640
   - Huion 420

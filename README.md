@@ -6,7 +6,9 @@ This is a my modified version of hawku's tablet driver. I've added new smoothing
 1) If you have already Driver installed just: close it, and unzip new version with replacing files.
 Your config will be preserved.
 
-If you have not installed the driver then: install hawku's latest version (https://github.com/hawku/TabletDriver) and go to step 1. My version based on 0.1.5 version of driver.
+If you have not installed the driver then: 
+install hawku's latest version (https://github.com/hawku/TabletDriver) and go to step 1.
+My version based on 0.1.5 version of driver.
 
 _____
 
@@ -15,7 +17,7 @@ Antichatter in it's primary form is useful for tablets which doesn't have any sm
 Antichatter requires smoothing filter enabled for work. Latency and Rate values do affect on antichatter settings.  
 
 Formula for smoothing is:  
-y(x) = (x + OffsetX)^(Strength*-1)*Multiplier+OffsetY  
+y(x) = (x + OffsetX)^(Strength\*-1)\*Multiplier+OffsetY 
 Where **x** is pen speed. And **y(x)** is value on which smoothing will be increased. Slower speed - more smoothing. Faster speed - less smoothing.  
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/formula_example.png)
 [Link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF)

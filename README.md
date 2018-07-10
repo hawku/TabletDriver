@@ -35,17 +35,17 @@ Strength, Multiplier, OffsetX and OffsetY is values which you can change in driv
 
 **How to setup**:  
 **Simple**: Latency 5-50 ms, Strength 2-3, Multiplier 1, OffsetX 0, OffsetY 1.  
-[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh70YHd94wK8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rHwM=)
+[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh70YHd94wK8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rHwM=)  
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/simple.png)
 
 **Smooth**: Latency ~10 ms, Strength 3, Multiplier 100, OffsetX 1.5, OffsetY 1.
 Change OffsetX between 0-2 to switch between stickyness and smooth.  
-Increase Strength to 4-10 to get more sharp. Decrease Strength to 1-2 to get more smoothing.
-[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u75xAd7c2gVvHRxAt/YP9kk07MbOKePxdIvxuHV5sbu/tQ8E)
+Increase Strength to 4-10 to get more sharp. Decrease Strength to 1-2 to get more smoothing.  
+[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u75xAd7c2gVvHRxAt/YP9kk07MbOKePxdIvxuHV5sbu/tQ8E)  
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/smooth.png)
 
-**Straight**: Latency 20-40ms, Strength 20, Multiplier 1, OffsetX 0.7, OffsetY 0.6. This preset aren't good for high hovering.
-[Interactive link](http://yotx.ru/#!1/3_h/sH%401sH%400YM4X9t/2j/YH/rYN%40IIfyv7W/sQQ8giN31jZ0D8ObWLngLegA53T/YJ9GwGzunjMfTLcbj1uXF7v7WPgI=)
+**Straight**: Latency 20-40ms, Strength 20, Multiplier 1, OffsetX 0.7, OffsetY 0.6. This preset aren't good for high hovering.  
+[Interactive link](http://yotx.ru/#!1/3_h/sH%401sH%400YM4X9t/2j/YH/rYN%40IIfyv7W/sQQ8giN31jZ0D8ObWLngLegA53T/YJ9GwGzunjMfTLcbj1uXF7v7WPgI=)   
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/straight.png)
 
 

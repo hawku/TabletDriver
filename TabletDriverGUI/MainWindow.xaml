@@ -411,26 +411,32 @@
 													<LineBreak/><LineBreak/>
 
 													<TextBlock FontWeight="Bold">Strength</TextBlock>
-													<Run Text=": is strength, useful values are from 1 up to 10. Makes smoothing harder."/><LineBreak/>
+													<Run Text=": is strength, useful values are from 1 up to 10. Higher values make smoothing more sharper, lower are smoother."/><LineBreak/>
 
 													<TextBlock FontWeight="Bold">Multiplier</TextBlock>
 													<Run Text=": zoomIns and zoomOuts the plot. Useful values are from 1 up to 1000. Makes smoothing softer. Default value is 1, means nothing changed."/><LineBreak/>
 
 													<TextBlock FontWeight="Bold">Offset X</TextBlock>
-													<Run Text=": Moves the plot to the right. Negative values moves the plot to the left. Useful values are from -1 to 1. Default values is 0."/><LineBreak/>
+													<Run Text=": Moves the plot to the right. Negative values moves the plot to the left. Higher values make smoothing weaker,"/><LineBreak/>
+													<Run Text="lower values stornger and activate stronger smoothing earlier (in terms of cursor speed). Useful values are from -1 to 2. Default values is 0."/><LineBreak/>
 
 													<TextBlock FontWeight="Bold">Offset Y</TextBlock>
-													<Run Text=": Moves the plot up. Useful values are from 0 up to 10. Look at the plot, if strength of smoothing is near 0 then it provides almost raw data with lowest delay. If value is near 1 then it's usual smoothing. Also it defines minimal amount of smoothing. Default value is 1."/><LineBreak/><LineBreak/>
+													<Run Text=": Moves the plot up. Useful values are from roughly -1 up to 10. Look at the plot, if strength of smoothing is near 0 then it provides almost raw data with lowest delay."/><LineBreak/>
+													<Run Text="If value is near 1 then it's usual smoothing. Also it defines minimal amount of smoothing. OffsetY 10 will make smoothing x10 (and latency)."/><LineBreak/>
+													<Run Text="OffsetY 0.5 will make smoothing roughly twice weaker (and latency will be roughly twice less), 0.3 roughly triple weaker, etc. Default value is 1."/><LineBreak/><LineBreak/>
 
 
 													<TextBlock FontWeight="Bold">How to setup</TextBlock><Run Text=":"/><LineBreak/>
 													<TextBlock FontWeight="Bold">Simple</TextBlock><Run Text=": Latency 5-50 ms, Strength 2-3, Multiplier 1, OffsetX 0, OffsetY 1."/><LineBreak/>
-													<TextBlock FontWeight="Bold">Low latency</TextBlock><Run Text=": Set Offset Y to 0 and set Latency to 1-10 ms to being able to go to lowest latency."/><LineBreak/>
+													<LineBreak/>
+													<TextBlock FontWeight="Bold">Straight</TextBlock><Run Text=": Latency 20-40ms, Strength 20, Multiplier 1, OffsetX 0.7, OffsetY 0.6. This preset aren't good for high hovering."/><LineBreak/>
 													<LineBreak/>
 														
 													<TextBlock FontWeight="Bold">Smooth</TextBlock><Run Text=": Latency ~10 ms, Strength 3, Multiplier 100, OffsetX 1.5, OffsetY 1."/><LineBreak/>
 													<Run Text="Change OffsetX between 0-2 to switch between stickyness and smooth."/><LineBreak/>
 													<Run Text="Increase Strength to 4-10 to get more sharp. Decrease Strength to 1-2 to get more smoothing."/><LineBreak/><LineBreak/>
+														
+													<TextBlock FontWeight="Bold">Low latency</TextBlock><Run Text=": Set Offset Y to 0 (and could be useful to set Latency to 1-10 ms but with some settings it can break smoothing, usually OffsetY 0 is enough) to being able to go to lowest latency."/><LineBreak/>
 														
 													<TextBlock FontWeight="Bold">Please, visit https://github.com/Devocub/TabletDriver for images</TextBlock>
 

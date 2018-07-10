@@ -56,7 +56,7 @@ void TabletFilterSmoothing::Update() {
 
 	deltaX = target.x - position.x;
 	deltaY = target.y - position.y;
-	distance = sqrt(deltaX*deltaX + deltaY * deltaY);
+	distance = sqrt(deltaX * deltaX + deltaY * deltaY);
 
 	// Regular smoothing
 	if (!AntichatterEnabled) { // it's not original smoothing because it works every time
@@ -66,10 +66,22 @@ void TabletFilterSmoothing::Update() {
 	// Devocub smoothing
 	else {
 
-		if (antichatterOffsetY < 0) antichatterOffsetY = 0;
+		//if (antichatterOffsetY < 0) antichatterOffsetY = 0;
 
 		// Increase weight of filter in {formula} times
-		weightModifier = pow((distance + antichatterOffsetX), antichatterStrength*-1)*antichatterMultiplier + antichatterOffsetY;
+		//weightModifier = pow((distance + antichatterOffsetX), antichatterStrength*-1)*antichatterMultiplier + antichatterOffsetY;
+
+		weightModifier = pow((distance + antichatterOffsetX), antichatterStrength*-1)*antichatterMultiplier;
+
+		// Limit minimum
+		if (weightModifier + antichatterOffsetY < 0)
+			weightModifier = 0;
+		else
+			weightModifier = pow((distance + antichatterOffsetX), antichatterStrength*-1)*antichatterMultiplier + antichatterOffsetY;
+
+		// Limit maximum (for non wacom tablets)
+		/*if (weightModifier > 1000)
+			weightModifier = 1000;*/
 
 		weightModifier = weight / weightModifier;
 		if (weightModifier > 1) weightModifier = 1;
@@ -78,7 +90,7 @@ void TabletFilterSmoothing::Update() {
 		position.x += deltaX * weightModifier;
 		position.y += deltaY * weightModifier;
 
-		// Z ~= height, strength of signal from pen
+		// z ~= height, strength of signal from pen
 		// 480 z is 14-41
 		// 470 z is 0-30
 	}

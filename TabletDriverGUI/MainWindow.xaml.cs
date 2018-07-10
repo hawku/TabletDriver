@@ -24,7 +24,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.1.5.2 Devocub Edition";
+        public string Version = "0.1.5.3 Devocub Edition";
 
         // Console stuff
         private List<string> commandHistory;

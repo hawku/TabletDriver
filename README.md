@@ -6,9 +6,7 @@ This is a my modified version of hawku's tablet driver. I've added new smoothing
 1) If you have already Driver installed just: close it, and unzip new version with replacing files.
 Your config will be preserved.
 
-If you have not installed the driver then:  
-install hawku's latest version (https://github.com/hawku/TabletDriver) and go to step 1.  
-My version based on 0.1.5 version of driver.
+If you have not installed the driver then: install hawku's latest version (https://github.com/hawku/TabletDriver) and go to step 1. My version based on 0.1.5 version of driver.
 
 _____
 
@@ -17,33 +15,40 @@ Antichatter in it's primary form is useful for tablets which doesn't have any sm
 Antichatter requires smoothing filter enabled for work. Latency and Rate values do affect on antichatter settings.  
 
 Formula for smoothing is:  
-y(x) = (x + OffsetX)^(Strength\*-1)\*Multiplier+OffsetY  
+y(x) = (x + OffsetX)^(Strength*-1)*Multiplier+OffsetY  
 Where **x** is pen speed. And **y(x)** is value on which smoothing will be increased. Slower speed - more smoothing. Faster speed - less smoothing.  
-![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/formula_example.png)  
-[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF)
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/formula_example.png)
+[Link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF)
 
 Strength, Multiplier, OffsetX and OffsetY is values which you can change in driver.
 
-**Strength**: is strength, useful values are from 1 up to 10. Makes smoothing harder.
+**Strength**: is strength, useful values are from 1 up to 10. Higher values make smoothing more sharper, lower are smoother.
 
 **Multiplier**: zoomIns and zoomOuts the [plot](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF). Useful values are from 1 up to 1000. Makes smoothing softer. Default value is 1, means nothing changed.
 
-**Offset X**: Moves the [plot](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF) to the right. Negative values moves the [plot](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF) to the left. Useful values are from -1 to 1. Default values is 0.
+**Offset X**: Moves the [plot](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF) to the right. Negative values moves the [plot](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF) to the left. Higher values make smoothing weaker, lower values stornger and activate stronger smoothing earlier (in terms of cursor speed). Useful values are from -1 to 2. Default values is 0.
 
-**Offset Y**: Moves the [plot](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF) up. Useful values are from 0 up to 10. Look at the plot, if strength of smoothing is near 0 then it provides almost raw data with lowest delay. If value is near 1 then it's usual smoothing. Also it defines minimal amount of smoothing. Default value is 1.
+**Offset Y**: Moves the [plot](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF) up. Useful values are from roughly -1 up to 10. Look at the plot, if strength of smoothing is near 0 then it provides almost raw data with lowest delay. If value is near 1 then it's usual smoothing. Also it defines minimal amount of smoothing. OffsetY 10 will make smoothing x10 (and latency). OffsetY 0.5 will make smoothing roughly twice weaker (and latency will be roughly twice less), 0.3 roughly triple weaker, etc. Default value is 1.
 
 
-## How to setup
+**How to setup**:  
 **Simple**: Latency 5-50 ms, Strength 2-3, Multiplier 1, OffsetX 0, OffsetY 1.  
-**Low latency**: Set Offset Y to 0 and set Latency to 1-10 ms to being able to go to lowest latency.  
-[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh70YHd94wK8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rHwM=)  
+[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh70YHd94wK8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rHwM=)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/simple.png)
 
 **Smooth**: Latency ~10 ms, Strength 3, Multiplier 100, OffsetX 1.5, OffsetY 1.
 Change OffsetX between 0-2 to switch between stickyness and smooth.  
-Increase Strength to 4-10 to get more sharp. Decrease Strength to 1-2 to get more smoothing.  
-[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u75xAd7c2gVvHRxAt/YP9kk07MbOKePxdIvxuHV5sbu/tQ8E)  
+Increase Strength to 4-10 to get more sharp. Decrease Strength to 1-2 to get more smoothing.
+[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u75xAd7c2gVvHRxAt/YP9kk07MbOKePxdIvxuHV5sbu/tQ8E)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/smooth.png)
+
+**Straight**: Latency 20-40ms, Strength 20, Multiplier 1, OffsetX 0.7, OffsetY 0.6. This preset aren't good for high hovering.
+[Interactive link](http://yotx.ru/#!1/3_h/sH%401sH%400YM4X9t/2j/YH/rYN%40IIfyv7W/sQQ8giN31jZ0D8ObWLngLegA53T/YJ9GwGzunjMfTLcbj1uXF7v7WPgI=)
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/straight.png)
+
+
+**Low latency**: Set Offset Y to 0 (and could be useful to set Latency to 1-10 ms but with some settings it can break smoothing, usually OffsetY 0 is enough) to being able to go to lowest latency.
+
 
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/3.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/4.png)

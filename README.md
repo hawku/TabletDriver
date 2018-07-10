@@ -19,7 +19,7 @@ Antichatter requires smoothing filter enabled for work. Latency and Rate values 
 Formula for smoothing is:  
 y(x) = (x + OffsetX)^(Strength\*-1)\*Multiplier+OffsetY 
 Where **x** is pen speed. And **y(x)** is value on which smoothing will be increased. Slower speed - more smoothing. Faster speed - less smoothing.  
-![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/formula_example.png)
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/formula_example.png)  
 [Link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF)
 
 Strength, Multiplier, OffsetX and OffsetY is values which you can change in driver.

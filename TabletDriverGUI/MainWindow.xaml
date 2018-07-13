@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TabletDriverGUI"
         mc:Ignorable="d"
-        Title="TabletDriverGUI" Height="713" Width="686"
+        Title="TabletDriverGUI" Height="786" Width="686"
         >
 	<Window.Resources>
 		<Style TargetType="GroupBox">
@@ -360,43 +360,46 @@
 
 									<StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 										<Grid Width="166">
-
-											<!-- Filter Checkbox -->
-											<CheckBox x:Name="checkBoxSmoothing"
+											<StackPanel Orientation="Vertical">
+												<!-- Filter Checkbox -->
+												<CheckBox x:Name="checkBoxSmoothing"
 										 VerticalAlignment="Top"
 										 Checked="CheckboxChanged" Unchecked="CheckboxChanged" Content="Enabled" Width="62" Margin="50,7,54,0"/>
-
-											<!-- Filter Latency -->
-											<GroupBox Header="Latency" Height="50" Width="80" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
-												<Grid>
-													<TextBox Name="textSmoothingLatency" Padding="4,0,0,0"
+												<StackPanel Orientation="Horizontal">
+													<!-- Filter Latency -->
+													<GroupBox Header="Latency" Height="50" Width="80" Margin="0,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left">
+														<Grid>
+															<TextBox Name="textSmoothingLatency" Padding="4,0,0,0"
 											HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
 											TextChanged="TextChanged">0</TextBox>
-													<Label Width="30" HorizontalAlignment="Right">ms</Label>
-												</Grid>
-											</GroupBox>
+															<Label Width="30" HorizontalAlignment="Right">ms</Label>
+														</Grid>
+													</GroupBox>
 
 
-											<!-- Filter Rate -->
-											<GroupBox Header="Rate" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="85" Height="50">
-												<ComboBox x:Name="comboBoxSmoothingRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
+													<!-- Filter Rate -->
+													<GroupBox Header="Rate" VerticalAlignment="Top" HorizontalAlignment="Right" Width="85" Height="50">
+														<ComboBox x:Name="comboBoxSmoothingRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
 
-													<ComboBoxItem Content="1000 Hz"/>
-													<ComboBoxItem Content="500 Hz"/>
-													<ComboBoxItem Content="333 Hz"/>
-													<ComboBoxItem Selector.IsSelected="True" Content="250 Hz"/>
-													<ComboBoxItem Content="125 Hz"/>
-												</ComboBox>
-											</GroupBox>
+															<ComboBoxItem Content="1000 Hz"/>
+															<ComboBoxItem Content="500 Hz"/>
+															<ComboBoxItem Content="333 Hz"/>
+															<ComboBoxItem Selector.IsSelected="True" Content="250 Hz"/>
+															<ComboBoxItem Content="125 Hz"/>
+														</ComboBox>
+													</GroupBox>
+												</StackPanel>
+											</StackPanel>
 										</Grid>
 
 
-										<!-- Antichatter -->
-										<GroupBox Header="Antichatter" Margin="5,0,0,0" VerticalAlignment="Center">
+										<StackPanel Orientation="Vertical">
+											<!-- Antichatter -->
+											<GroupBox Header="Antichatter" Margin="5,0,0,0" VerticalAlignment="Center">
 
-											<GroupBox.ToolTip>
-												<StackPanel>
-													<TextBlock>
+												<GroupBox.ToolTip>
+													<StackPanel>
+														<TextBlock>
 														<TextBlock FontWeight="Bold">Please, visit https://github.com/Devocub/TabletDriver for images</TextBlock><LineBreak/>
 														<Run Text="Antichatter feature is meant to prevent cursor chattering/rattling/shaking/trembling when it's almost doesn't moves and/or too high to prevent tablet noise."/><LineBreak/>
 														<Run Text="Antichatter in it's primary form is useful for tablets which doesn't have any smoothing (including hardware smoothing)."/><LineBreak/>
@@ -442,55 +445,158 @@
 
 													
 													</TextBlock>
-												</StackPanel>
+													</StackPanel>
 
-											</GroupBox.ToolTip>
+												</GroupBox.ToolTip>
 
-											<StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+												<StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
-												<CheckBox x:Name="checkBoxAntichatter"
+													<CheckBox x:Name="checkBoxAntichatter"
 											 VerticalAlignment="Center" HorizontalAlignment="Left"
 											 Checked="CheckboxChanged" Unchecked="CheckboxChanged" Content="Enabled"
 														  IsEnabled="True" Width="62"
 													  Margin="0,10,5,0"/>
 
-												<!-- Antichatter Strength -->
-												<GroupBox Header="Strength" Height="50" Width="70" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
-													<Grid>
-														<TextBox Name="textAntichatterStrength" Padding="4,0,0,0"
+													<!-- Antichatter Strength -->
+													<GroupBox Header="Strength" Height="50" Width="70" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+														<Grid>
+															<TextBox Name="textAntichatterStrength" Padding="4,0,0,0"
 											HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
 											TextChanged="TextChanged">0</TextBox>
-													</Grid>
-												</GroupBox>
+														</Grid>
+													</GroupBox>
 
-												<!-- Antichatter Multiplier -->
-												<GroupBox Header="Multiplier" Height="50" Width="70" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
-													<Grid>
-														<TextBox Name="textAntichatterMultiplier" Padding="4,0,0,0"
+													<!-- Antichatter Multiplier -->
+													<GroupBox Header="Multiplier" Height="50" Width="70" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+														<Grid>
+															<TextBox Name="textAntichatterMultiplier" Padding="4,0,0,0"
 											HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
 											TextChanged="TextChanged">0</TextBox>
-													</Grid>
-												</GroupBox>
+														</Grid>
+													</GroupBox>
 
-												<!-- Antichatter OffsetX -->
-												<GroupBox Header="OffsetX" Height="50" Width="60" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
-													<Grid>
-														<TextBox Name="textAntichatterOffsetX" Padding="4,0,0,0"
+													<!-- Antichatter OffsetX -->
+													<GroupBox Header="OffsetX" Height="50" Width="60" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+														<Grid>
+															<TextBox Name="textAntichatterOffsetX" Padding="4,0,0,0"
 											HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
 											TextChanged="TextChanged">0</TextBox>
-													</Grid>
-												</GroupBox>
+														</Grid>
+													</GroupBox>
 
-												<!-- Antichatter OffsetY -->
-												<GroupBox Header="OffsetY" Height="50" Width="60" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
-													<Grid>
-														<TextBox Name="textAntichatterOffsetY" Padding="4,0,0,0"
+													<!-- Antichatter OffsetY -->
+													<GroupBox Header="OffsetY" Height="50" Width="60" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+														<Grid>
+															<TextBox Name="textAntichatterOffsetY" Padding="4,0,0,0"
 											HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
 											TextChanged="TextChanged">0</TextBox>
-													</Grid>
-												</GroupBox>
-											</StackPanel>
-										</GroupBox>
+														</Grid>
+													</GroupBox>
+												</StackPanel>
+											</GroupBox>
+
+
+											<!-- Prediction -->
+											<GroupBox Header="Prediction" Margin="5,0,0,0" VerticalAlignment="Center">
+
+												<GroupBox.ToolTip>
+													<StackPanel>
+														<TextBlock>
+														<TextBlock FontWeight="Bold">Please, visit https://github.com/Devocub/TabletDriver for images</TextBlock><LineBreak/>
+														<Run Text="Prediction - How it works: It adds a predicted point to smoothing algoritm. It helps to preserve sharpness of movement, help with small movements."/><LineBreak/>
+														<Run Text="Low values (~10-15ms) of smoothing latency can cause problems for cursor movement. It's very preffered to use at least 10-15ms of smoothing latency, 20-40 ms is even better and recommended."/><LineBreak/>
+														<Run Text="In sum cursor can even outdistance real position (similar to Wacom 6.3.9w5 drivers)."/><LineBreak/><LineBreak/>
+
+													<Run Text="Formula for prediction is:"/>
+													<LineBreak/>
+													<Run Text="y(x) = 1/cosh((x-OffsetX)*Sharpness)*Strength+OffsetY  "/>
+													<LineBreak/>
+													<Run Text="Where "/><TextBlock FontWeight="Bold">x</TextBlock><Run Text=" is pen speed. And "/><TextBlock FontWeight="Bold">y(x)</TextBlock><Run Text=" is strength of prediction"/><LineBreak/>
+														<TextBlock FontWeight="Bold">Please, visit https://github.com/Devocub/TabletDriver for images</TextBlock>
+													<LineBreak/><LineBreak/>
+
+													<TextBlock FontWeight="Bold">Strength</TextBlock>
+													<Run Text=": is max of peak of prediction. Useful values are from 0 to 2, or up to 3-4 depends of latency."/><LineBreak/>
+
+													<TextBlock FontWeight="Bold">Sharpness</TextBlock>
+													<Run Text=": changes how wide will be Strength."/><LineBreak/>
+
+													<TextBlock FontWeight="Bold">Offset X</TextBlock>
+													<Run Text=": center of peak of prediction. Useful values are from 0.5 up to 5-7. Increase value to shift cursor speedup to bigger movements."/><LineBreak/>
+													
+													<TextBlock FontWeight="Bold">Offset Y</TextBlock>
+													<Run Text=": Moves the plot up/down (positiove/negative values). Also defines minimal amount of prediction."/><LineBreak/><LineBreak/>
+
+
+													<TextBlock FontWeight="Bold">Presets</TextBlock><Run Text=":"/><LineBreak/>
+													<TextBlock FontWeight="Bold">Simple+</TextBlock><Run Text=":"/><LineBreak/>
+															<Run Text="Staright or Smooth preset of smoothing +"/><LineBreak/>
+															<Run Text="Strength 1-3 (for 5-50 ms respectively),  Sharpness 1, OffsetX 0.8, OffsetY 0"/><LineBreak/>
+													<LineBreak/>
+															
+													<TextBlock FontWeight="Bold">Straight+</TextBlock><Run Text=":"/><LineBreak/>
+															<Run Text="Staright preset of smoothing +"/><LineBreak/>
+															<Run Text="Strength 0.3, Sharpness 0.7, OffsetX 2, OffsetY 0.3"/><LineBreak/>
+													<LineBreak/>
+														
+													<TextBlock FontWeight="Bold">Fun</TextBlock><Run Text=":"/><LineBreak/>
+															<Run Text="Smoothing: Latency 40ms, Strength 3, Multiplier 10, OffsetX 1, OffsetY 1 +"/><LineBreak/>
+													<Run Text="Prediction: Strength 4, Sharpness 0.75, OffsetX 2.5, OffsetY 1"/><LineBreak/><LineBreak/>
+															
+													<TextBlock FontWeight="Bold">Please, visit https://github.com/Devocub/TabletDriver for images</TextBlock>
+
+													
+													</TextBlock>
+													</StackPanel>
+
+												</GroupBox.ToolTip>
+
+												<StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+
+													<CheckBox x:Name="checkBoxPrediction"
+											 VerticalAlignment="Center" HorizontalAlignment="Left"
+											 Checked="CheckboxChanged" Unchecked="CheckboxChanged" Content="Enabled"
+														  IsEnabled="True" Width="62"
+													  Margin="0,10,5,0"/>
+
+													<!-- Prediction Strength -->
+													<GroupBox Header="Strength" Height="50" Width="70" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+														<Grid>
+															<TextBox Name="textPredictionStrength" Padding="4,0,0,0"
+											HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+											TextChanged="TextChanged">0</TextBox>
+														</Grid>
+													</GroupBox>
+
+													<!-- Prediction Sharpness -->
+													<GroupBox Header="Sharpness" Height="50" Width="70" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+														<Grid>
+															<TextBox Name="textPredictionSharpness" Padding="4,0,0,0"
+											HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+											TextChanged="TextChanged">0</TextBox>
+														</Grid>
+													</GroupBox>
+
+													<!-- Prediction OffsetX -->
+													<GroupBox Header="OffsetX" Height="50" Width="60" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+														<Grid>
+															<TextBox Name="textPredictionOffsetX" Padding="4,0,0,0"
+											HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+											TextChanged="TextChanged">0</TextBox>
+														</Grid>
+													</GroupBox>
+
+													<!-- Prediction OffsetY -->
+													<GroupBox Header="OffsetY" Height="50" Width="60" Margin="0,0,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+														<Grid>
+															<TextBox Name="textPredictionOffsetY" Padding="4,0,0,0"
+											HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+											TextChanged="TextChanged">0</TextBox>
+														</Grid>
+													</GroupBox>
+												</StackPanel>
+											</GroupBox>
+										</StackPanel>
 
 									</StackPanel>
 

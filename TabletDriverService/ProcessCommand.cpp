@@ -552,6 +552,35 @@ bool ProcessCommand(CommandLine *cmd) {
 		LOG_INFO("Filter Antichatter Offset Y = %0.2f cm\n", tablet->smoothing.antichatterOffsetY);
 	}
 
+	//
+	// Prediction
+	//
+	else if (cmd->is("PredictionEnabled")) {
+		bool PredictionEnabled = (bool)cmd->GetInt(0, tablet->smoothing.PredictionEnabled);
+		tablet->smoothing.PredictionEnabled = PredictionEnabled;
+		LOG_INFO("Filter Prediction Enabled = %d \n", tablet->smoothing.PredictionEnabled);
+	}
+	else if (cmd->is("PredictionSharpness")) {
+		double PredictionSharpness = cmd->GetDouble(0, tablet->smoothing.PredictionSharpness);
+		tablet->smoothing.PredictionSharpness = PredictionSharpness;
+		LOG_INFO("Filter Prediction Sharpness = %0.2f \n", tablet->smoothing.PredictionSharpness);
+	}
+	else if (cmd->is("PredictionStrength")) {
+		double PredictionStrength = cmd->GetDouble(0, tablet->smoothing.PredictionStrength);
+		tablet->smoothing.PredictionStrength = PredictionStrength;
+		LOG_INFO("Filter Prediction Strength = %0.2f x\n", tablet->smoothing.PredictionStrength);
+	}
+	else if (cmd->is("PredictionOffsetX")) {
+		double PredictionOffsetX = cmd->GetDouble(0, tablet->smoothing.PredictionOffsetX);
+		tablet->smoothing.PredictionOffsetX = PredictionOffsetX;
+		LOG_INFO("Filter Prediction Offset X = %0.2f cm\n", tablet->smoothing.PredictionOffsetX);
+	}
+	else if (cmd->is("PredictionOffsetY")) {
+		double PredictionOffsetY = cmd->GetDouble(0, tablet->smoothing.PredictionOffsetY);
+		tablet->smoothing.PredictionOffsetY = PredictionOffsetY;
+		LOG_INFO("Filter Prediction Offset Y = %0.2f cm\n", tablet->smoothing.PredictionOffsetY);
+	}
+
 
 
 	//

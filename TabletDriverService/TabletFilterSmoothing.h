@@ -8,12 +8,22 @@ public:
 	double latency;
 	double weight;
 	double threshold;
+
 	bool AntichatterEnabled;
 	double antichatterStrength;
 	double antichatterMultiplier;
 	double antichatterOffsetX;
 	double antichatterOffsetY;
+
+	bool PredictionEnabled;
+	double PredictionSharpness;
+	double PredictionStrength;
+	double PredictionOffsetX;
+	double PredictionOffsetY;
+
 	Vector2D target;
+	Vector2D prev_target;
+	Vector2D calculated_target;
 	Vector2D position;
 	double z;
 

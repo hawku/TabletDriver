@@ -44,12 +44,52 @@ Increase Strength to 4-10 to get more sharp. Decrease Strength to 1-2 to get mor
 [Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u75xAd7c2gVvHRxAt/YP9kk07MbOKePxdIvxuHV5sbu/tQ8E)  
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/smooth.png)
 
-**Straight**: Latency 20-40ms, Strength 20, Multiplier 1, OffsetX 0.7, OffsetY 0.6. This preset aren't good for high hovering.  
+**Straight**: Latency 20-40ms, Strength 20, Multiplier 1, OffsetX 0.7, OffsetY 0.6. This preset aren't good for high hovering. Because of OffsetY < 1 actual latency is less.
 [Interactive link](http://yotx.ru/#!1/3_h/sH%401sH%400YM4X9t/2j/YH/rYN%40IIfyv7W/sQQ8giN31jZ0D8ObWLngLegA53T/YJ9GwGzunjMfTLcbj1uXF7v7WPgI=)   
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/straight.png)
 
 
 **Low latency**: Set Offset Y to 0 (and could be useful to set Latency to 1-10 ms but with some settings it can break smoothing, usually OffsetY 0 is enough) to being able to go to lowest latency.
+
+
+###Prediction
+How it works: It adds a predicted point to smoothing algoritm. It helps to preserve sharpness of movement, help with small movements.
+Low values (~<10-15ms) of smoothing latency can cause problems for cursor movement. It's very preffered to use at least 10-15ms of smoothing latency, 20-40 ms is even better and recommended. In sum cursor can even outdistance real position (similar to Wacom 6.3.9w5 drivers).
+
+Formula for prediction is:
+y(x) = 1/cosh((x-OffsetX)\*Sharpness)\*Strength+OffsetY  
+Where **x** is pen speed. And **y(x)** is strength of prediction.  
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/prediction_formula_example.png)  
+[Link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/CRwBpTQn8JQP/4PsH%401sH%400YM4X9tf2v79%40%40fv7Gxt7kFudgFb0G2dsEXkAPoAeRg/2CfRMNubMEQjMcDxuPB7v7WPgI=)
+
+Strength, Sharpness, OffsetX and OffsetY is values which you can change in driver.
+
+**Strength**: is max of peak of prediction. Useful values are from 0 to 2, or up to 3-4 depends of latency.
+
+**Sharpness**: changes how wide will be Strength.
+
+**OffsetX**: center of peak of prediction. Useful values are from 0.5 up to 5-7. Increase value to shift cursor speedup to bigger movements.
+
+**OffsetY**: Moves the plot up/down (positiove/negative values). Also defines minimal amount of prediction.
+
+Presets:
+**Simple+**:
+Staright or Smooth preset of smoothing + 
+Strength 1-3 (for 5-50 ms respectively),  Sharpness 1, OffsetX 0.8, OffsetY 0  
+[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/CRwBpTQn8JQP/4PsH%402f7Rgzhf21/Y2v79%40%40fv7Gxt3kAge2CtyAHu%40AdyBn0AHKwu3%40wT6JhN7ZgCMbjAePxYHd/ax8D)  
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/prediction_simplesmooth.png)  
+
+**Straight+**:
+Staright preset of smoothing + 
+Strength 0.3, Sharpness 0.7, OffsetX 2, OffsetY 0.3  
+[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0@A9YW1PuH@xvHewbMYT/tX0PmbQGp5H5j3/CRwBpTQn8JQP/4PsH@2f7Rgzhf21/Y2v79@@fv7Gxt7kDOdgFH0AQu@ADyAX0AHKxu3@wT6JhN7ZgCMbjAePxYHd/ax8D)  
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/prediction_straight.png)  
+
+**Fun**:
+Smoothing: Latency 40ms, Strength 3, Multiplier 10, OffsetX 1, OffsetY 1 +  
+Prediction: Strength 4, Sharpness 0.75, OffsetX 2.5, OffsetY 1  
+[Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/CRwBpTQn8JQP/4I8bpDXlLuPRQyatwWlk/uOf8PFf8fdH5gPhtMcNLCG1trt/sH%402b8QQ/tf2t7Z///75Gxt7m1u74AMI4mwXfAHd2j/YJ9GwG1swBOPxgPF4sLu/tb%40xB93aXd%404AG9u7YK3DqBb%40wf7JBp2Y%40eU8Xi6xXjcurzY3d/aBwU=)  
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/prediction_fun.png)  
 
 
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/3.png)

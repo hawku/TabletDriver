@@ -24,7 +24,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.1.5.3 Devocub Edition";
+        public string Version = "0.1.5.4 Devocub Edition";
 
         // Console stuff
         private List<string> commandHistory;
@@ -487,11 +487,18 @@ namespace TabletDriverGUI
             textAntichatterOffsetX.Text = Utils.GetNumberString(config.AntichatterOffsetX);
             textAntichatterOffsetY.Text = Utils.GetNumberString(config.AntichatterOffsetY);
 
+            checkBoxPrediction.IsChecked = config.PredictionEnabled;
+            textPredictionStrength.Text = Utils.GetNumberString(config.PredictionStrength);
+            textPredictionSharpness.Text = Utils.GetNumberString(config.PredictionSharpness);
+            textPredictionOffsetX.Text = Utils.GetNumberString(config.PredictionOffsetX);
+            textPredictionOffsetY.Text = Utils.GetNumberString(config.PredictionOffsetY);
+
             if (config.SmoothingEnabled)
             {
                 textSmoothingLatency.IsEnabled = true;
                 comboBoxSmoothingRate.IsEnabled = true;
                 checkBoxAntichatter.IsEnabled = true;
+                checkBoxPrediction.IsEnabled = true;
 
                 if (config.AntichatterEnabled)
                 {
@@ -507,16 +514,39 @@ namespace TabletDriverGUI
                     textAntichatterOffsetX.IsEnabled = false;
                     textAntichatterOffsetY.IsEnabled = false;
                 }
+
+                if (config.PredictionEnabled)
+                {
+                    textPredictionStrength.IsEnabled = true;
+                    textPredictionSharpness.IsEnabled = true;
+                    textPredictionOffsetX.IsEnabled = true;
+                    textPredictionOffsetY.IsEnabled = true;
+                }
+                else
+                {
+                    textPredictionStrength.IsEnabled = false;
+                    textPredictionSharpness.IsEnabled = false;
+                    textPredictionOffsetX.IsEnabled = false;
+                    textPredictionOffsetY.IsEnabled = false;
+                }
             }
             else
             {
                 textSmoothingLatency.IsEnabled = false;
                 comboBoxSmoothingRate.IsEnabled = false;
+
                 checkBoxAntichatter.IsEnabled = false;
                 textAntichatterStrength.IsEnabled = false;
                 textAntichatterMultiplier.IsEnabled = false;
                 textAntichatterOffsetX.IsEnabled = false;
                 textAntichatterOffsetY.IsEnabled = false;
+
+                checkBoxPrediction.IsEnabled = false;
+                textPredictionStrength.IsEnabled = false;
+                textPredictionSharpness.IsEnabled = false;
+                textPredictionOffsetX.IsEnabled = false;
+                textPredictionOffsetY.IsEnabled = false;
+
             }
 
             //
@@ -665,11 +695,22 @@ namespace TabletDriverGUI
             if (Utils.ParseNumber(textAntichatterOffsetY.Text, out value))
                 config.AntichatterOffsetY = value;
 
+            config.PredictionEnabled = (bool)checkBoxPrediction.IsChecked;
+            if (Utils.ParseNumber(textPredictionStrength.Text, out value))
+                config.PredictionStrength = value;
+            if (Utils.ParseNumber(textPredictionSharpness.Text, out value))
+                config.PredictionSharpness = value;
+            if (Utils.ParseNumber(textPredictionOffsetX.Text, out value))
+                config.PredictionOffsetX = value;
+            if (Utils.ParseNumber(textPredictionOffsetY.Text, out value))
+                config.PredictionOffsetY = value;
+
             if (config.SmoothingEnabled)
             {
                 textSmoothingLatency.IsEnabled = true;
                 comboBoxSmoothingRate.IsEnabled = true;
                 checkBoxAntichatter.IsEnabled = true;
+                checkBoxPrediction.IsEnabled = true;
 
                 if (config.AntichatterEnabled)
                 {
@@ -685,16 +726,39 @@ namespace TabletDriverGUI
                     textAntichatterOffsetX.IsEnabled = false;
                     textAntichatterOffsetY.IsEnabled = false;
                 }
+
+                if (config.PredictionEnabled)
+                {
+                    textPredictionStrength.IsEnabled = true;
+                    textPredictionSharpness.IsEnabled = true;
+                    textPredictionOffsetX.IsEnabled = true;
+                    textPredictionOffsetY.IsEnabled = true;
+                }
+                else
+                {
+                    textPredictionStrength.IsEnabled = false;
+                    textPredictionSharpness.IsEnabled = false;
+                    textPredictionOffsetX.IsEnabled = false;
+                    textPredictionOffsetY.IsEnabled = false;
+                }
             }
             else
             {
                 textSmoothingLatency.IsEnabled = false;
                 comboBoxSmoothingRate.IsEnabled = false;
+
                 checkBoxAntichatter.IsEnabled = false;
                 textAntichatterStrength.IsEnabled = false;
                 textAntichatterMultiplier.IsEnabled = false;
                 textAntichatterOffsetX.IsEnabled = false;
                 textAntichatterOffsetY.IsEnabled = false;
+
+                checkBoxPrediction.IsEnabled = false;
+                textPredictionStrength.IsEnabled = false;
+                textPredictionSharpness.IsEnabled = false;
+                textPredictionOffsetX.IsEnabled = false;
+                textPredictionOffsetY.IsEnabled = false;
+
             }
 
             //
@@ -1756,6 +1820,17 @@ namespace TabletDriverGUI
                 }
                 else
                     driver.SendCommand("AntichatterEnabled 0");
+
+                if (config.PredictionEnabled)
+                {
+                    driver.SendCommand("PredictionEnabled 1");
+                    driver.SendCommand("PredictionStrength " + Utils.GetNumberString(config.PredictionStrength));
+                    driver.SendCommand("PredictionSharpness " + Utils.GetNumberString(config.PredictionSharpness));
+                    driver.SendCommand("PredictionOffsetX " + Utils.GetNumberString(config.PredictionOffsetX));
+                    driver.SendCommand("PredictionOffsetY " + Utils.GetNumberString(config.PredictionOffsetY));
+                }
+                else
+                    driver.SendCommand("PredictionEnabled 0");
             }
             else
             {

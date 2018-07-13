@@ -8,11 +8,21 @@ TabletFilterSmoothing::TabletFilterSmoothing() {
 	latency = 2.0;
 	weight = 1.000;
 	threshold = 0.9;
+
 	AntichatterEnabled = true;
 	antichatterStrength = 3;
 	antichatterMultiplier = 1;
 	antichatterOffsetX = 0.0;
 	antichatterOffsetY = 0.0;
+
+	prev_target.x = 0.0;
+	prev_target.y = 0.0;
+
+	PredictionEnabled = true;
+	PredictionSharpness = 1.0;
+	PredictionStrength = 1.1;
+	PredictionOffsetX = 3.0;
+	PredictionOffsetY = 0.3;
 }
 
 
@@ -51,26 +61,56 @@ bool TabletFilterSmoothing::GetPosition(Vector2D *outputVector) {
 // Update
 void TabletFilterSmoothing::Update() {
 
-	double deltaX, deltaY, distance;
-	double weightModifier; // long float?
+	double deltaX, deltaY, distance, weightModifier, predictionModifier;
 
-	deltaX = target.x - position.x;
-	deltaY = target.y - position.y;
+	// Prediction
+	if (PredictionEnabled)
+	{
+		// Calculate predicted position onNewPacket
+		if (prev_target.x != target.x or prev_target.y != target.y)
+		{
+			// Calculate distance between last 2 packets and prediction
+			deltaX = target.x - prev_target.x;
+			deltaY = target.y - prev_target.y;
+			distance = sqrt(deltaX * deltaX + deltaY * deltaY);
+			predictionModifier = 1 / cosh((distance - PredictionOffsetX) * PredictionSharpness) * PredictionStrength + PredictionOffsetY;
+
+			// Apply prediction
+			deltaX *= predictionModifier;
+			deltaY *= predictionModifier;
+
+			// Update predicted position
+			calculated_target.x = target.x + deltaX;
+			calculated_target.y = target.y + deltaY;
+
+			// Update old position for further prediction
+			prev_target.x = target.x;
+			prev_target.y = target.y;
+		}
+	}
+	else {
+		calculated_target.x = target.x;
+		calculated_target.y = target.y;
+	}
+
+	// Smoothing
+	deltaX = calculated_target.x - position.x;
+	deltaY = calculated_target.y - position.y;
 	distance = sqrt(deltaX * deltaX + deltaY * deltaY);
 
+	/*if (distance <= 0.01) {
+		position.x = target.x;
+		position.y = target.y;
+	}
 	// Regular smoothing
-	if (!AntichatterEnabled) { // it's not original smoothing because it works every time
+	else*/ if (!AntichatterEnabled) {
 		position.x += deltaX * weight;
 		position.y += deltaY * weight;
 	}
 	// Devocub smoothing
 	else {
 
-		//if (antichatterOffsetY < 0) antichatterOffsetY = 0;
-
 		// Increase weight of filter in {formula} times
-		//weightModifier = pow((distance + antichatterOffsetX), antichatterStrength*-1)*antichatterMultiplier + antichatterOffsetY;
-
 		weightModifier = pow((distance + antichatterOffsetX), antichatterStrength*-1)*antichatterMultiplier;
 
 		// Limit minimum
@@ -79,7 +119,7 @@ void TabletFilterSmoothing::Update() {
 		else
 			weightModifier = pow((distance + antichatterOffsetX), antichatterStrength*-1)*antichatterMultiplier + antichatterOffsetY;
 
-		// Limit maximum (for non wacom tablets)
+		// Limit maximum
 		/*if (weightModifier > 1000)
 			weightModifier = 1000;*/
 

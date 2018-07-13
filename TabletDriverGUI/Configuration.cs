@@ -30,11 +30,18 @@ namespace TabletDriverGUI
         public double SmoothingLatency;
         public int SmoothingInterval;
         public bool SmoothingEnabled;
+
         public bool AntichatterEnabled;
         public double AntichatterStrength;
         public double AntichatterMultiplier;
         public double AntichatterOffsetX;
         public double AntichatterOffsetY;
+
+        public bool PredictionEnabled;
+        public double PredictionSharpness;
+        public double PredictionStrength;
+        public double PredictionOffsetX;
+        public double PredictionOffsetY;
 
         public Area DesktopSize;
         public bool AutomaticDesktopSize;
@@ -87,11 +94,18 @@ namespace TabletDriverGUI
             SmoothingEnabled = false;
             SmoothingLatency = 0;
             SmoothingInterval = 4;
+
             AntichatterEnabled = true;
             AntichatterStrength = 3.0;
             AntichatterMultiplier = 1.0;
             AntichatterOffsetX = 0.0;
             AntichatterOffsetY = 1.0;
+
+            PredictionEnabled = true;
+            PredictionSharpness = 1.0;
+            PredictionStrength = 1.1;
+            PredictionOffsetX = 3.0;
+            PredictionOffsetY = 0.3;
 
             CommandsAfter = new string[] { "" };
             CommandsBefore = new string[] { "" };

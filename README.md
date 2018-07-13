@@ -33,27 +33,28 @@ Strength, Multiplier, OffsetX and OffsetY is values which you can change in driv
 **Offset Y**: Moves the [plot](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u74BAm9u7YK3Dg6gW/sH%40yQadmPnlPF4usV43Lq82N3f2gcF) up. Useful values are from roughly -1 up to 10. Look at the plot, if strength of smoothing is near 0 then it provides almost raw data with lowest delay. If value is near 1 then it's usual smoothing. Also it defines minimal amount of smoothing. OffsetY 10 will make smoothing x10 (and latency). OffsetY 0.5 will make smoothing roughly twice weaker (and latency will be roughly twice less), 0.3 roughly triple weaker, etc. Default value is 1.
 
 
-**How to setup**:  
+## Presets 
 **Simple**: Latency 5-50 ms, Strength 2-3, Multiplier 1, OffsetX 0, OffsetY 1.  
 [Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh70YHd94wK8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rHwM=)  
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/simple.png)
-
+_____
 **Smooth**: Latency ~10 ms, Strength 3, Multiplier 100, OffsetX 1.5, OffsetY 1.
 Change OffsetX between 0-2 to switch between stickyness and smooth.  
 Increase Strength to 4-10 to get more sharp. Decrease Strength to 1-2 to get more smoothing.  
 [Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x%40ZD4TT9g/2tw72jRjC/9r%40xh50C3K2u75xAd7c2gVvHRxAt/YP9kk07MbOKePxdIvxuHV5sbu/tQ8E)  
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/smooth.png)
-
+_____
 **Straight**: Latency 20-40ms, Strength 20, Multiplier 1, OffsetX 0.7, OffsetY 0.6. This preset aren't good for high hovering. Because of OffsetY < 1 actual latency is less.
 [Interactive link](http://yotx.ru/#!1/3_h/sH%401sH%400YM4X9t/2j/YH/rYN%40IIfyv7W/sQQ8giN31jZ0D8ObWLngLegA53T/YJ9GwGzunjMfTLcbj1uXF7v7WPgI=)   
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/straight.png)
-
+_____
 
 **Low latency**: Set Offset Y to 0 (and could be useful to set Latency to 1-10 ms but with some settings it can break smoothing, usually OffsetY 0 is enough) to being able to go to lowest latency.
 
+_____
 
-###Prediction
-How it works: It adds a predicted point to smoothing algoritm. It helps to preserve sharpness of movement, help with small movements.
+## Prediction
+How it works: It adds a predicted point to smoothing algoritm. It helps to preserve sharpness of movement, help with small movements.  
 Low values (~<10-15ms) of smoothing latency can cause problems for cursor movement. It's very preffered to use at least 10-15ms of smoothing latency, 20-40 ms is even better and recommended. In sum cursor can even outdistance real position (similar to Wacom 6.3.9w5 drivers).
 
 Formula for prediction is:
@@ -72,19 +73,19 @@ Strength, Sharpness, OffsetX and OffsetY is values which you can change in drive
 
 **OffsetY**: Moves the plot up/down (positiove/negative values). Also defines minimal amount of prediction.
 
-Presets:
+### Presets:
 **Simple+**:
 Staright or Smooth preset of smoothing + 
 Strength 1-3 (for 5-50 ms respectively),  Sharpness 1, OffsetX 0.8, OffsetY 0  
 [Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/CRwBpTQn8JQP/4PsH%402f7Rgzhf21/Y2v79%40%40fv7Gxt3kAge2CtyAHu%40AdyBn0AHKwu3%40wT6JhN7ZgCMbjAePxYHd/ax8D)  
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/prediction_simplesmooth.png)  
-
+_____
 **Straight+**:
 Staright preset of smoothing + 
 Strength 0.3, Sharpness 0.7, OffsetX 2, OffsetY 0.3  
 [Interactive link](http://yotx.ru/#!1/3_8hTp/4/0@A9YW1PuH@xvHewbMYT/tX0PmbQGp5H5j3/CRwBpTQn8JQP/4PsH@2f7Rgzhf21/Y2v79@@fv7Gxt7kDOdgFH0AQu@ADyAX0AHKxu3@wT6JhN7ZgCMbjAePxYHd/ax8D)  
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/prediction_straight.png)  
-
+_____
 **Fun**:
 Smoothing: Latency 40ms, Strength 3, Multiplier 10, OffsetX 1, OffsetY 1 +  
 Prediction: Strength 4, Sharpness 0.75, OffsetX 2.5, OffsetY 1  

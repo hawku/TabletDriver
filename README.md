@@ -100,7 +100,7 @@ ______________________
     
 ### Smooth 2 + prediction = accurate with small overshot  
 [Plot link](http://yotx.ru/#!1/3_8hTp/4/0@A9YW1PuH@xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x@ZD4TT9g/2tw72jRjC/9r@xh70YHd9Ywe8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rf2v79@@fv7Gxt3kAQZztgrcgO7vgLcgWdAtysX@wT6JhN0AHjMcd0BbjEXSwu7@1DwQ=)  
-![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/Smooth 2 + prediction = accurate with small overshot.png)  
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/Smooth%202%20%2B%20prediction%20%3D%20accurate%20with%20small%20overshot.png)  
 Video:  
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/aZWoWwSmlEw/0.jpg)](https://www.youtube.com/watch?v=aZWoWwSmlEw)  
 

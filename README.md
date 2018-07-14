@@ -93,6 +93,36 @@ Prediction: Strength 4, Sharpness 0.75, OffsetX 2.5, OffsetY 1
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/prediction_fun.png)  
 
 
+______________________
+### Smooth 2 + prediction = accurate with small overshot  
+[Plot link](http://yotx.ru/#!1/3_8hTp/4/0@A9YW1PuH@xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x@ZD4TT9g/2tw72jRjC/9r@xh70YHd9Ywe8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rf2v79@@fv7Gxt3kAQZztgrcgO7vgLcgWdAtysX@wT6JhN0AHjMcd0BbjEXSwu7@1DwQ=)  
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/Smooth 2 + prediction = accurate with small overshot.png)  
+Video:  
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/aZWoWwSmlEw/0.jpg)](https://www.youtube.com/watch?v=aZWoWwSmlEw)  
+
+____________________
+### Straight - Pretty good realtime accurate
+[Plot link](http://yotx.ru/#!1/3_8hTp/4/0@A9YW1PuH@xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x@ZD4TT9g/2tw72jRjC/9r@xh70AILYXd/YOgBvbu2CLw6gW/sH@yQadmPnlPF4usV43Lq82N3f2t/a/v37529s7G3uQA52wQcQ2C74AAKCHkDO9g/2STTsBuiA8bgD2mI8gg5297f2AQc=)  
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/Straight%20-%20Pretty%20good%20realtime%20accurate.png)  
+Video:  
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/SMrSGq8IvaU/0.jpg)](https://www.youtube.com/watch?v=SMrSGq8IvaU)  
+
+____________________
+### Big latency and big prediction
+[Plot link](http://yotx.ru/#!1/3_8hTp/4/0@A9YW1PuH@xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x@ZD4TT9g/2tw72jRjC/9r@xh70YHd9Ywe8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rf2v79@@fv7Gxt7kFOdsFH0AudsEX0API6f7BPomG3QAdMB53QFuMR9DB7v7WPgI=)  
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/Big%20latency%20and%20big%20prediction.png)  
+Video:  
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/k_KMV3Ujvjo/0.jpg)](https://www.youtube.com/watch?v=k_KMV3Ujvjo)  
+
+____________________
+### Fun
+[Plot link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/CRwBpTQn8JQP/4I8bpDXlLuPRQyatwWlk/uOf8PFf8fdH5gPhtMcNLCG1trt/sH%402b8QQ/tf2t7Z///75Gxt7m1u74AMI4mwXfAHd2j/YJ9GwG1swBOPxgPF4sLu/tb%40xB93aXd%404AG9u7YK3DqBb%40wf7JBp2Y%40eU8Xi6xXjcurzY3d/aBwU=)  
+![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/Fun.png)  
+Video:  
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/KthrzJrCrGc/0.jpg)](https://www.youtube.com/watch?v=KthrzJrCrGc)  
+
+
+
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/3.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/4.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/7.png)

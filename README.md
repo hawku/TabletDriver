@@ -91,9 +91,13 @@ Smoothing: Latency 40ms, Strength 3, Multiplier 10, OffsetX 1, OffsetY 1 +
 Prediction: Strength 4, Sharpness 0.75, OffsetX 2.5, OffsetY 1  
 [Interactive link](http://yotx.ru/#!1/3_8hTp/4/0%40A9YW1PuH%40xvHewbMYT/tX0PmbQGp5H5j3/CRwBpTQn8JQP/4I8bpDXlLuPRQyatwWlk/uOf8PFf8fdH5gPhtMcNLCG1trt/sH%402b8QQ/tf2t7Z///75Gxt7m1u74AMI4mwXfAHd2j/YJ9GwG1swBOPxgPF4sLu/tb%40xB93aXd%404AG9u7YK3DqBb%40wf7JBp2Y%40eU8Xi6xXjcurzY3d/aBwU=)  
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/prediction_fun.png)  
-
-
+  
+  
 ______________________
+______________________
+  
+  # PRESETS
+    
 ### Smooth 2 + prediction = accurate with small overshot  
 [Plot link](http://yotx.ru/#!1/3_8hTp/4/0@A9YW1PuH@xvHewbMYT/tX0PmbQGp5H5j3/Cx3/F3x@ZD4TT9g/2tw72jRjC/9r@xh70YHd9Ywe8ubUL3oJu7R/sk2jYjZ1TxuPpFuNx6/Jid39rf2v79@@fv7Gxt3kAQZztgrcgO7vgLcgWdAtysX@wT6JhN0AHjMcd0BbjEXSwu7@1DwQ=)  
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/Smooth 2 + prediction = accurate with small overshot.png)  

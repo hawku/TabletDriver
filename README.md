@@ -41,8 +41,9 @@ Video:
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/KthrzJrCrGc/0.jpg)](https://www.youtube.com/watch?v=KthrzJrCrGc)  
 
   
+    
 _____
-  #Antichatter
+  # Antichatter
 
 Antichatter feature is meant to prevent cursor chattering/rattling/shaking/trembling when it's almost doesn't moves and/or too high to prevent tablet noise.  
 Antichatter in it's primary form is useful for tablets which doesn't have any smoothing (including hardware smoothing).  

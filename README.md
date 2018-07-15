@@ -18,6 +18,8 @@ _____
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/Smooth%202%20%2B%20prediction%20%3D%20accurate%20with%20small%20overshot.png)  
 Video:  
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/aZWoWwSmlEw/0.jpg)](https://www.youtube.com/watch?v=aZWoWwSmlEw)  
+Video - same but with prediction disabled:  
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/vimw1kihegk/0.jpg)](https://www.youtube.com/watch?v=vimw1kihegk)  
 
 ____________________
 ### Straight - Pretty good realtime accurate

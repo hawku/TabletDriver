@@ -307,6 +307,14 @@
 
 								<StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
+									<!-- Mouse Speed -->
+									<GroupBox Header="Mouse Wheel Speed" VerticalAlignment="Top" HorizontalAlignment="Left" Width="130" Height="45">
+										<TextBox Name="textMouseWheelSpeed" 
+												 Padding="4,-1,0,0"
+											HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+												 TextChanged="TextChanged">50</TextBox>
+									</GroupBox>
+
 									<!-- Tip -->
 									<GroupBox Header="Tip" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90">
 										<ComboBox Name="comboBoxButton1" SelectionChanged="ItemSelectionChanged">
@@ -337,8 +345,8 @@
 
 
 							<!-- Smoothing -->
-							<StackPanel Orientation="Horizontal">
-								<GroupBox Name="groupFilter" Header="Smoothing Filter" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left">
+							<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+								<GroupBox Name="groupFilter" Header="Smoothing Filter" VerticalAlignment="Bottom" HorizontalAlignment="Center">
 									<GroupBox.ToolTip>
 										<StackPanel>
 											<TextBlock FontWeight="Bold">

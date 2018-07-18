@@ -24,7 +24,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.1.5.4 Devocub Edition";
+        public string Version = "0.1.5.5 Devocub Edition";
 
         // Console stuff
         private List<string> commandHistory;
@@ -174,6 +174,8 @@ namespace TabletDriverGUI
                 comboBoxButton2.Items.Add("Mouse " + i);
                 comboBoxButton3.Items.Add("Mouse " + i);
             }
+            comboBoxButton2.Items.Add("Mouse Wheel");
+            comboBoxButton3.Items.Add("Mouse Wheel");
             comboBoxButton1.SelectedIndex = 0;
             comboBoxButton2.SelectedIndex = 0;
             comboBoxButton3.SelectedIndex = 0;
@@ -463,6 +465,7 @@ namespace TabletDriverGUI
             //
             if (config.ButtonMap.Count() == 3)
             {
+                textMouseWheelSpeed.Text = Utils.GetNumberString(config.mouseWheelSpeed);
                 comboBoxButton1.SelectedIndex = config.ButtonMap[0];
                 comboBoxButton2.SelectedIndex = config.ButtonMap[1];
                 comboBoxButton3.SelectedIndex = config.ButtonMap[2];
@@ -671,6 +674,8 @@ namespace TabletDriverGUI
 
 
             // Button map 
+            if (Utils.ParseNumber(textMouseWheelSpeed.Text, out val))
+                config.mouseWheelSpeed = (int)val;
             config.ButtonMap[0] = comboBoxButton1.SelectedIndex;
             config.ButtonMap[1] = comboBoxButton2.SelectedIndex;
             config.ButtonMap[2] = comboBoxButton3.SelectedIndex;
@@ -1803,6 +1808,9 @@ namespace TabletDriverGUI
             {
                 driver.SendCommand("ButtonMap " + String.Join(" ", config.ButtonMap));
             }
+
+            // Mouse Wheel Speed
+            driver.SendCommand("MouseWheelSpeed " + Utils.GetNumberString(config.mouseWheelSpeed));
 
             // Smoothing filter
             if (config.SmoothingEnabled)

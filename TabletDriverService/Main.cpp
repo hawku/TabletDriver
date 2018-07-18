@@ -23,6 +23,7 @@ Tablet *tablet;
 VMulti *vmulti;
 ScreenMapper *mapper;
 thread *tabletThread;
+chrono::high_resolution_clock::time_point timeBegin = chrono::high_resolution_clock::now();
 
 //
 // Init console parameters
@@ -49,14 +50,14 @@ void RunTabletThread() {
 	TabletFilter *filter;
 	bool filterTimedEnabled;
 
-	chrono::high_resolution_clock::time_point timeBegin = chrono::high_resolution_clock::now();
+	//chrono::high_resolution_clock::time_point timeBegin = chrono::high_resolution_clock::now();
 	chrono::high_resolution_clock::time_point timeNow = chrono::high_resolution_clock::now();
 
 	//
 	// Main Loop
 	//
 
-	while(true) {
+	while (true) {
 
 		//
 		// Read tablet position
@@ -64,23 +65,27 @@ void RunTabletThread() {
 		status = tablet->ReadPosition();
 
 		// Position OK
-		if(status == Tablet::PacketValid) {
+		if (status == Tablet::PacketValid) {
 			isResent = false;
 
-		// Invalid packet id
-		} else if(status == Tablet::PacketInvalid) {
+			// Invalid packet id
+		}
+		else if (status == Tablet::PacketInvalid) {
 			continue;
 
-		// Valid packet but position is not in-range or invalid
-		} else if(status == Tablet::PacketPositionInvalid) {
-			if(!isResent && tablet->state.isValid) {
+			// Valid packet but position is not in-range or invalid
+		}
+		else if (status == Tablet::PacketPositionInvalid) {
+			if (!isResent && tablet->state.isValid) {
 				isResent = true;
 				tablet->state.isValid = false;
-			} else {
+			}
+			else {
 				continue;
 			}
 			// Reading failed
-		} else {
+		}
+		else {
 			LOG_ERROR("Tablet Read Error!\n");
 			CleanupAndExit(1);
 		}
@@ -88,28 +93,33 @@ void RunTabletThread() {
 		//
 		// Don't send the first report
 		//
-		if(isFirstReport) {
+		if (isFirstReport) {
 			isFirstReport = false;
 			continue;
 		}
 
 		// Debug messages
-		if(tablet->debugEnabled) {
+		if (tablet->debugEnabled) {
 			timeNow = chrono::high_resolution_clock::now();
 			double delta = (timeNow - timeBegin).count() / 1000000.0;
-			LOG_DEBUG("STATE: %0.3f, %d, %0.3f, %0.3f, %0.3f, %0.3f\n",
+			/*LOG_DEBUG("STATE: %0.3f, %d, %0.3f, %0.3f, %0.3f, %0.3f\n",
 				delta,
 				tablet->state.buttons,
 				tablet->state.position.x,
 				tablet->state.position.y,
 				tablet->state.pressure,
 				tablet->state.z
+			);*/
+			LOG_DEBUG("RAW:%0.3f,%0.3f,%0.3f\n",
+				delta,
+				tablet->state.position.x,
+				tablet->state.position.y
 			);
 		}
 
 
 		// Set output values
-		if(status == Tablet::PacketPositionInvalid) {
+		if (status == Tablet::PacketPositionInvalid) {
 			tablet->state.buttons = 0;
 		}
 
@@ -117,16 +127,16 @@ void RunTabletThread() {
 		// Packet filters
 		//
 		// Is there any filters?
-		if(tablet->filterPacketCount > 0) {
+		if (tablet->filterPacketCount > 0) {
 
 			// Loop through filters
-			for(int filterIndex = 0; filterIndex < tablet->filterPacketCount; filterIndex++) {
+			for (int filterIndex = 0; filterIndex < tablet->filterPacketCount; filterIndex++) {
 
 				// Filter
 				filter = tablet->filterPacket[filterIndex];
 
 				// Enabled?
-				if(filter != NULL && filter->isEnabled) {
+				if (filter != NULL && filter->isEnabled) {
 
 					// Process
 					filter->SetTarget(tablet->state.position, tablet->state.z);
@@ -140,17 +150,29 @@ void RunTabletThread() {
 
 		// Timed filter enabled?
 		filterTimedEnabled = false;
-		for(int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
-			if(tablet->filterTimed[filterIndex]->isEnabled)
+		for (int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
+			if (tablet->filterTimed[filterIndex]->isEnabled)
 				filterTimedEnabled = true;
 		}
 
+		static Vector2D last;
+		if ( 
+			// Button binded to wheel + Binded button pressed + tip pressed
+			(tablet->buttonMap[1] == 6 and tablet->state.buttons == 33)
+			or
+			(tablet->buttonMap[2] == 6 and tablet->state.buttons == 5)
+			) {
+			tablet->state.buttons &= ~(1 << 0);
+			mouse_event(MOUSEEVENTF_WHEEL, 0, 0, -(last.y - tablet->state.position.y) * tablet->settings.mouseWheelSpeed, 0);
+		}
+		last = tablet->state.position;
+
 
 		// Do not write report when timed filter is enabled
-		if(tablet->filterTimedCount == 0 || !filterTimedEnabled) {
+		if (tablet->filterTimedCount == 0 || !filterTimedEnabled) {
 
 			// Relative mode
-			if(vmulti->mode == VMulti::ModeRelativeMouse) {
+			if (vmulti->mode == VMulti::ModeRelativeMouse) {
 
 				x = tablet->state.position.x;
 				y = tablet->state.position.y;
@@ -166,8 +188,9 @@ void RunTabletThread() {
 
 
 
-			// Absolute / Digitizer mode
-			} else {
+				// Absolute / Digitizer mode
+			}
+			else {
 				// Get x & y from the tablet state
 				x = tablet->state.position.x;
 				y = tablet->state.position.y;
@@ -190,22 +213,26 @@ void RunTabletThread() {
 // Tablet filter timer callback
 //
 VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWaitFired) {
-	Vector2D position;
+	Vector2D position, position_prev;
 	double z;
 	TabletFilter *filter;
+
+	chrono::high_resolution_clock::time_point timeNow = chrono::high_resolution_clock::now();
 
 	// Set position
 	position.Set(tablet->state.position);
 	z = tablet->state.z;
+	// For debug
+	tablet->filterTimed[0]->GetPosition(&position_prev);
 
 	// Loop through filters
-	for(int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
+	for (int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
 
 		// Filter
 		filter = tablet->filterTimed[filterIndex];
 
 		// Filter enabled?
-		if(!filter->isEnabled) return;
+		if (!filter->isEnabled) return;
 
 		// Set filter targets
 		filter->SetTarget(position, z);
@@ -220,10 +247,26 @@ VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWa
 	}
 
 
+	// Debug messages
+	if (tablet->debugEnabled) {
+		timeNow = chrono::high_resolution_clock::now();
+		double delta = (timeNow - timeBegin).count() / 1000000.0;
+
+		if (round(position.x*100) != round(position_prev.x * 100) or round(position.y * 100) != round(position_prev.y * 100)) {
+			LOG_DEBUG("FIL:%0.3f,%0.3f,%0.3f\n",
+				delta,
+				position.x,
+				position.y
+			);
+		}
+
+	}
+
+
 	//
 	// Relative mode
 	//
-	if(vmulti->mode == VMulti::ModeRelativeMouse) {
+	if (vmulti->mode == VMulti::ModeRelativeMouse) {
 
 		// Map position to virtual screen (values between 0 and 1)
 		mapper->GetRotatedTabletPosition(&position.x, &position.y);
@@ -237,7 +280,7 @@ VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWa
 		);
 
 		// Write report to VMulti device if report has changed
-		if(vmulti->HasReportChanged()
+		if (vmulti->HasReportChanged()
 			||
 			vmulti->reportRelativeMouse.x != 0
 			||
@@ -268,12 +311,10 @@ VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWa
 
 
 		// Write report to VMulti device
-		if(vmulti->HasReportChanged() && tablet->state.isValid) {
+		if (vmulti->HasReportChanged() && tablet->state.isValid) {
 			vmulti->WriteReport();
 		}
 	}
-
-
 }
 
 
@@ -305,7 +346,7 @@ int main(int argc, char**argv) {
 
 	// VMulti Device
 	vmulti = new VMulti();
-	if(!vmulti->isOpen) {
+	if (!vmulti->isOpen) {
 		LOG_ERROR("Can't open VMulti device!\n\n");
 		LOG_ERROR("Possible fixes:\n");
 		LOG_ERROR("1) Install VMulti driver\n");
@@ -317,10 +358,10 @@ int main(int argc, char**argv) {
 	// Read init file
 	filename = "init.cfg";
 
-	if(argc > 1) {
+	if (argc > 1) {
 		filename = argv[1];
 	}
-	if(!ReadCommandFile(filename)) {
+	if (!ReadCommandFile(filename)) {
 		LOG_ERROR("Can't open '%s'\n", filename.c_str());
 	}
 
@@ -328,42 +369,43 @@ int main(int argc, char**argv) {
 	//
 	// Main loop that reads input from the console.
 	//
-	while(true) {
+	while (true) {
 
 		// Broken pipe
-		if(!cin) break;
+		if (!cin) break;
 
 		// Read line from the console
 		try {
 			getline(cin, line);
-		} catch(exception) {
+		}
+		catch (exception) {
 			break;
 		}
 
 		// Process valid lines
-		if(line.length() > 0) {
+		if (line.length() > 0) {
 			cmd = new CommandLine(line);
 
 
 			//
 			// Start command
 			//
-			if(cmd->is("start")) {
+			if (cmd->is("start")) {
 				LOG_INFO(">> %s\n", cmd->line.c_str());
 
-				if(running) {
+				if (running) {
 					LOG_INFO("Driver is already started!\n");
 					continue;
 				}
 
 				// Unknown tablet
-				if(tablet == NULL) {
+				if (tablet == NULL) {
 					LOG_ERROR("Tablet not found!\n");
 					CleanupAndExit(1);
 				}
 
 				// Tablet init
-				if(!tablet->Init()) {
+				if (!tablet->Init()) {
 					LOG_ERROR("Tablet init failed!\n");
 					LOG_ERROR("Possible fixes:\n");
 					LOG_ERROR("1) Uninstall other tablet drivers.\n");
@@ -378,7 +420,7 @@ int main(int argc, char**argv) {
 				running = true;
 
 				// Timed filter timer
-				if(tablet->filterPacketCount > 0) {
+				if (tablet->filterPacketCount > 0) {
 					tablet->filterTimed[0]->callback = FilterTimerCallback;
 					tablet->filterTimed[0]->StartTimer();
 				}
@@ -390,21 +432,24 @@ int main(int argc, char**argv) {
 				LogStatus();
 
 
-			//
-			// Echo
-			//
-			} else if(cmd->is("echo")) {
-				if(cmd->valueCount > 0) {
+				//
+				// Echo
+				//
+			}
+			else if (cmd->is("echo")) {
+				if (cmd->valueCount > 0) {
 					LOG_INFO("%s\n", cmd->line.c_str() + 5);
-				} else {
+				}
+				else {
 					LOG_INFO("\n");
 				}
 
 
-			//
-			// Process all other commands
-			//
-			} else {
+				//
+				// Process all other commands
+				//
+			}
+			else {
 				ProcessCommand(cmd);
 			}
 			delete cmd;
@@ -429,14 +474,14 @@ void CleanupAndExit(int code) {
 		delete vmulti;
 		*/
 
-	// Delete filter timer
-	if(tablet != NULL) {
-		if(tablet->filterTimedCount != 0) {
+		// Delete filter timer
+	if (tablet != NULL) {
+		if (tablet->filterTimedCount != 0) {
 			tablet->filterTimed[0]->StopTimer();
 		}
 	}
 
-	if(vmulti != NULL) {
+	if (vmulti != NULL) {
 		vmulti->ResetReport();
 	}
 	LOGGER_STOP();

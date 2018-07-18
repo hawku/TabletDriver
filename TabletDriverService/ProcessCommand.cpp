@@ -341,6 +341,14 @@ bool ProcessCommand(CommandLine *cmd) {
 		LOG_INFO("Button Map = %s\n", buttonMapBuffer);
 	}
 
+	// Mouse Wheel Speed
+	else if (cmd->is("MouseWheelSpeed")) {
+		if (!CheckTablet()) return true;
+		int MouseWheelSpeed = (int)cmd->GetInt(0, tablet->settings.mouseWheelSpeed);
+		tablet->settings.mouseWheelSpeed = MouseWheelSpeed;
+		LOG_INFO("Mouse Wheel Speed = %d\n", MouseWheelSpeed);
+	}
+
 
 	// Screen Map Area
 	else if (cmd->is("ScreenArea") || cmd->is("Screen")) {

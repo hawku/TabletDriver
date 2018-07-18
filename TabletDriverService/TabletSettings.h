@@ -22,6 +22,7 @@ public:
 	int reportLength;
 	double skew;
 	TabletType type;
+	int mouseWheelSpeed;
 
 	TabletSettings();
 	~TabletSettings();

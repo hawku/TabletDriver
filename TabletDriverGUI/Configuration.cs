@@ -50,6 +50,7 @@ namespace TabletDriverGUI
         [XmlArrayItem("Button")]
         public int[] ButtonMap;
         public bool DisableButtons;
+        public int mouseWheelSpeed;
 
         [XmlArray("CommandsAfter")]
         [XmlArrayItem("Command")]
@@ -90,6 +91,7 @@ namespace TabletDriverGUI
 
             ButtonMap = new int[] { 1, 2, 3 };
             DisableButtons = false;
+            mouseWheelSpeed = 50;
 
             SmoothingEnabled = false;
             SmoothingLatency = 0;
@@ -117,6 +119,7 @@ namespace TabletDriverGUI
 
             DriverPath = "bin/TabletDriverService.exe";
             DriverArguments = "config/init.cfg";
+
             DeveloperMode = false;
         }
 

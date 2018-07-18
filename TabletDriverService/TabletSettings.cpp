@@ -19,6 +19,7 @@ TabletSettings::TabletSettings() {
 	height = 1;
 	skew = 0;
 	type = TabletNormal;
+	mouseWheelSpeed = 50;
 }
 
 //

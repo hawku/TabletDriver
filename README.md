@@ -11,7 +11,7 @@ Comparison with original, added:
 Your config will be preserved. Same for updating.
 
 If you have not installed the driver then: 
-follow instructions here: https://github.com/Devocub/TabletDriver#installation and after return to step 1.
+follow instructions here: https://github.com/Devocub/TabletDriver#installation and after return to step 1.  
 My version based on 0.1.5 version of driver.
 
 _____

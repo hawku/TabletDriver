@@ -1,13 +1,17 @@
-This is a my modified version of hawku's tablet driver. I've added new smoothing algorithm.
+This is a my modified version of hawku's tablet driver.  
+Comparison with original, added:
+* Antichatter
+* Prediction
+* Mouse Wheel
 
 ## Download
 ### https://github.com/Devocub/TabletDriver/releases
 ### Installing
-1) If you have already Driver installed just: close it, and unzip new version with replacing files.
-Your config will be preserved.
+1) If you have already Driver installed just: **close it, and unzip new version with replacing files**.
+Your config will be preserved. Same for updating.
 
 If you have not installed the driver then: 
-install hawku's latest version (https://github.com/hawku/TabletDriver) and go to step 1.
+follow instructions here: https://github.com/Devocub/TabletDriver#installation and after return to step 1.
 My version based on 0.1.5 version of driver.
 
 _____

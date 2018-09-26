@@ -43,6 +43,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   - XP-Pen G430s (Must disable G430 config in config/tablet.cfg)
   - XP-Pen G540 Pro
   - XP-Pen G640
+  - XP-Pen G640s
   - Huion 420
   - Huion H420
   - Huion H430P

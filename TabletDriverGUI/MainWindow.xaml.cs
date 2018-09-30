@@ -109,6 +109,7 @@ namespace TabletDriverGUI
                 ContextMenu = new System.Windows.Forms.ContextMenu(new System.Windows.Forms.MenuItem[]
                 {
                     new System.Windows.Forms.MenuItem("TabletDriverGUI " + Version),
+                    new System.Windows.Forms.MenuItem("Restart Driver", Restart),
                     new System.Windows.Forms.MenuItem("Show", NotifyShowWindow),
                     new System.Windows.Forms.MenuItem("Exit", NotifyExit)
                 })
@@ -1750,7 +1751,12 @@ namespace TabletDriverGUI
         //
         // Restart Driver button click
         //
-        private void RestartDriverClick(object sender, RoutedEventArgs e)
+        private void RestartDriverClick(object sender, RoutedEventArgs e) => Restart(sender, e);
+
+        //
+        // Restart Driver
+        //
+        void Restart(object sender, EventArgs e)
         {
             if (running)
             {

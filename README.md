@@ -87,7 +87,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 If you want to compile the code and don't want to install anything from the TabletDriver binary package, you will need extract the missing drivers from these installation packages:
 
 **VMulti driver:**
-- https://www.xp-pen.com/upload/download/20180130/XP-PenWin(20180130).zip
+- https://www.xp-pen.com/upload/download/20181019/osuWin(20181019).zip
 
 **Huion WinUSB driver:**
 - https://www.huiontablet.com/drivers/WinDriver/HuionTablet_WinDriver_v13.15.16.zip

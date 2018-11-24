@@ -414,8 +414,8 @@ bool ProcessCommand(CommandLine *cmd) {
 	//
 	else if(cmd->is("Sensitivity")) {
 		if(!CheckTablet()) return true;
-		vmulti->relativeData.sensitivity = cmd->GetDouble(0, vmulti->relativeData.sensitivity);
-		LOG_INFO("Relative mode sensitivity = %0.2f px/mm\n", vmulti->relativeData.sensitivity);
+		outputManager->settings->relativeSensitivity = cmd->GetDouble(0, outputManager->settings->relativeSensitivity);
+		LOG_INFO("Relative mode sensitivity = %0.2f px/mm\n", outputManager->settings->relativeSensitivity);
 	}
 
 	//
@@ -423,8 +423,8 @@ bool ProcessCommand(CommandLine *cmd) {
 	//
 	else if(cmd->is("ResetDistance")) {
 		if(!CheckTablet()) return true;
-		vmulti->relativeData.resetDistance = cmd->GetDouble(0, vmulti->relativeData.resetDistance);
-		LOG_INFO("Relative mode reset distance = %0.2f mm\n", vmulti->relativeData.resetDistance);
+		outputManager->settings->relativeResetDistance = cmd->GetDouble(0, outputManager->settings->relativeResetDistance);
+		LOG_INFO("Relative mode reset distance = %0.2f mm\n", outputManager->settings->relativeResetDistance);
 	}
 
 
@@ -436,35 +436,27 @@ bool ProcessCommand(CommandLine *cmd) {
 
 		// Absolute mouse
 		if(mode.compare(0, 3, "abs") == 0) {
-			if(vmulti->mode != VMulti::ModeAbsoluteMouse)
-				vmulti->ResetReport();
-			vmulti->mode = VMulti::ModeAbsoluteMouse;
+			outputManager->SetOutputMode(OutputManager::ModeVMultiAbsolute);
 			LOG_INFO("Output Mode = Absolute\n");
 		}
 
 		// Relative mouse
 		else if(mode.compare(0, 3, "rel") == 0) {
-			if(vmulti->mode != VMulti::ModeRelativeMouse)
-				vmulti->ResetReport();
-			vmulti->mode = VMulti::ModeRelativeMouse;
+			outputManager->SetOutputMode(OutputManager::ModeVMultiRelative);
 			LOG_INFO("Output Mode = Relative\n");
 		}
 
 		// Digitizer
 		else if(mode.compare(0, 3, "dig") == 0 || mode.compare(0, 3, "pen") == 0) {
-			if(vmulti->mode != VMulti::ModeDigitizer)
-				vmulti->ResetReport();
-			vmulti->mode = VMulti::ModeDigitizer;
+
+			outputManager->SetOutputMode(OutputManager::ModeVMultiDigitizer);
 			LOG_INFO("Output Mode = Digitizer\n");
 		}
 
 		// SendInput
-		else if(mode.compare(0, 4, "send") == 0) {
-			if(vmulti->mode != VMulti::ModeSendInput)
-				vmulti->ResetReport();
-			vmulti->mode = VMulti::ModeSendInput;
-			vmulti->UpdateMonitorInfo();
-			LOG_INFO("Output Mode = SendInput\n");
+		else if(mode.compare(0, 12, "sendinputabs") == 0) {
+			outputManager->SetOutputMode(OutputManager::ModeSendInputAbsolute);
+			LOG_INFO("Output Mode = SendInput Absolute\n");
 		}
 
 		else {

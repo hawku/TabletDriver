@@ -171,8 +171,17 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClInclude Include="CommandLine.h" />
     <ClInclude Include="HIDDevice.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="Output.h" />
+    <ClInclude Include="OutputManager.h" />
+    <ClInclude Include="OutputSendInputAbsolute.h" />
+    <ClInclude Include="OutputSettings.h" />
+    <ClInclude Include="OutputVMultiAbsolute.h" />
+    <ClInclude Include="OutputVMultiAbsoluteV2.h" />
+    <ClInclude Include="OutputVMultiDigitizer.h" />
+    <ClInclude Include="OutputVMultiRelative.h" />
     <ClInclude Include="PositionRingBuffer.h" />
     <ClInclude Include="ProcessCommand.h" />
+    <ClInclude Include="RelativeMouseState.h" />
     <ClInclude Include="ScreenMapper.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Tablet.h" />
@@ -182,6 +191,7 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClInclude Include="TabletFilterPeak.h" />
     <ClInclude Include="TabletFilterSmoothing.h" />
     <ClInclude Include="TabletSettings.h" />
+    <ClInclude Include="TabletState.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="USBDevice.h" />
     <ClInclude Include="Vector2D.h" />
@@ -191,8 +201,17 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClCompile Include="CommandLine.cpp" />
     <ClCompile Include="HIDDevice.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="Output.cpp" />
+    <ClCompile Include="OutputManager.cpp" />
+    <ClCompile Include="OutputSendInputAbsolute.cpp" />
+    <ClCompile Include="OutputSettings.cpp" />
+    <ClCompile Include="OutputVMultiAbsolute.cpp" />
+    <ClCompile Include="OutputVMultiAbsoluteV2.cpp" />
+    <ClCompile Include="OutputVMultiDigitizer.cpp" />
+    <ClCompile Include="OutputVMultiRelative.cpp" />
     <ClCompile Include="PositionRingBuffer.cpp" />
     <ClCompile Include="ProcessCommand.cpp" />
+    <ClCompile Include="RelativeMouseState.cpp" />
     <ClCompile Include="ScreenMapper.cpp" />
     <ClCompile Include="Tablet.cpp" />
     <ClCompile Include="TabletBenchmark.cpp" />
@@ -201,6 +220,7 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClCompile Include="TabletFilterPeak.cpp" />
     <ClCompile Include="TabletFilterSmoothing.cpp" />
     <ClCompile Include="TabletSettings.cpp" />
+    <ClCompile Include="TabletState.cpp" />
     <ClCompile Include="USBDevice.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -217,6 +237,9 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <None Include="config\tablet.cfg" />
     <None Include="config\user.cfg" />
     <None Include="config\wacom.cfg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="docs\VMulti_Report_Descriptor.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

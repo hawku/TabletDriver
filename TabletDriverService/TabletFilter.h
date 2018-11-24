@@ -1,4 +1,6 @@
 #pragma once
+#include "Vector2D.h"
+
 class TabletFilter {
 public:
 	virtual void SetTarget(Vector2D vector) = 0;

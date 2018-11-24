@@ -50,9 +50,6 @@ Tablet::Tablet() {
 	initReport = NULL;
 	initReportLength = 0;
 
-	// Reset state
-	memset(&state, 0, sizeof(state));
-
 	// Filters
 	filterTimed[0] = &smoothing;
 	filterTimedCount = 1;

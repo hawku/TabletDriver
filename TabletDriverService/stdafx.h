@@ -12,10 +12,12 @@
 #include "VMulti.h"
 #include "Tablet.h"
 #include "ScreenMapper.h"
+#include "OutputManager.h"
 
 // Global variables...
 extern VMulti *vmulti;
 extern Tablet *tablet;
+extern OutputManager *outputManager;
 extern ScreenMapper *mapper;
 extern void CleanupAndExit(int code);
 

@@ -5,6 +5,7 @@
 #include "USBDevice.h"
 #include "HIDDevice.h"
 #include "TabletSettings.h"
+#include "TabletState.h"
 #include "TabletFilterSmoothing.h"
 #include "TabletFilterNoiseReduction.h"
 #include "TabletFilterPeak.h"
@@ -49,14 +50,9 @@ public:
 	} reportData;
 
 	//
-	// Tablet state
+	// Tablet State
 	//
-	struct {
-		bool isValid;
-		BYTE buttons;
-		Vector2D position;
-		double pressure;
-	} state;
+	TabletState state;
 
 	// Settings
 	TabletSettings settings;

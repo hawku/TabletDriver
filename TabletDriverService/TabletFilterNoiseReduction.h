@@ -1,5 +1,5 @@
 #pragma once
-
+#include "TabletFilter.h"
 #include "PositionRingBuffer.h"
 
 class TabletFilterNoiseReduction : public TabletFilter {

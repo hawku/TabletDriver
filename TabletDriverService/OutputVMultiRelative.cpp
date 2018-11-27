@@ -17,6 +17,8 @@ OutputVMultiRelative::OutputVMultiRelative() {
 	report.x = 0;
 	report.y = 0;
 	report.wheel = 0;
+
+	firstReport = true;
 }
 
 //
@@ -33,6 +35,13 @@ OutputVMultiRelative::~OutputVMultiRelative() {
 //
 bool OutputVMultiRelative::Set(unsigned char buttons, double x, double y, double pressure) {
 	double dx, dy, distance;
+
+
+	if(firstReport) {
+		settings->relativeState.lastPosition.x = x;
+		settings->relativeState.lastPosition.y = y;
+		firstReport = false;
+	}
 
 	// Buttons
 	report.buttons = buttons;

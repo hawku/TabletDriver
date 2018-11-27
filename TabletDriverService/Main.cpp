@@ -166,7 +166,11 @@ VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWa
 	bool filterEnabled = false;
 
 	// Set position
-	position.Set(tablet->state.position);
+	if(tablet->state.isValid) {
+		position.Set(tablet->state.position);
+	} else {
+		return;
+	}
 
 	// Loop through filters
 	for(int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {

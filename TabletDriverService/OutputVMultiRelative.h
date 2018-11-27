@@ -15,6 +15,7 @@ public:
 		signed char y;
 		BYTE wheel;
 	} report;
+	bool firstReport;
 
 	bool Set(unsigned char buttons, double x, double y, double pressure);
 	bool Write();

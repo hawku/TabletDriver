@@ -27,9 +27,15 @@ namespace TabletDriverGUI
 
         public Area ScreenArea;
 
+        // Smoothing filter
         public double SmoothingLatency;
         public int SmoothingInterval;
         public bool SmoothingEnabled;
+
+        // Noise filter
+        public int NoiseFilterSamples;
+        public double NoiseFilterThreshold;
+        public bool NoiseFilterEnabled;
 
         public Area DesktopSize;
         public bool AutomaticDesktopSize;
@@ -82,6 +88,10 @@ namespace TabletDriverGUI
             SmoothingEnabled = false;
             SmoothingLatency = 0;
             SmoothingInterval = 4;
+
+            NoiseFilterEnabled = false;
+            NoiseFilterSamples = 10;
+            NoiseFilterThreshold = 0.5;
 
             CommandsAfter = new string[] { "" };
             CommandsBefore = new string[] { "" };

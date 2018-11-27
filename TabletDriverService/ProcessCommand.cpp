@@ -638,7 +638,9 @@ bool ProcessCommand(CommandLine *cmd) {
 		LogStatus();
 	}
 
+	//
 	// Benchmark
+	//
 	else if(cmd->is("Benchmark") || cmd->is("Bench")) {
 		if(!CheckTablet()) return true;
 
@@ -654,58 +656,162 @@ bool ProcessCommand(CommandLine *cmd) {
 		if(timeLimit < 1000) timeLimit = 1000;
 
 		// Log
-		LOG_DEBUG("Tablet benchmark starting in 3 seconds!\n");
-		LOG_DEBUG("Keep the pen stationary on top of the tablet!\n");
+		LOG_INFO("Tablet benchmark starting in 3 seconds!\n");
+		LOG_INFO("Keep the pen stationary on top of the tablet!\n");
 		Sleep(3000);
-		LOG_DEBUG("Benchmark started!\n");
+		LOG_INFO("Benchmark started!\n");
 
-		// Benchmark
-		tablet->benchmark.Start(packetCount);
+		// Start measurement
+		tablet->measurement.Start(packetCount);
 
 		// Wait for the benchmark to finish
 		for(int i = 0; i < timeLimit / 100; i++) {
 			Sleep(100);
 
-			// Benchmark result
-			if(tablet->benchmark.packetCounter <= 0) {
+			// Benchmark results
+			if(tablet->measurement.packetCounter <= 0) {
 
-				double width = tablet->benchmark.maxX - tablet->benchmark.minX;
-				double height = tablet->benchmark.maxY - tablet->benchmark.minY;
-				LOG_DEBUG("\n");
-				LOG_DEBUG("Benchmark result (%d positions):\n", tablet->benchmark.totalPackets);
-				LOG_DEBUG("  Tablet: %s\n", tablet->name.c_str());
-				LOG_DEBUG("  Area: %0.2f mm x %0.2f mm (%0.0f px x %0.0f px)\n",
+				double width = tablet->measurement.maximum.x - tablet->measurement.minimum.x;
+				double height = tablet->measurement.maximum.y - tablet->measurement.minimum.y;
+				LOG_INFO("\n");
+				LOG_INFO("Benchmark result (%d positions):\n", tablet->measurement.totalPackets);
+				LOG_INFO("  Tablet: %s\n", tablet->name.c_str());
+				LOG_INFO("  Area: %0.2f mm x %0.2f mm (%0.0f px x %0.0f px)\n",
 					mapper->areaTablet.width,
 					mapper->areaTablet.height,
 					mapper->areaScreen.width,
 					mapper->areaScreen.height
 				);
-				LOG_DEBUG("  X range: %0.3f mm <-> %0.3f mm\n", tablet->benchmark.minX, tablet->benchmark.maxX);
-				LOG_DEBUG("  Y range: %0.3f mm <-> %0.3f mm\n", tablet->benchmark.minY, tablet->benchmark.maxY);
-				LOG_DEBUG("  Width: %0.3f mm (%0.2f px)\n",
+				LOG_INFO("  X range: %0.3f mm <-> %0.3f mm\n", tablet->measurement.minimum.x, tablet->measurement.maximum.x);
+				LOG_INFO("  Y range: %0.3f mm <-> %0.3f mm\n", tablet->measurement.minimum.y, tablet->measurement.maximum.y);
+				LOG_INFO("  Width: %0.3f mm (%0.2f px)\n",
 					width,
 					mapper->areaScreen.width / mapper->areaTablet.width * width
 				);
-				LOG_DEBUG("  Height: %0.3f mm (%0.2f px)\n",
+				LOG_INFO("  Height: %0.3f mm (%0.2f px)\n",
 					height,
 					mapper->areaScreen.height / mapper->areaTablet.height* height
 				);
-				LOG_DEBUG("\n");
-				LOG_STATUS("BENCHMARK %d %0.3f %0.3f %s\n", tablet->benchmark.totalPackets, width, height, tablet->name.c_str());
+				LOG_INFO("\n");
+				LOG_INFO("BENCHMARK %d %0.3f %0.3f %s\n", tablet->measurement.totalPackets, width, height, tablet->name.c_str());
 				break;
 			}
 		}
 
+		// Stop measurement
+		tablet->measurement.Stop();
+
 		// Benchmark failed
-		if(tablet->benchmark.packetCounter > 0) {
+		if(tablet->measurement.packetCounter > 0) {
 			LOG_ERROR("Benchmark failed!\n");
 			LOG_ERROR("Not enough packets captured in %0.2f seconds!\n",
 				timeLimit / 1000.0
 			);
 		}
+	}
+
+
+
+	//
+	// Measurement
+	//
+	else if(cmd->is("Measure")) {
+		if(!CheckTablet()) return true;
+
+		int timeLimit = 30000;
+		int pointCount = cmd->GetInt(0, 1);
+
+		// Limits
+		if(pointCount < 1) pointCount = 1;
+		if(pointCount > 10) pointCount = 10;
+
+		// Log
+		LOG_INFO("Measurement started!\n");
+
+		// Start measurement
+		tablet->measurement.Start();
+
+		// Wait for the measurement to finish
+		for(int i = 0; i < timeLimit / 100; i++) {
+			Sleep(100);
+
+			// Result
+			if(tablet->measurement.pointCount >= pointCount) {
+				double distance = 0;
+				double lastX = 0;
+				double lastY = 0;
+				Vector2D point, lastPoint;
+				Vector2D minimum;
+				Vector2D maximum;
+
+				minimum.Set(10000, 10000);
+				maximum.Set(-10000, -10000);
+
+				LOG_INFO("\n");
+				LOG_INFO("Measurement results:\n");
+				for(int pointIndex = 0; pointIndex < tablet->measurement.pointCount; pointIndex++) {
+
+					point.Set(tablet->measurement.points[pointIndex]);
+
+					// Limits
+					if(point.x < minimum.x) minimum.x = point.x;
+					if(point.x > maximum.x) maximum.x = point.x;
+					if(point.y < minimum.y) minimum.y = point.y;
+					if(point.y > maximum.y) maximum.y = point.y;
+
+					LOG_INFO(
+						"  #%d: X = %0.2f mm, Y = %0.2f mm\n",
+						pointIndex + 1,
+						point.x,
+						point.y
+					);
+
+					// Distance calculation
+					if(pointIndex > 0) {
+						distance += point.Distance(lastPoint);
+					}
+					lastPoint.Set(point);
+
+				}
+				if(tablet->measurement.pointCount > 1) {
+					LOG_INFO("  Distance: %0.2f mm\n", distance);
+					LOG_INFO("  Maximum area: %0.2f mm x %0.2f mm\n",
+						maximum.x - minimum.x, maximum.y - minimum.y
+					);
+				}
+
+				// Status message
+				char pointString[1024];
+				char pointStringIndex = 0;
+
+				// Build point string
+				for(int pointIndex = 0; pointIndex < tablet->measurement.pointCount; pointIndex++) {
+					point.Set(tablet->measurement.points[pointIndex]);
+					pointStringIndex += sprintf_s(pointString + pointStringIndex, 1024 - pointStringIndex, "%0.3f %0.3f ", point.x, point.y);
+				}
+
+				// Output measurement results
+				LOG_STATUS("MEASUREMENT %s\n", pointString);
+
+				LOG_INFO("\n");
+
+				break;
+			}
+		}
+
+		// Stop measurement
+		tablet->measurement.Stop();
+
+		// Measurement failed
+		if(tablet->measurement.pointCount < pointCount) {
+			LOG_ERROR("Measurement failed! No enough points detected in %0.0f seconds!\n", timeLimit / 1000.0);
+			LOG_STATUS("MEASUREMENT 0\n");
+		}
 
 
 	}
+
+
 
 
 	// Include

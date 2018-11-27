@@ -7,7 +7,7 @@ public:
 
 	PositionRingBuffer buffer;
 	Vector2D position;
-	Vector2D lastTarget;
+	Vector2D latestTarget;
 
 	int iterations;
 	double distanceThreshold;

@@ -65,6 +65,7 @@ Tablet::Tablet() {
 	buttonMap[1] = 2;
 	buttonMap[2] = 3;
 
+
 	// Tablet connection open
 	isOpen = false;
 
@@ -284,8 +285,12 @@ int Tablet::ReadPosition() {
 	}
 	state.pressure = ((double)reportData.pressure / (double)settings.maxPressure);
 
-	// Tablet benchmark update
-	benchmark.Update(state.position);
+	// Tablet measurement update
+	if(measurement.isRunning) {
+		state.buttons = reportData.buttons & 0x0F;
+		measurement.Update(state);
+		return Tablet::PacketInvalid;
+	}
 
 	// Packet and position is valid
 	return Tablet::PacketValid;

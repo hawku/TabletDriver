@@ -185,7 +185,7 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClInclude Include="ScreenMapper.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Tablet.h" />
-    <ClInclude Include="TabletBenchmark.h" />
+    <ClInclude Include="TabletMeasurement.h" />
     <ClInclude Include="TabletFilter.h" />
     <ClInclude Include="TabletFilterNoiseReduction.h" />
     <ClInclude Include="TabletFilterPeak.h" />
@@ -214,7 +214,7 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClCompile Include="RelativeMouseState.cpp" />
     <ClCompile Include="ScreenMapper.cpp" />
     <ClCompile Include="Tablet.cpp" />
-    <ClCompile Include="TabletBenchmark.cpp" />
+    <ClCompile Include="TabletMeasurement.cpp" />
     <ClCompile Include="TabletFilter.cpp" />
     <ClCompile Include="TabletFilterNoiseReduction.cpp" />
     <ClCompile Include="TabletFilterPeak.cpp" />

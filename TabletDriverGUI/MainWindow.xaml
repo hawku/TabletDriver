@@ -160,7 +160,7 @@
                   <StackPanel Grid.Column="0" HorizontalAlignment="Right">
 
                     <StackPanel Orientation="Horizontal">
-                      
+
                       <!-- Invert -->
                       <CheckBox Name="checkBoxInvert" Margin="5"
                                 VerticalAlignment="Center"
@@ -173,7 +173,9 @@
                           (Inverted)
                         </TextBlock>
                       </CheckBox>
-                      
+
+
+
                       <!-- Rotation -->
                       <GroupBox Header="Rotation" Height="50" Width="100" Margin="5,0,0,0" HorizontalAlignment="Left">
                         <Grid>
@@ -185,10 +187,24 @@
                       </GroupBox>
                     </StackPanel>
 
-                    <Button Name="buttonWacomArea" Content="Wacom Area" Width="80"
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                      
+                      <!-- Draw Area -->
+                      <Button Name="buttonDrawArea" Content="Draw Area" Width="80"
+                            Padding="5 5 5 5" Margin="5 5 0 5"
+                            Click="ButtonDrawArea_Click"
+                              ToolTip="To set the area, click the top left and the bottom right corners of the area with your tablet pen."
+                              />
+
+                      <!-- Wacom Area -->
+                      <Button Name="buttonWacomArea" Content="Wacom Area" Width="80"
                             Padding="5 5 5 5" Margin="5"
-                            HorizontalAlignment="Right"
                             Click="ButtonWacomArea_Click" />
+
+                    </StackPanel>
+
+
 
                   </StackPanel>
 
@@ -336,70 +352,6 @@
 
 
 
-              <!-- Smoothing -->
-              <GroupBox Name="groupFilter" Header="Smoothing Filter" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left"
-                        >
-                <GroupBox.ToolTip>
-                  <StackPanel>
-                    <TextBlock FontWeight="Bold">
-                    Cursor position smoothing filter
-                    </TextBlock>
-                    <TextBlock>
-                      - Smoothing filter adds latency to the input, so don't enable it if you want to have the lowest possible input lag.
-                      <LineBreak/>
-                      - On Wacom tablets you can use latency value between 15 and 25 to have a similar smoothing as in the Wacom drivers.
-                      <LineBreak/>
-                      - You can test out different filter values, but recommended maximum for osu! is around 50 milliseconds.
-                      <LineBreak/>
-                      - Filter latency value lower than 4 milliseconds isn't recommended. It is just better to disable the smoothing filter.
-                      <LineBreak/>
-                      - You don't have to change the filter rate, but you can use the highest rate your computer can run without performance problems.
-                    </TextBlock>
-                  </StackPanel>
-                </GroupBox.ToolTip>
-
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
-
-                  <!-- Filter Latency -->
-                  <GroupBox Header="Latency" Height="50" Width="80" Margin="0,0,0,0">
-                    <Grid>
-                      <TextBox Name="textSmoothingLatency" Padding="4,0,0,0"
-                               HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
-                               TextChanged="TextChanged">0</TextBox>
-                      <Label Width="30" HorizontalAlignment="Right">ms</Label>
-                    </Grid>
-                  </GroupBox>
-
-                  <!-- Filter Rate -->
-                  <GroupBox Header="Rate" VerticalAlignment="Top" HorizontalAlignment="Left" Width="85" Height="50">
-                    <ComboBox Name="comboBoxSmoothingRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
-
-
-                      <ComboBoxItem>500 Hz</ComboBoxItem>
-                      <ComboBoxItem>333 Hz</ComboBoxItem>
-                      <ComboBoxItem Selector.IsSelected="True">250 Hz</ComboBoxItem>
-                      <ComboBoxItem>125 Hz</ComboBoxItem>
-                    </ComboBox>
-                  </GroupBox>
-
-                  <!-- Filter enabled -->
-                  <CheckBox Name="checkBoxSmoothing"
-                            VerticalAlignment="Center"
-                            Margin="5"
-                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">
-                    Enabled
-                  </CheckBox>
-                </StackPanel>
-              </GroupBox>
-
-
-
-
-            </StackPanel>
-
-
-            <!-- Desktop Size -->
-            <StackPanel Orientation="Horizontal"  HorizontalAlignment="Center">
               <!-- Desktop size -->
               <GroupBox Name="groupDesktopSize" Header="Desktop Size" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left"
                         >
@@ -442,6 +394,136 @@
                             Checked="CheckboxChanged" Unchecked="CheckboxChanged">Auto</CheckBox>
                 </StackPanel>
               </GroupBox>
+
+
+          
+            </StackPanel>
+
+
+            <!-- Desktop Size -->
+            <StackPanel Orientation="Horizontal"  HorizontalAlignment="Center">
+
+
+
+              <!-- Smoothing -->
+              <GroupBox Name="groupSmoothingFilter" Header="Smoothing Filter" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left"
+                        >
+                <GroupBox.ToolTip>
+                  <StackPanel>
+                    <TextBlock FontWeight="Bold">
+                    Cursor position smoothing filter
+                    </TextBlock>
+                    <TextBlock>
+                      - Smoothing filter adds latency to the input, so don't enable it if you want to have the lowest possible input latency.
+                      <LineBreak/>
+                      - On Wacom tablets you can use latency value between 15 and 25 to have a similar smoothing as in the Wacom drivers.
+                      <LineBreak/>
+                      - You can test out different filter values, but recommended maximum for osu! is around 50 milliseconds.
+                      <LineBreak/>
+                      - Filter latency value lower than 4 milliseconds isn't recommended. It is just better to disable the smoothing filter.
+                      <LineBreak/>
+                      - You don't have to change the filter rate, but you can use the highest rate your computer can run without performance problems.
+                    </TextBlock>
+                  </StackPanel>
+                </GroupBox.ToolTip>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+
+                  <!-- Filter Latency -->
+                  <GroupBox Header="Latency" Height="50" Width="80" Margin="0,0,0,0">
+                    <Grid>
+                      <TextBox Name="textSmoothingLatency" Padding="4,0,0,0"
+                               HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                               TextChanged="TextChanged">0</TextBox>
+                      <Label Width="30" HorizontalAlignment="Right">ms</Label>
+                    </Grid>
+                  </GroupBox>
+
+                  <!-- Filter Rate -->
+                  <GroupBox Header="Rate" VerticalAlignment="Top" HorizontalAlignment="Left" Width="85" Height="50">
+                    <ComboBox Name="comboBoxSmoothingRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
+                      <ComboBoxItem>1000 Hz</ComboBoxItem>
+                      <ComboBoxItem>500 Hz</ComboBoxItem>
+                      <ComboBoxItem>333 Hz</ComboBoxItem>
+                      <ComboBoxItem Selector.IsSelected="True">250 Hz</ComboBoxItem>
+                      <ComboBoxItem>125 Hz</ComboBoxItem>
+                    </ComboBox>
+                  </GroupBox>
+
+                  <!-- Filter enabled -->
+                  <CheckBox Name="checkBoxSmoothing"
+                            VerticalAlignment="Center"
+                            Margin="5"
+                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">
+                    Enabled
+                  </CheckBox>
+                </StackPanel>
+              </GroupBox>
+
+
+
+              <!-- Noise filter -->
+              <GroupBox Name="groupNoiseFilter" Header="Noise Reduction Filter" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left"
+                        >
+                <GroupBox.ToolTip>
+                  <StackPanel>
+                    <TextBlock FontWeight="Bold">
+                    Pen signal noise reduction filter
+                    </TextBlock>
+                    <TextBlock>
+                      - It is recommend only to use this filter with older Wacom tablets.
+                      <LineBreak/>
+                      - Noise filter adds latency to the input, so don't enable it if you want to have the lowest possible input latency.
+                      <LineBreak/>
+                      - Samples value means how many pen positions will be stored to filter buffer. Lower value means lower latency, but lower noise reduction.
+                      <LineBreak/>
+                      - Threshold value is the limit where the noise reduction will be at maximum strength.
+                      <LineBreak/>
+                      - If the pen position moves suddenly more than this threshold, then noise reduction will be lower.
+                      <LineBreak/>
+                      - Recommended values: samples 5 - 20, threshold 0.5 - 1.0 mm.
+                      <LineBreak/>
+                      - You can try larger filter settings, but at some point the latency will be very noticable.
+                      <LineBreak/>
+                      - If the pen movement is greatly faster than the threshold value then the noise reduction and latency caused by the filter is almost zero. 
+                    </TextBlock>
+                  </StackPanel>
+                </GroupBox.ToolTip>
+
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+
+                  <!-- Noise filter packets -->
+                  <GroupBox Header="Samples" Height="50" Width="80" Margin="0,0,0,0">
+                      <TextBox Name="textNoiseSamples" Padding="4,0,0,0"
+                               HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                               TextChanged="TextChanged">10</TextBox>
+                  </GroupBox>
+
+                  <!-- Noise filter threshold -->
+                  <GroupBox Header="Threshold" Height="50" Width="80" Margin="0,0,0,0">
+                    <Grid>
+                      <TextBox Name="textNoiseThreshold" Padding="4,0,0,0"
+                               HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                               TextChanged="TextChanged">1.0</TextBox>
+                      <Label Width="30" HorizontalAlignment="Right">mm</Label>
+                    </Grid>
+                  </GroupBox>
+                  
+                  <!-- Noise filter enabled -->
+                  <CheckBox Name="checkBoxNoiseFilter"
+                            VerticalAlignment="Center"
+                            Margin="5"
+                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">
+                    Enabled
+                  </CheckBox>
+                </StackPanel>
+
+
+              </GroupBox>
+
+
+
 
 
             </StackPanel>
@@ -510,6 +592,9 @@
                   <MenuItem Name="menuOpenDebug" Header="Open Latest Debug Log" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuRunBenchmark" Header="Run Benchmark" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuCopyBenchmark" Header="Copy Benchmark Result" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuMeasure2" Header="Measure 2 points" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuMeasure3" Header="Measure 3 points" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuMeasure4" Header="Measure 4 points" Click="ConsoleMenuClick"></MenuItem>
                   <Separator/>
                   <MenuItem Name="menuOpenStartup" Header="Open Startup Log" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuOpenFolder" Header="Open TabletDriver Folder" Click="ConsoleMenuClick"></MenuItem>

@@ -2,6 +2,10 @@
 #include "TabletFilterNoiseReduction.h"
 
 
+#define LOG_MODULE "Noise"
+#include "Logger.h"
+
+
 //
 // Constructor
 //
@@ -22,7 +26,7 @@ TabletFilterNoiseReduction::~TabletFilterNoiseReduction() {
 
 // Set target position
 void TabletFilterNoiseReduction::SetTarget(Vector2D targetVector) {
-	lastTarget.Set(targetVector);
+	latestTarget.Set(targetVector);
 	buffer.Add(targetVector);
 }
 
@@ -52,14 +56,59 @@ void TabletFilterNoiseReduction::Update() {
 	// Calculate geometric median from the buffer positions
 	GetGeometricMedianVector(&position, iterations);
 
-	// Reset the buffer when distance to last target position is larger than the threshold
+	// Reset the buffer when distance to latest target position is larger than the threshold
 	if(buffer.isValid) {
-		double distance = lastTarget.Distance(position);
+
+		// Distance between latest position and ring buffer geometric median
+		double distance = latestTarget.Distance(position);
+
+		// Distance larger than threshold -> modify the ring buffer
 		if(distance > distanceThreshold) {
-			buffer.Reset();
-			position.Set(lastTarget);
+
+			// Distance factor
+			double distanceFactor = 1;
+			if(distanceThreshold > 0) {
+				distanceFactor = distance / distanceThreshold;
+			}
+
+			// Buffer fill count (distance 10 times larger than threshold -> fill whole buffer)
+			int fillCount = (int)(distanceFactor * 0.1 * buffer.length);
+			if(fillCount > buffer.length) fillCount = buffer.length;
+
+			// Fill part of the ring buffer with the latest position
+			for(int i = 0; i < fillCount; i++) {
+				buffer.Add(latestTarget);
+			}
+
+			// Debug
+			if(tablet->debugEnabled) {
+				LOG_DEBUG("Noise distance threshold! D:%0.2f Fa:%0.2f Fi:%d\n", distance, distanceFactor, fillCount);
+			}
+
+
+			// Max fill -> set the position to latest target position
+			if(fillCount >= buffer.length) {
+				position.Set(latestTarget);
+
+			// Calculate a new geometric median
+			} else {
+				GetGeometricMedianVector(&position, iterations);
+			}
+
 		}
 	}
+
+	// Debug
+	if(tablet->debugEnabled) {
+		LOG_DEBUG("Noise: B:%d T:%0.2f,%0.2f O:%0.2f,%0.2f D:%0.2f\n",
+			buffer.count,
+			latestTarget.x, latestTarget.y,
+			position.x, position.y,
+			position.Distance(latestTarget)
+		);
+	}
+
+
 }
 
 //

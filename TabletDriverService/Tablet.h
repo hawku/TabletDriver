@@ -9,7 +9,7 @@
 #include "TabletFilterSmoothing.h"
 #include "TabletFilterNoiseReduction.h"
 #include "TabletFilterPeak.h"
-#include "TabletBenchmark.h"
+#include "TabletMeasurement.h"
 #include "Vector2D.h"
 
 using namespace std;
@@ -74,8 +74,8 @@ public:
 	TabletFilter *filterPacket[10];
 	int filterPacketCount;
 
-	// Benchmark
-	TabletBenchmark benchmark;
+	// Measurement
+	TabletMeasurement measurement;
 
 	// Button map
 	BYTE buttonMap[16];

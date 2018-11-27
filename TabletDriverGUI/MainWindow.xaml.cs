@@ -78,6 +78,9 @@ namespace TabletDriverGUI
         }
         MouseDrag mouseDrag;
 
+        // Measurement to area
+        private bool isEnabledMeasurementToArea = false;
+
         //
         // Constructor
         //
@@ -109,6 +112,7 @@ namespace TabletDriverGUI
                 ContextMenu = new System.Windows.Forms.ContextMenu(new System.Windows.Forms.MenuItem[]
                 {
                     new System.Windows.Forms.MenuItem("TabletDriverGUI " + Version),
+                    new System.Windows.Forms.MenuItem("Restart Driver", NotifyRestartDriver),
                     new System.Windows.Forms.MenuItem("Show", NotifyShowWindow),
                     new System.Windows.Forms.MenuItem("Exit", NotifyExit)
                 })
@@ -183,11 +187,11 @@ namespace TabletDriverGUI
             // Smoothing rate ComboBox
             //
             comboBoxSmoothingRate.Items.Clear();
-            for (int i = 2; i <= 8; i++)
+            for (int i = 1; i <= 8; i++)
             {
                 comboBoxSmoothingRate.Items.Add((1000.0 / i).ToString("0") + " Hz");
             }
-            comboBoxSmoothingRate.SelectedIndex = 2;
+            comboBoxSmoothingRate.SelectedIndex = 3;
 
             // Process command line arguments
             ProcessCommandLineArguments();
@@ -335,6 +339,13 @@ namespace TabletDriverGUI
             }
         }
 
+
+        // 'Restart driver' handler for taskbar menu
+        void NotifyRestartDriver(object sender, EventArgs e)
+        {
+            RestartDriverClick(sender, null);
+        }
+
         // 'Hide' handler for taskbar menu
         void NotifyHideWindow(object sender, EventArgs e)
         {
@@ -479,7 +490,7 @@ namespace TabletDriverGUI
             //
             checkBoxSmoothing.IsChecked = config.SmoothingEnabled;
             textSmoothingLatency.Text = Utils.GetNumberString(config.SmoothingLatency);
-            comboBoxSmoothingRate.SelectedIndex = config.SmoothingInterval - 2;
+            comboBoxSmoothingRate.SelectedIndex = config.SmoothingInterval - 1;
             if (config.SmoothingEnabled)
             {
                 textSmoothingLatency.IsEnabled = true;
@@ -490,6 +501,25 @@ namespace TabletDriverGUI
                 textSmoothingLatency.IsEnabled = false;
                 comboBoxSmoothingRate.IsEnabled = false;
             }
+
+
+            //
+            // Noise filter
+            //
+            checkBoxNoiseFilter.IsChecked = config.NoiseFilterEnabled;
+            textNoiseSamples.Text = Utils.GetNumberString(config.NoiseFilterSamples);
+            textNoiseThreshold.Text = Utils.GetNumberString(config.NoiseFilterThreshold);
+            if (config.NoiseFilterEnabled)
+            {
+                textNoiseSamples.IsEnabled = true;
+                textNoiseThreshold.IsEnabled = true;
+            }
+            else
+            {
+                textNoiseSamples.IsEnabled = false;
+                textNoiseThreshold.IsEnabled = false;
+            }
+
 
             //
             // Run at startup
@@ -620,9 +650,9 @@ namespace TabletDriverGUI
 
 
 
-            // Filter
+            // Smoothing filter
             config.SmoothingEnabled = (bool)checkBoxSmoothing.IsChecked;
-            config.SmoothingInterval = comboBoxSmoothingRate.SelectedIndex + 2;
+            config.SmoothingInterval = comboBoxSmoothingRate.SelectedIndex + 1;
             if (Utils.ParseNumber(textSmoothingLatency.Text, out val))
                 config.SmoothingLatency = val;
 
@@ -636,6 +666,25 @@ namespace TabletDriverGUI
                 textSmoothingLatency.IsEnabled = false;
                 comboBoxSmoothingRate.IsEnabled = false;
             }
+
+            // Noise filter
+            config.NoiseFilterEnabled = (bool)checkBoxNoiseFilter.IsChecked;
+            if (Utils.ParseNumber(textNoiseSamples.Text, out val))
+                config.NoiseFilterSamples = (int)val;
+            if (Utils.ParseNumber(textNoiseThreshold.Text, out val))
+                config.NoiseFilterThreshold = val;
+            if (config.NoiseFilterEnabled)
+            {
+                textNoiseSamples.IsEnabled = true;
+                textNoiseThreshold.IsEnabled = true;
+            }
+            else
+            {
+                textNoiseSamples.IsEnabled = false;
+                textNoiseThreshold.IsEnabled = false;
+            }
+
+
 
             //
             // Run at startup
@@ -1553,7 +1602,8 @@ namespace TabletDriverGUI
                 if (title.Length > 63)
                 {
                     notifyIcon.Text = title.Substring(0, 63);
-                } else
+                }
+                else
                 {
                     notifyIcon.Text = title;
                 }
@@ -1591,6 +1641,54 @@ namespace TabletDriverGUI
                         SendSettingsToDriver();
 
                 }
+            }
+
+
+            //
+            // Tablet measurement to tablet area
+            //
+            if (variableName == "measurement" && isEnabledMeasurementToArea)
+            {
+                string[] stringValues = stringValue.Split(' ');
+                int valueCount = stringValues.Count();
+                if (valueCount >= 4)
+                {
+                    double minimumX = 10000;
+                    double minimumY = 10000;
+                    double maximumX = -10000;
+                    double maximumY = -10000;
+                    for (int i = 0; i < valueCount; i += 2)
+                    {
+                        if (
+                            Utils.ParseNumber(stringValues[i], out double x)
+                            &&
+                            Utils.ParseNumber(stringValues[i + 1], out double y)
+                        )
+                        {
+                            // Find limits
+                            if (x > maximumX) maximumX = x;
+                            if (x < minimumX) minimumX = x;
+                            if (y > maximumY) maximumY = y;
+                            if (y < minimumY) minimumY = y;
+                        }
+                    }
+                    double areaWidth = maximumX - minimumX;
+                    double areaHeight = maximumY - minimumY;
+                    double centerX = minimumX + areaWidth / 2.0;
+                    double centerY = minimumY + areaHeight / 2.0;
+                    //MessageBox.Show("Area: " + areaWidth + " x " + areaHeight + " @ " + centerX + ", " + centerY);
+                    config.TabletArea.Width = areaWidth;
+                    config.TabletArea.Height = areaHeight;
+                    config.TabletArea.X = centerX;
+                    config.TabletArea.Y = centerY;
+                    LoadSettingsFromConfiguration();
+                    UpdateSettingsToConfiguration();
+
+
+                }
+                isEnabledMeasurementToArea = false;
+                buttonDrawArea.IsEnabled = true;
+                SetStatus("");
             }
         }
 
@@ -1688,6 +1786,16 @@ namespace TabletDriverGUI
             else
             {
                 driver.SendCommand("Smoothing 0");
+            }
+
+            // Noise filter
+            if (config.NoiseFilterEnabled)
+            {
+                driver.SendCommand("Noise " + Utils.GetNumberString(config.NoiseFilterSamples) + " " + Utils.GetNumberString(config.NoiseFilterThreshold));
+            }
+            else
+            {
+                driver.SendCommand("Noise 0");
             }
 
             // Commands after settings
@@ -1958,7 +2066,7 @@ namespace TabletDriverGUI
             // Start debug log
             else if (sender == menuStartDebug)
             {
-                string logFilename = "debug_" + DateTime.Now.ToString("yyyy-MM-dd_hh_mm_ss") + ".txt";
+                string logFilename = "debug_" + DateTime.Now.ToString("yyyy-MM-dd_HH_mm_ss") + ".txt";
                 ConsoleSendCommand("log " + logFilename);
                 ConsoleSendCommand("debug 1");
             }
@@ -2024,6 +2132,26 @@ namespace TabletDriverGUI
                 }
             }
 
+
+            // Measure 2 points
+            else if (sender == menuMeasure2)
+            {
+                ConsoleSendCommand("Measure 2");
+            }
+
+            // Measure 3 points
+            else if (sender == menuMeasure3)
+            {
+                ConsoleSendCommand("Measure 3");
+            }
+
+            // Measure 4 points
+            else if (sender == menuMeasure4)
+            {
+                ConsoleSendCommand("Measure 4");
+            }
+
+
             // Open startup log
             else if (sender == menuOpenStartup)
             {
@@ -2080,7 +2208,7 @@ namespace TabletDriverGUI
 
 
 
-        #region Wacom
+        #region Wacom / Draw area
 
         //
         // Wacom Area
@@ -2126,6 +2254,21 @@ namespace TabletDriverGUI
             wacom.Close();
         }
 
+
+        //
+        // Draw area
+        //
+        private void ButtonDrawArea_Click(object sender, RoutedEventArgs e)
+        {
+            if (!isEnabledMeasurementToArea)
+            {
+                isEnabledMeasurementToArea = true;
+                driver.SendCommand("Measure 2");
+                SetStatus("Click the top left and the bottom right corners of the area with your tablet pen!");
+                buttonDrawArea.IsEnabled = false;
+            }
+        }
+
         #endregion
 
 
@@ -2163,6 +2306,7 @@ namespace TabletDriverGUI
 
             return IntPtr.Zero;
         }
+
 
 
         #endregion

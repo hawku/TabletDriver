@@ -33,11 +33,11 @@ namespace TabletDriverGUI
         // Console stuff
         public List<string> ConsoleBuffer;
         public bool HasConsoleUpdated;
-        private int ConsoleMaxLines;
+        private readonly int ConsoleMaxLines;
         private System.Threading.Mutex mutexConsoleUpdate;
 
         // Other variables
-        private string servicePath;
+        private readonly string servicePath;
         private Process processService;
         private Timer timerWatchdog;
         private bool running;

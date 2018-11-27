@@ -34,6 +34,7 @@ bool OutputVMultiDigitizer::Set(unsigned char buttons, double x, double y, doubl
 	report.buttons = buttons | 0x20;
 	report.x = (USHORT)round(x * 32767.0);
 	report.y = (USHORT)round(y * 32767.0);
+	report.pressure = (USHORT)round(pressure * 2047.0);
 	vmulti->SetReport(&report, sizeof(report));
 
 	if(debugEnabled) {

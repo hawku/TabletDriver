@@ -63,17 +63,6 @@ void TabletFilterSmoothing::Update() {
 
 }
 
-
-
-
-
-// Set position
-double TabletFilterSmoothing::SetPosition(double x, double y) {
-	this->position.x = x;
-	this->position.y = y;
-}
-
-
 //
 // Calculate filter latency
 //

@@ -19,7 +19,6 @@ public:
 	bool GetPosition(Vector2D *outputVector);
 	void Update();
 
-	double SetPosition(double x, double y);
 	double GetLatency(double filterWeight, double interval, double threshold);
 	double GetLatency(double filterWeight);
 	double GetLatency();

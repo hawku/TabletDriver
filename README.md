@@ -90,7 +90,7 @@ If you want to compile the code and don't want to install anything from the Tabl
 - https://www.xp-pen.com/upload/download/20181019/osuWin(20181019).zip
 
 **Huion WinUSB driver:**
-- https://www.huiontablet.com/drivers/WinDriver/HuionTablet_WinDriver_v13.15.16.zip
+- https://www.huiontablet.com/drivers/WinDriver/HuionTablet_WinDriver_v14.7.60.zip
 
 #
 

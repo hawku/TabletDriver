@@ -34,6 +34,7 @@ bool OutputVMultiAbsolute::Set(unsigned char buttons, double x, double y, double
 	report.buttons = buttons;
 	report.x = (USHORT)round(x * 32767.0);
 	report.y = (USHORT)round(y * 32767.0);
+	report.wheel = 0;
 	vmulti->SetReport(&report, sizeof(report));
 
 	if(debugEnabled) {
@@ -63,6 +64,8 @@ bool OutputVMultiAbsolute::Write() {
 bool OutputVMultiAbsolute::Reset() {
 	report.buttons = 0;
 	report.wheel = 0;
+	report.x = 0;
+	report.y = 0;
 	vmulti->SetReport(&report, sizeof(report));
 	vmulti->WriteReport();
 	return true;

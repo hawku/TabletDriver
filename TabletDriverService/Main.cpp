@@ -65,15 +65,15 @@ void RunTabletThread() {
 		status = tablet->ReadPosition();
 
 		// Position OK
-		if(status == Tablet::PacketValid) {
+		if(status == Tablet::ReportValid) {
 			isResent = false;
 
-		// Invalid packet id
-		} else if(status == Tablet::PacketInvalid) {
+		// Invalid report id
+		} else if(status == Tablet::ReportInvalid) {
 			continue;
 
-		// Valid packet but position is not in-range or invalid
-		} else if(status == Tablet::PacketPositionInvalid) {
+		// Valid report but position is not in-range or invalid
+		} else if(status == Tablet::ReportPositionInvalid) {
 			if(!isResent && tablet->state.isValid) {
 				isResent = true;
 				tablet->state.isValid = false;
@@ -109,21 +109,21 @@ void RunTabletThread() {
 
 
 		// Set output values
-		if(status == Tablet::PacketPositionInvalid) {
+		if(status == Tablet::ReportPositionInvalid) {
 			tablet->state.buttons = 0;
 		}
 
 		//
-		// Packet filters
+		// Report filters
 		//
 		// Is there any filters?
-		if(tablet->filterPacketCount > 0) {
+		if(tablet->filterReportCount > 0) {
 
 			// Loop through filters
-			for(int filterIndex = 0; filterIndex < tablet->filterPacketCount; filterIndex++) {
+			for(int filterIndex = 0; filterIndex < tablet->filterReportCount; filterIndex++) {
 
 				// Filter
-				filter = tablet->filterPacket[filterIndex];
+				filter = tablet->filterReport[filterIndex];
 
 				// Enabled?
 				if(filter != NULL && filter->isEnabled) {
@@ -358,7 +358,7 @@ int main(int argc, char**argv) {
 				running = true;
 
 				// Timed filter timer
-				if(tablet->filterPacketCount > 0) {
+				if(tablet->filterReportCount > 0) {
 					tablet->filterTimed[0]->callback = FilterTimerCallback;
 					tablet->filterTimed[0]->StartTimer();
 				}

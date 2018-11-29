@@ -53,9 +53,9 @@ Tablet::Tablet() {
 	// Filters
 	filterTimed[0] = &smoothing;
 	filterTimedCount = 1;
-	filterPacket[0] = &noise;
-	//filterPacket[1] = &peak;
-	filterPacketCount = 1;
+	filterReport[0] = &noise;
+	//filterReport[1] = &peak;
+	filterReportCount = 1;
 
 	peak.isEnabled = true;
 
@@ -72,10 +72,10 @@ Tablet::Tablet() {
 	// Debug output
 	debugEnabled = false;
 
-	// Skip first packets, some of those might be invalid.
-	skipPackets = 5;
+	// Skip first reports, some of those might be invalid.
+	skipReports = 5;
 
-	// Keep tip down packet counter
+	// Keep tip down report counter
 	tipDownCounter = 0;
 
 }
@@ -168,10 +168,10 @@ int Tablet::ReadPosition() {
 		return -1;
 	}
 
-	// Skip packets
-	if(skipPackets > 0) {
-		skipPackets--;
-		return Tablet::PacketInvalid;
+	// Skip reports
+	if(skipReports > 0) {
+		skipReports--;
+		return Tablet::ReportInvalid;
 	}
 
 
@@ -217,21 +217,21 @@ int Tablet::ReadPosition() {
 	}
 
 
-	// Validate packet id
+	// Validate report id
 	if(settings.reportId > 0 && reportData.reportId != settings.reportId) {
-		return Tablet::PacketInvalid;
+		return Tablet::ReportInvalid;
 	}
 
 
 
 	// Detect mask
 	if(settings.detectMask > 0 && (reportData.buttons & settings.detectMask) != settings.detectMask) {
-		return Tablet::PacketPositionInvalid;
+		return Tablet::ReportPositionInvalid;
 	}
 
 	// Ignore mask
 	if(settings.ignoreMask > 0 && (reportData.buttons & settings.ignoreMask) == settings.ignoreMask) {
-		return Tablet::PacketPositionInvalid;
+		return Tablet::ReportPositionInvalid;
 	}
 
 	//
@@ -248,7 +248,7 @@ int Tablet::ReadPosition() {
 		reportData.buttons |= 1;
 	}
 
-	// Keep pen tip button down for a few packets
+	// Keep pen tip button down for a few reports
 	if(settings.keepTipDown > 0) {
 		if(reportData.buttons & 0x01) {
 			tipDownCounter = settings.keepTipDown;
@@ -289,11 +289,11 @@ int Tablet::ReadPosition() {
 	if(measurement.isRunning) {
 		state.buttons = reportData.buttons & 0x0F;
 		measurement.Update(state);
-		return Tablet::PacketInvalid;
+		return Tablet::ReportInvalid;
 	}
 
-	// Packet and position is valid
-	return Tablet::PacketValid;
+	// Report and position is valid
+	return Tablet::ReportValid;
 }
 
 

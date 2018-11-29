@@ -186,7 +186,7 @@ bool ProcessCommand(CommandLine *cmd) {
 	else if(cmd->is("KeepTipDown")) {
 		if(tablet == NULL) return false;
 		tablet->settings.keepTipDown = cmd->GetInt(0, tablet->settings.keepTipDown);
-		LOG_INFO("Tablet pen tip keep down = %d packets\n", tablet->settings.keepTipDown);
+		LOG_INFO("Tablet pen tip keep down = %d reports\n", tablet->settings.keepTipDown);
 	}
 
 
@@ -543,32 +543,51 @@ bool ProcessCommand(CommandLine *cmd) {
 			tablet->noise.isEnabled = false;
 			LOG_INFO("Noise Reduction = off\n");
 
-		// Set parameters
+		// Enable
 		} else {
 
+			// Position buffer length
 			int length = cmd->GetInt(0, tablet->noise.buffer.length);
+
+			// Threshold where the noise filter starts to reduce the amount of filtering.
 			double distanceThreshold = cmd->GetDouble(1, tablet->noise.distanceThreshold);
-			int iterations = cmd->GetInt(2, tablet->noise.iterations);
+
+			// Distance where the amount of filtering will be zero. Default maximum is 2 times the threshold.
+			double distanceMaximum = cmd->GetDouble(2, distanceThreshold * 2.0);
+
+			// Geometric median calculation iteration count
+			int iterations = cmd->GetInt(3, tablet->noise.iterations);
 
 			// Limits
 			if(length < 0) length = 0;
 			else if(length > 50) length = 50;
 
-			if(distanceThreshold < 0) distanceThreshold = 0;
-			else if(distanceThreshold > 100) distanceThreshold = 100;
+			if(distanceThreshold < 0.0) distanceThreshold = 0.0;
+			else if(distanceThreshold > 1000) distanceThreshold = 1000;
+
+			if(distanceMaximum < 0.1) distanceMaximum = 0.1;
+			else if(distanceMaximum > 1000) distanceMaximum = 1000;
+
+			if(distanceThreshold > distanceMaximum) distanceThreshold = distanceMaximum;
 
 			if(iterations < 1) iterations = 1;
 			else if(iterations > 100) iterations = 100;
 
-			// Set
+			// Set noise filter values
 			tablet->noise.buffer.SetLength(length);
 			tablet->noise.distanceThreshold = distanceThreshold;
+			tablet->noise.distanceMaximum = distanceMaximum;
 			tablet->noise.iterations = iterations;
 
 			// Enable filter
 			if(tablet->noise.buffer.length > 0) {
 				tablet->noise.isEnabled = true;
-				LOG_INFO("Noise Reduction = %d packets, %0.3f mm threshold, %d iterations\n", length, distanceThreshold, iterations);
+				LOG_INFO("Noise Reduction = [\n");
+				LOG_INFO("  %d samples\n", length);
+				LOG_INFO("  %0.2f mm threshold (Wacom %0.2f mm/s)\n", distanceThreshold, distanceThreshold * 133.0);
+				LOG_INFO("  %0.2f mm maximum (Wacom %0.2f mm/s)\n", distanceMaximum, distanceMaximum * 133.0);
+				LOG_INFO("  %d iterations\n", iterations);
+				LOG_INFO("]\n");
 			} else {
 				tablet->noise.isEnabled = false;
 				LOG_INFO("Noise Reduction = off\n");
@@ -645,14 +664,14 @@ bool ProcessCommand(CommandLine *cmd) {
 		if(!CheckTablet()) return true;
 
 		int timeLimit;
-		int packetCount = cmd->GetInt(0, 200);
+		int reportCount = cmd->GetInt(0, 200);
 
-		// Limit packet count
-		if(packetCount < 10) packetCount = 10;
-		if(packetCount > 1000) packetCount = 1000;
+		// Limit report count
+		if(reportCount < 10) reportCount = 10;
+		if(reportCount > 1000) reportCount = 1000;
 
 		// Time limit
-		timeLimit = packetCount * 10;
+		timeLimit = reportCount * 10;
 		if(timeLimit < 1000) timeLimit = 1000;
 
 		// Log
@@ -662,19 +681,19 @@ bool ProcessCommand(CommandLine *cmd) {
 		LOG_INFO("Benchmark started!\n");
 
 		// Start measurement
-		tablet->measurement.Start(packetCount);
+		tablet->measurement.Start(reportCount);
 
 		// Wait for the benchmark to finish
 		for(int i = 0; i < timeLimit / 100; i++) {
 			Sleep(100);
 
 			// Benchmark results
-			if(tablet->measurement.packetCounter <= 0) {
+			if(tablet->measurement.reportCounter <= 0) {
 
 				double width = tablet->measurement.maximum.x - tablet->measurement.minimum.x;
 				double height = tablet->measurement.maximum.y - tablet->measurement.minimum.y;
 				LOG_INFO("\n");
-				LOG_INFO("Benchmark result (%d positions):\n", tablet->measurement.totalPackets);
+				LOG_INFO("Benchmark result (%d positions):\n", tablet->measurement.totalReports);
 				LOG_INFO("  Tablet: %s\n", tablet->name.c_str());
 				LOG_INFO("  Area: %0.2f mm x %0.2f mm (%0.0f px x %0.0f px)\n",
 					mapper->areaTablet.width,
@@ -692,8 +711,11 @@ bool ProcessCommand(CommandLine *cmd) {
 					height,
 					mapper->areaScreen.height / mapper->areaTablet.height* height
 				);
+				LOG_INFO("  Noise filter threshold: %0.2f mm\n", sqrt(width * width + height * height));
+
+
 				LOG_INFO("\n");
-				LOG_INFO("BENCHMARK %d %0.3f %0.3f %s\n", tablet->measurement.totalPackets, width, height, tablet->name.c_str());
+				LOG_STATUS("BENCHMARK %d %0.3f %0.3f %s\n", tablet->measurement.totalReports, width, height, tablet->name.c_str());
 				break;
 			}
 		}
@@ -702,9 +724,9 @@ bool ProcessCommand(CommandLine *cmd) {
 		tablet->measurement.Stop();
 
 		// Benchmark failed
-		if(tablet->measurement.packetCounter > 0) {
+		if(tablet->measurement.reportCounter > 0) {
 			LOG_ERROR("Benchmark failed!\n");
-			LOG_ERROR("Not enough packets captured in %0.2f seconds!\n",
+			LOG_ERROR("Not enough reports captured in %0.2f seconds!\n",
 				timeLimit / 1000.0
 			);
 		}
@@ -905,7 +927,7 @@ void LogInformation() {
 	LOG_INFO("  Max Y = %d\n", tablet->settings.maxY);
 	LOG_INFO("  Max Pressure = %d\n", tablet->settings.maxPressure);
 	LOG_INFO("  Click Pressure = %d\n", tablet->settings.clickPressure);
-	LOG_INFO("  Keep Tip Down = %d packets\n", tablet->settings.keepTipDown);
+	LOG_INFO("  Keep Tip Down = %d reports\n", tablet->settings.keepTipDown);
 	LOG_INFO("  Report Id = %02X\n", tablet->settings.reportId);
 	LOG_INFO("  Report Length = %d bytes\n", tablet->settings.reportLength);
 	LOG_INFO("  Detect Mask = 0x%02X\n", tablet->settings.detectMask);

@@ -2115,13 +2115,13 @@ namespace TabletDriverGUI
                     if (m.Success)
                     {
                         string tabletName = m.Groups[4].ToString();
-                        string totalPackets = m.Groups[1].ToString();
+                        string totalReports = m.Groups[1].ToString();
                         string noiseWidth = m.Groups[2].ToString();
                         string noiseHeight = m.Groups[3].ToString();
                         clipboard =
                             "Tablet(" + tabletName + ") " +
                             "Noise(" + noiseWidth + " mm x " + noiseHeight + " mm) " +
-                            "Packets(" + totalPackets + ")\r\n";
+                            "Reports(" + totalReports + ")\r\n";
                     }
                 }
 

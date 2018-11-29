@@ -13,6 +13,7 @@ public:
 
 	void SetLength(int length);
 	void Add(Vector2D vector);
+	void LerpAdd(Vector2D target, double t);
 	bool GetLatest(Vector2D *output, int delta);
 	void Reset();
 

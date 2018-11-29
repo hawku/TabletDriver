@@ -10,8 +10,8 @@ public:
 	Vector2D points[10];
 	int pointCount;
 
-	int totalPackets;
-	int packetCounter;
+	int totalReports;
+	int reportCounter;
 	bool isRunning;
 
 	TabletState lastState;
@@ -21,7 +21,7 @@ public:
 	TabletMeasurement();
 	~TabletMeasurement();
 	void Start();
-	void Start(int packetCount);
+	void Start(int reportCount);
 	void Stop();
 	void Update(TabletState state);
 };

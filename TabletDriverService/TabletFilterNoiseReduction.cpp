@@ -11,7 +11,12 @@
 //
 TabletFilterNoiseReduction::TabletFilterNoiseReduction() {
 	distanceThreshold = 0;
+	distanceMaximum = 1;
 	iterations = 10;
+	reportRate = 1;
+	timeBegin = chrono::high_resolution_clock::now();
+	timeLastReport = timeBegin;
+	timeNow = timeBegin;
 }
 
 //
@@ -46,10 +51,24 @@ bool TabletFilterNoiseReduction::GetPosition(Vector2D *outputVector) {
 // Update
 void TabletFilterNoiseReduction::Update() {
 
+	// Report rate calculation
+	timeNow = chrono::high_resolution_clock::now();
+	double timeDelta = (timeNow - timeLastReport).count() / 1000000.0;
+	if(timeDelta >= 1 && timeDelta <= 10) {
+		reportRate += ((1000.0 / timeDelta) - reportRate) * (timeDelta / 1000.0) * 5.0;
+	}
+	timeLastReport = timeNow;
+
+	// Velocity calculation
+	double velocity = latestTarget.Distance(lastTarget) * reportRate;
+	lastTarget.Set(latestTarget);
+
+	
+
+
 	// One position in the buffer?
 	if(buffer.count == 1) {
-		position.x = buffer[0]->x;
-		position.y = buffer[0]->y;
+		position.Set(latestTarget);
 		return;
 	}
 
@@ -63,48 +82,67 @@ void TabletFilterNoiseReduction::Update() {
 		double distance = latestTarget.Distance(position);
 
 		// Distance larger than threshold -> modify the ring buffer
-		if(distance > distanceThreshold) {
+		if(distance > distanceThreshold && distanceMaximum > 0) {
 
-			// Distance factor
-			double distanceFactor = 1;
-			if(distanceThreshold > 0) {
-				distanceFactor = distance / distanceThreshold;
+			// Ratio between current distance and maximum distance
+			double distanceRatio;
+
+			// Skip distance ratio calculation
+			if(distanceThreshold >= distanceMaximum) {
+				distanceRatio = 1;
+
+			// Distance ratio should be between 0.0 and 1.0
+			// 0.0 -> distance == distanceThreshold
+			// 1.0 -> distance == distanceMaximum
+			} else {
+				distanceRatio = (distance - distanceThreshold) / (distanceMaximum - distanceThreshold);
 			}
 
-			// Buffer fill count (distance 10 times larger than threshold -> fill whole buffer)
-			int fillCount = (int)(distanceFactor * 0.1 * buffer.length);
-			if(fillCount > buffer.length) fillCount = buffer.length;
-
-			// Fill part of the ring buffer with the latest position
-			for(int i = 0; i < fillCount; i++) {
-				buffer.Add(latestTarget);
-			}
-
-			// Debug
-			if(tablet->debugEnabled) {
-				LOG_DEBUG("Noise distance threshold! D:%0.2f Fa:%0.2f Fi:%d\n", distance, distanceFactor, fillCount);
-			}
-
-
-			// Max fill -> set the position to latest target position
-			if(fillCount >= buffer.length) {
+			// Distance larger than maximum -> fill buffer with the latest target position
+			if(distanceRatio >= 1.0) {
+				for(int i = 0; i < buffer.count; i++) {
+					buffer[i]->Set(latestTarget);
+				}
 				position.Set(latestTarget);
 
-			// Calculate a new geometric median
+			// Move buffer positions and current position towards the latest target using linear interpolation
+			// Amount of movement is the distance ratio between threshold and maximum
 			} else {
-				GetGeometricMedianVector(&position, iterations);
+				buffer.LerpAdd(latestTarget, distanceRatio);
+				position.LerpAdd(latestTarget, distanceRatio);
+			}
+
+			// Debug message
+			if(tablet->debugEnabled) {
+				LOG_DEBUG("Threshold! D=%0.2f mm, R=%0.2f, V=%0.2f mm/s, V2=%0.2f mm/s\n",
+					distance,
+					distanceRatio,
+					velocity, // True velocity
+					distance * reportRate // Distance to velocity
+				);
 			}
 
 		}
 	}
 
-	// Debug
+	// Debug message
 	if(tablet->debugEnabled) {
-		LOG_DEBUG("Noise: B:%d T:%0.2f,%0.2f O:%0.2f,%0.2f D:%0.2f\n",
+		double distance = position.Distance(latestTarget);
+		double latency;
+		if(velocity <= 0) {
+			latency = 0;
+		} else {
+			latency = distance / velocity * 1000.0;
+		}
+		LOG_DEBUG("T=%0.0f B=%d T=[%0.2f,%0.2f] P=[%0.2f,%0.2f] D=%0.2f R=%0.2f V=%0.2f L=%0.2f\n",
+			(timeNow - timeBegin).count() / 1000000.0,
 			buffer.count,
 			latestTarget.x, latestTarget.y,
 			position.x, position.y,
-			position.Distance(latestTarget)
+			distance,
+			reportRate,
+			velocity,
+			latency
 		);
 	}
 

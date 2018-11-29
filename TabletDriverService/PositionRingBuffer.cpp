@@ -50,6 +50,15 @@ void PositionRingBuffer::Add(Vector2D vector) {
 	isValid = true;
 }
 
+//
+// Move buffer positions towards a target with linear interpolation
+//
+void PositionRingBuffer::LerpAdd(Vector2D target, double t) {
+	for(int i = 0; i < count; i++) {
+		buffer[i].LerpAdd(target, t);
+	}
+}
+
 
 //
 // Get position history from the buffer

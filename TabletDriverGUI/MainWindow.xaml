@@ -481,7 +481,7 @@
                       <LineBreak/>
                       - If the pen position moves suddenly more than this threshold, then noise reduction will be lower.
                       <LineBreak/>
-                      - Recommended values: samples 5 - 20, threshold 0.5 - 1.0 mm.
+                      - Recommended values: samples 5 - 20, threshold 0.2 - 1.0 mm.
                       <LineBreak/>
                       - You can try larger filter settings, but at some point the latency will be very noticable.
                       <LineBreak/>
@@ -493,7 +493,7 @@
 
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
-                  <!-- Noise filter packets -->
+                  <!-- Noise filter samples -->
                   <GroupBox Header="Samples" Height="50" Width="80" Margin="0,0,0,0">
                       <TextBox Name="textNoiseSamples" Padding="4,0,0,0"
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"

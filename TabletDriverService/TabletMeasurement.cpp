@@ -11,8 +11,8 @@ TabletMeasurement::TabletMeasurement() {
 	minimum.Set(0, 0);
 	maximum.Set(0, 0);
 	pointCount = 0;
-	totalPackets = 0;
-	packetCounter = 0;
+	totalReports = 0;
+	reportCounter = 0;
 	lastState.buttons = 0;
 	lastState.isValid = false;
 }
@@ -34,15 +34,15 @@ void TabletMeasurement::Start() {
 //
 // Start measurement
 //
-void TabletMeasurement::Start(int packetCount) {
+void TabletMeasurement::Start(int reportCount) {
 
 	// Limits
 	minimum.Set(10000, 10000);
 	maximum.Set(-10000, -10000);
 
 	pointCount = 0;
-	totalPackets = packetCount;
-	packetCounter = packetCount;
+	totalReports = reportCount;
+	reportCounter = reportCount;
 
 	// Last tablet state
 	lastState.buttons = 0;
@@ -70,7 +70,7 @@ void TabletMeasurement::Update(TabletState state) {
 	
 
 	if(isRunning) {
-		if(packetCounter > 0 || packetCounter <= -1) {
+		if(reportCounter > 0 || reportCounter <= -1) {
 
 			// X Limits
 			if(state.position.x < minimum.x) minimum.x = state.position.x;
@@ -95,7 +95,7 @@ void TabletMeasurement::Update(TabletState state) {
 
 			lastState.buttons = state.buttons;
 			lastState.isValid = true;
-			packetCounter--;
+			reportCounter--;
 		} else {
 			isRunning = false;
 		}

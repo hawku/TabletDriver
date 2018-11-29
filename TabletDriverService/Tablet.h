@@ -30,11 +30,11 @@ public:
 		Button5, Button6, Button7, Button8
 	};
 
-	// Tablet packet state
-	enum TabletPacketState {
-		PacketPositionInvalid = 0,
-		PacketValid = 1,
-		PacketInvalid = 2
+	// Tablet report state
+	enum TabletReportState {
+		ReportPositionInvalid = 0,
+		ReportValid = 1,
+		ReportInvalid = 2
 	};
 
 	//
@@ -66,13 +66,13 @@ public:
 	// Peak filter
 	TabletFilterPeak peak;
 
-	// Timed filter
+	// Timed filters
 	TabletFilter *filterTimed[10];
 	int filterTimedCount;
 
-	// Packet filter
-	TabletFilter *filterPacket[10];
-	int filterPacketCount;
+	// Report filters
+	TabletFilter *filterReport[10];
+	int filterReportCount;
 
 	// Measurement
 	TabletMeasurement measurement;
@@ -84,7 +84,7 @@ public:
 	string name = "Unknown";
 	bool isOpen;
 	bool debugEnabled;
-	int skipPackets;
+	int skipReports;
 
 	// Pen tip button keep down
 	int tipDownCounter;

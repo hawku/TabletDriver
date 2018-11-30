@@ -99,6 +99,12 @@
     <ClInclude Include="TabletMeasurement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TabletFilterAntiSmoothing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TabletFilterTester.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -183,6 +189,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TabletMeasurement.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TabletFilterAntiSmoothing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TabletFilterTester.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

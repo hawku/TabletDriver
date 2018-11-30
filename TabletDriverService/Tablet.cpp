@@ -53,11 +53,9 @@ Tablet::Tablet() {
 	// Filters
 	filterTimed[0] = &smoothing;
 	filterTimedCount = 1;
-	filterReport[0] = &noise;
-	//filterReport[1] = &peak;
-	filterReportCount = 1;
-
-	peak.isEnabled = true;
+	filterReport[0] = &antiSmoothing;
+	filterReport[1] = &noise;
+	filterReportCount = 2;
 
 	// Button map
 	memset(&buttonMap, 0, sizeof(buttonMap));

@@ -594,11 +594,98 @@ bool ProcessCommand(CommandLine *cmd) {
 			}
 
 		}
+	}
 
+	//
+	// Anti-smoothing filter
+	//
+	else if(cmd->is("AntiSmoothing") || cmd->is("Anti")) {
 
+		string stringValue = cmd->GetStringLower(0, "");
 
+		// Off / False
+		if(stringValue == "off" || stringValue == "false") {
+			tablet->antiSmoothing.isEnabled = false;
+			LOG_INFO("Anti-smoothing = off\n");
+
+		// Enable
+		} else {
+
+			double power = cmd->GetDouble(0, 1.0);
+			double multiplier = cmd->GetDouble(1, 1.0);
+
+			if(power <= 0) {
+				tablet->antiSmoothing.isEnabled = false;
+				LOG_INFO("Anti-smoothing = off\n");
+			}
+			else {
+				tablet->antiSmoothing.power = power;
+				tablet->antiSmoothing.multiplier = multiplier;
+				tablet->antiSmoothing.isEnabled = true;
+				LOG_INFO("Anti-smoothing = P:%0.2f M:%0.2f\n",
+					tablet->antiSmoothing.power,
+					tablet->antiSmoothing.multiplier
+				);
+			}
+		}
+	}
+
+	//
+	// Filter tester
+	//
+	else if(cmd->is("FilterTester") || cmd->is("Tester")) {
+
+		string filterName = cmd->GetStringLower(0, "");
+		string inputFilepath = cmd->GetStringLower(1, "tester_input.txt");
+		string outputFilepath = cmd->GetStringLower(2, "tester_output.txt");
+		TabletFilter *filter = NULL;
+		TabletFilterTester *tester = NULL;
+
+		if(filterName.compare(0, 4, "anti") == 0) {
+			LOG_DEBUG("Anti!\n");
+			filter = new TabletFilterAntiSmoothing();
+			((TabletFilterAntiSmoothing*)filter)->power = tablet->antiSmoothing.power;
+			((TabletFilterAntiSmoothing*)filter)->multiplier = tablet->antiSmoothing.multiplier;
+
+		} else if(filterName.compare(0, 5, "noise") == 0) {
+			filter = new TabletFilterNoiseReduction();
+			((TabletFilterNoiseReduction*)filter)->buffer.SetLength(tablet->noise.buffer.length);
+			((TabletFilterNoiseReduction*)filter)->distanceThreshold = tablet->noise.distanceThreshold;
+			((TabletFilterNoiseReduction*)filter)->distanceMaximum = tablet->noise.distanceMaximum;
+			((TabletFilterNoiseReduction*)filter)->iterations = tablet->noise.iterations;
+			
+
+		}
+		if(filter != NULL) {
+
+			LOG_INFO("Filter test starting!\n");
+			Sleep(100);
+			tester = new TabletFilterTester(filter, inputFilepath, outputFilepath);
+			bool result = tester->Start();
+			if(!result) {
+				LOG_ERROR("Filter tester startup failed!\n");
+			}
+			while(tester->isRunning) {
+				Sleep(100);
+			}
+			tester->Stop();
+			LOG_INFO("Filter test ended!\n");
+			Sleep(100);
+
+		} else {
+			LOG_INFO("Usage: FilterTester <filter name>\n");
+		}
+
+		if(filter != NULL) {
+			delete filter;
+		}
+		if(tester != NULL) {
+			delete tester;
+		}
 
 	}
+
+
 
 	// Debug
 	else if(cmd->is("Debug")) {

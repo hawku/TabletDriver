@@ -8,6 +8,7 @@
 #include "TabletState.h"
 #include "TabletFilterSmoothing.h"
 #include "TabletFilterNoiseReduction.h"
+#include "TabletFilterAntiSmoothing.h"
 #include "TabletFilterPeak.h"
 #include "TabletMeasurement.h"
 #include "Vector2D.h"
@@ -63,8 +64,8 @@ public:
 	// Noise reduction filter
 	TabletFilterNoiseReduction noise;
 
-	// Peak filter
-	TabletFilterPeak peak;
+	// Anti-smoothing filter
+	TabletFilterAntiSmoothing antiSmoothing;
 
 	// Timed filters
 	TabletFilter *filterTimed[10];

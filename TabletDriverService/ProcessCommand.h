@@ -1,5 +1,6 @@
 #pragma once
 #include "CommandLine.h"
+#include "TabletFilterTester.h"
 
 bool ProcessCommand(CommandLine *cmd);
 bool ReadCommandFile(string filename);

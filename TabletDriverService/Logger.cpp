@@ -8,6 +8,7 @@ Logger::Logger() {
 	verbosity = LogLevelDebug;
 	newMessage = false;
 	directPrint = false;
+	debugEnabled = false;
 }
 
 

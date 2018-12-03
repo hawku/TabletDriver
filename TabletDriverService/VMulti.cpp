@@ -57,6 +57,11 @@ int VMulti::WriteReport() {
 	// Copy last report
 	memcpy(lastReportBuffer, reportBuffer, 65);
 
+	// Debug
+	if(logger.debugEnabled) {
+		LOG_DEBUGBUFFER(reportBuffer, 12, "Write: ");
+	}
+
 	// Write
 	return hidDevice->Write(reportBuffer, 65);
 

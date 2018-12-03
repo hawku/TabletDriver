@@ -37,7 +37,7 @@ bool OutputVMultiAbsolute::Set(unsigned char buttons, double x, double y, double
 	report.wheel = 0;
 	vmulti->SetReport(&report, sizeof(report));
 
-	if(debugEnabled) {
+	if(logger.debugEnabled) {
 		LOG_DEBUGBUFFER(&report, 9, "Report: ");
 	}
 

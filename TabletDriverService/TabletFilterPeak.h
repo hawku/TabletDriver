@@ -10,7 +10,7 @@ public:
 	Vector2D position;
 	double distanceThreshold;
 
-	void SetTarget(Vector2D targetVector);
+	void SetTarget(TabletState *tabletState);
 	void SetPosition(Vector2D vector);
 	bool GetPosition(Vector2D *outputVector);
 	void Update();

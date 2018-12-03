@@ -93,6 +93,7 @@ public:
 	};
 	bool isRunning;
 	bool directPrint;
+	bool debugEnabled;
 	string logFilename = "";
 
 	void OutputMessage(LogItem *message);

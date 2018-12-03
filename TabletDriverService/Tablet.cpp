@@ -50,9 +50,11 @@ Tablet::Tablet() {
 	initReport = NULL;
 	initReportLength = 0;
 
-	// Filters
+	// Timed filters
 	filterTimed[0] = &smoothing;
 	filterTimedCount = 1;
+
+	// Report filters
 	filterReport[0] = &antiSmoothing;
 	filterReport[1] = &noise;
 	filterReportCount = 2;
@@ -66,9 +68,6 @@ Tablet::Tablet() {
 
 	// Tablet connection open
 	isOpen = false;
-
-	// Debug output
-	debugEnabled = false;
 
 	// Skip first reports, some of those might be invalid.
 	skipReports = 5;
@@ -229,7 +228,7 @@ int Tablet::ReadPosition() {
 
 	// Ignore mask
 	if(settings.ignoreMask > 0 && (reportData.buttons & settings.ignoreMask) == settings.ignoreMask) {
-		return Tablet::ReportPositionInvalid;
+		return Tablet::ReportIgnore;
 	}
 
 	//
@@ -259,6 +258,9 @@ int Tablet::ReadPosition() {
 
 	// Set valid
 	state.isValid = true;
+
+	state.time = chrono::high_resolution_clock::now();
+
 
 	// Button map
 	reportData.buttons = reportData.buttons & 0x0F;
@@ -306,7 +308,7 @@ bool Tablet::Read(void *buffer, int length) {
 	} else if(hidDevice != NULL) {
 		status = hidDevice->Read(buffer, length);
 	}
-	if(debugEnabled && status) {
+	if(logger.debugEnabled && status) {
 		LOG_DEBUGBUFFER(buffer, length, "Read: ");
 	}
 	return status;

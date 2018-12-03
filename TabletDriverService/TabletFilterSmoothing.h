@@ -14,7 +14,7 @@ public:
 	TabletFilterSmoothing();
 	~TabletFilterSmoothing();
 
-	void SetTarget(Vector2D vector);
+	void SetTarget(TabletState *tabletState);
 	void SetPosition(Vector2D vector);
 	bool GetPosition(Vector2D *outputVector);
 	void Update();

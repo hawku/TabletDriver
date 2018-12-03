@@ -10,21 +10,17 @@ TabletFilterTester::TabletFilterTester(TabletFilter *f, string input, string out
 	this->filter = f;
 	this->inputFilepath = input;
 	this->outputFilepath = output;
-	isRunning = false;
 }
 
 // Destructor
 TabletFilterTester::~TabletFilterTester() {
 }
 
-//
-// Start test
-//
-bool TabletFilterTester::Start() {
 
-	isRunning = false;
-	callback = TimerCallback;
-
+//
+// Open files
+//
+bool TabletFilterTester::Open() {
 
 	inputFile = ifstream(inputFilepath, ifstream::in);
 	if(!inputFile) return false;
@@ -32,147 +28,92 @@ bool TabletFilterTester::Start() {
 	outputFile = ofstream(outputFilepath, ofstream::out);
 	if(!outputFile) return false;
 
-
-	BOOL result = CreateTimerQueueTimer(
-		&timer,
-		NULL, callback,
-		this,
-		0,
-		1,
-		WT_EXECUTEDEFAULT
-	);
-	if(!result) return false;
-
-	firstReport = true;
-	isRunning = true;
-
-	timeNow = chrono::high_resolution_clock::now();
-	timeBegin = timeNow;
-	inputTimeOffset = 0;
-	nextInputTime = 0;
-	nextInputPosition.Set(0, 0);
-
-	return true;
+	return false;
 }
 
+//
+// Run filter test
+//
+void TabletFilterTester::Run() {
 
-//
-// Stop test
-//
-bool TabletFilterTester::Stop() {
-	if(timer == NULL) return false;
-	bool result = DeleteTimerQueueTimer(NULL, timer, NULL);
-	if(result) {
-		timer = NULL;
+	double time;
+	chrono::high_resolution_clock::time_point timeBegin;
+	chrono::high_resolution_clock::time_point timeNow;
+	Vector2D position, newPosition;
+	string line;
+	bool firstReport;
+	double distance;
+	TabletState tabletState;
+
+	firstReport = true;
+
+	// Loop
+	while(!inputFile.eof()) {
+
+		// Read line from input file
+		try {
+			getline(inputFile, line);
+		} catch(exception) {
+			break;
+		}
+
+		// Parse input
+		CommandLine cmd(line);
+		if(cmd.is("position")) {
+			time = cmd.GetDouble(0, 0) ;
+			position.x = cmd.GetDouble(1, 0);
+			position.y = cmd.GetDouble(2, 0);
+			LOG_DEBUG("Input: %0.3f ms, %0.2f, %0.2f\n",
+				time,
+				position.x,
+				position.y
+			);
+
+			// Init settings on first report
+			if(firstReport) {
+				timeBegin = chrono::high_resolution_clock::now();
+				firstReport = false;
+				newPosition.Set(position);
+				LOG_DEBUG("First report: %0.3f, %0.2f, %0.2f\n", time, position.x, position.y);
+				
+			} else {
+				tabletState.time = timeNow;
+				tabletState.position.Set(position);
+				filter->SetTarget(&tabletState);
+				filter->Update();
+				filter->GetPosition(&newPosition);
+			}
+
+			timeNow = timeBegin + chrono::microseconds((int)(time * 1000.0));
+			distance = position.Distance(newPosition);
+
+			LOG_DEBUG("Output: %0.3f ms, %0.2f, %0.2f (%0.3f mm)\n",
+				time,
+				position.x,
+				position.y,
+				distance
+			);
+
+			outputFile << "position " << time << " " << newPosition.x << " " << newPosition.y << fixed << setprecision(2) << "\n";
+
+
+		}
+
 	}
-	isRunning = false;
 
+}
+
+//
+// Close files
+//
+bool TabletFilterTester::Close() {
+	
 	if(inputFile && inputFile.is_open()) {
 		inputFile.close();
 	}
 	if(outputFile && outputFile.is_open()) {
 		outputFile.close();
 	}
-	return result;
-}
 
-//
-// Timer tick
-//
-void TabletFilterTester::OnTimerTick() {
-	if(!isRunning) return;
-
-	timeNow = chrono::high_resolution_clock::now();
-
-	double timePosition = round((timeNow - timeBegin).count() / 1000000.0);
-	Vector2D newPosition;
-	double distance;
-
-	//LOG_DEBUG("TIME POSITION = %0.2f\n", timePosition);
-	if(timePosition > 100) {
-		//isRunning = false;
-	}
-
-	
-	string line;
-
-	// EOF?
-	if(inputFile.eof()) {
-		isRunning = false;
-		return;
-	}
-
-
-	// Wait for the next report time
-	if(!firstReport && timePosition < nextInputTime) {
-		return;
-	}
-
-	// Time position reached the next input time
-	if(!firstReport && timePosition >= nextInputTime) {
-		
-		filter->SetTarget(nextInputPosition);
-		filter->Update();
-		filter->GetPosition(&newPosition);
-
-		distance = nextInputPosition.Distance(newPosition);
-
-		LOG_DEBUG("Output: %0.0f/%0.0f ms, %0.2f, %0.2f (%0.3f mm)\n",
-			nextInputTime,
-			timePosition,
-			newPosition.x,
-			newPosition.y,
-			distance
-		);
-
-		
-		outputFile << "position " << nextInputTime << " " << newPosition.x << " " << newPosition.y << fixed << setprecision(2) << "\n";
-
-
-
-	}
-
-
-
-	// Read input
-	try {
-		getline(inputFile, line);
-	} catch(exception) {
-		isRunning = false;
-		return;
-	}
-
-	// Parse input
-	CommandLine cmd(line);
-	if(cmd.is("position")) {
-		Vector2D position, newPosition;
-		double time;
-
-		time = cmd.GetDouble(0, 0) - inputTimeOffset;
-		position.x = cmd.GetDouble(1, 0);
-		position.y = cmd.GetDouble(2, 0);
-		LOG_DEBUG("Input: %0.0f ms, %0.2f, %0.2f\n",
-			time,
-			position.x,
-			position.y
-		);
-		
-		// Init settings on first report
-		if(firstReport) {
-			inputTimeOffset = time;
-			timeBegin = timeNow;
-			firstReport = false;
-
-			nextInputTime = 0;
-			nextInputPosition.Set(position);
-
-			LOG_DEBUG("First report: %0.2f, %0.2f, %0.2f\n", inputTimeOffset, position.x, position.y);
-
-		} else {
-			nextInputTime = time;
-			nextInputPosition.Set(position);
-		}
-	}
-	
-
+	return true;
 }

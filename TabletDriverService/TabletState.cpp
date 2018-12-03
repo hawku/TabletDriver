@@ -3,6 +3,7 @@
 
 
 TabletState::TabletState() {
+	time = chrono::high_resolution_clock::now();
 	buttons = 0;
 	position.x = 0;
 	position.y = 0;

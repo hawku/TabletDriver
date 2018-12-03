@@ -35,7 +35,8 @@ public:
 	enum TabletReportState {
 		ReportPositionInvalid = 0,
 		ReportValid = 1,
-		ReportInvalid = 2
+		ReportInvalid = 2,
+		ReportIgnore = 3
 	};
 
 	//
@@ -84,7 +85,6 @@ public:
 	//
 	string name = "Unknown";
 	bool isOpen;
-	bool debugEnabled;
 	int skipReports;
 
 	// Pen tip button keep down

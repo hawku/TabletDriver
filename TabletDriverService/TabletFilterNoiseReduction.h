@@ -11,7 +11,7 @@ public:
 	PositionRingBuffer buffer;
 	Vector2D position;
 	Vector2D latestTarget;
-	Vector2D lastTarget;
+	Vector2D oldTarget;
 
 	int iterations;
 	double distanceThreshold;
@@ -22,7 +22,7 @@ public:
 	chrono::high_resolution_clock::time_point timeNow;
 
 
-	void SetTarget(Vector2D targetVector);
+	void SetTarget(TabletState *tabletState);
 	void SetPosition(Vector2D vector);
 	bool GetPosition(Vector2D *outputVector);
 	void Update();

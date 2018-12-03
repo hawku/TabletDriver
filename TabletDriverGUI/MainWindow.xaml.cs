@@ -24,7 +24,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.1.5";
+        public string Version = "0.2";
 
         // Console stuff
         private List<string> commandHistory;
@@ -507,17 +507,35 @@ namespace TabletDriverGUI
             // Noise filter
             //
             checkBoxNoiseFilter.IsChecked = config.NoiseFilterEnabled;
-            textNoiseSamples.Text = Utils.GetNumberString(config.NoiseFilterSamples);
+            textNoiseBuffer.Text = Utils.GetNumberString(config.NoiseFilterBuffer);
             textNoiseThreshold.Text = Utils.GetNumberString(config.NoiseFilterThreshold);
             if (config.NoiseFilterEnabled)
             {
-                textNoiseSamples.IsEnabled = true;
+                textNoiseBuffer.IsEnabled = true;
                 textNoiseThreshold.IsEnabled = true;
             }
             else
             {
-                textNoiseSamples.IsEnabled = false;
+                textNoiseBuffer.IsEnabled = false;
                 textNoiseThreshold.IsEnabled = false;
+            }
+
+
+            //
+            // Anti-smoothing filter
+            //
+            checkBoxAntiSmoothing.IsChecked = config.AntiSmoothingEnabled;
+            textAntiSmoothingShape.Text = Utils.GetNumberString(config.AntiSmoothingShape, "0.00");
+            textAntiSmoothingCompensation.Text = Utils.GetNumberString(config.AntiSmoothingCompensation, "0.00");
+            if (config.AntiSmoothingEnabled)
+            {
+                textAntiSmoothingShape.IsEnabled = true;
+                textAntiSmoothingCompensation.IsEnabled = true;
+            }
+            else
+            {
+                textAntiSmoothingShape.IsEnabled = false;
+                textAntiSmoothingCompensation.IsEnabled = false;
             }
 
 
@@ -669,19 +687,36 @@ namespace TabletDriverGUI
 
             // Noise filter
             config.NoiseFilterEnabled = (bool)checkBoxNoiseFilter.IsChecked;
-            if (Utils.ParseNumber(textNoiseSamples.Text, out val))
-                config.NoiseFilterSamples = (int)val;
+            if (Utils.ParseNumber(textNoiseBuffer.Text, out val))
+                config.NoiseFilterBuffer = (int)val;
             if (Utils.ParseNumber(textNoiseThreshold.Text, out val))
                 config.NoiseFilterThreshold = val;
             if (config.NoiseFilterEnabled)
             {
-                textNoiseSamples.IsEnabled = true;
+                textNoiseBuffer.IsEnabled = true;
                 textNoiseThreshold.IsEnabled = true;
             }
             else
             {
-                textNoiseSamples.IsEnabled = false;
+                textNoiseBuffer.IsEnabled = false;
                 textNoiseThreshold.IsEnabled = false;
+            }
+
+            // Anti-smoothing filter
+            config.AntiSmoothingEnabled = (bool)checkBoxAntiSmoothing.IsChecked;
+            if (Utils.ParseNumber(textAntiSmoothingShape.Text, out val))
+                config.AntiSmoothingShape = val;
+            if (Utils.ParseNumber(textAntiSmoothingCompensation.Text, out val))
+                config.AntiSmoothingCompensation = val;
+            if (config.AntiSmoothingEnabled)
+            {
+                textAntiSmoothingShape.IsEnabled = true;
+                textAntiSmoothingCompensation.IsEnabled = true;
+            }
+            else
+            {
+                textAntiSmoothingShape.IsEnabled = false;
+                textAntiSmoothingCompensation.IsEnabled = false;
             }
 
 
@@ -1791,11 +1826,22 @@ namespace TabletDriverGUI
             // Noise filter
             if (config.NoiseFilterEnabled)
             {
-                driver.SendCommand("Noise " + Utils.GetNumberString(config.NoiseFilterSamples) + " " + Utils.GetNumberString(config.NoiseFilterThreshold));
+                driver.SendCommand("Noise " + Utils.GetNumberString(config.NoiseFilterBuffer) + " " + Utils.GetNumberString(config.NoiseFilterThreshold));
             }
             else
             {
                 driver.SendCommand("Noise 0");
+            }
+
+
+            // Anti-smoothing filter
+            if (config.AntiSmoothingEnabled)
+            {
+                driver.SendCommand("AntiSmoothing " + Utils.GetNumberString(config.AntiSmoothingShape) + " " + Utils.GetNumberString(config.AntiSmoothingCompensation));
+            }
+            else
+            {
+                driver.SendCommand("AntiSmoothing 0");
             }
 
             // Commands after settings

@@ -23,9 +23,8 @@ TabletFilterSmoothing::~TabletFilterSmoothing() {
 //
 
 // Set target position
-void TabletFilterSmoothing::SetTarget(Vector2D vector) {
-	this->target.x = vector.x;
-	this->target.y = vector.y;
+void TabletFilterSmoothing::SetTarget(TabletState *tabletState) {
+	target.Set(tabletState->position);
 }
 
 // Set current position
@@ -55,7 +54,7 @@ void TabletFilterSmoothing::Update() {
 		position.x += deltaX * weight;
 		position.y += deltaY * weight;
 
-	// Too small distance -> set output values as target values
+	// Too short distance -> set output values as target values
 	} else {
 		position.x = target.x;
 		position.y = target.y;

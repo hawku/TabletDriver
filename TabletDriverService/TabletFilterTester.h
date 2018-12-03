@@ -23,32 +23,12 @@ public:
 	ifstream inputFile;
 	ofstream outputFile;
 
-	bool firstReport;
-	double inputTime;
-	double inputTimeOffset;
-
-	double nextInputTime;
-	Vector2D nextInputPosition;
-
-
-
-	chrono::high_resolution_clock::time_point timeBegin;
-	chrono::high_resolution_clock::time_point timeNow;
-
-	bool isRunning;
-
 	TabletFilterTester(TabletFilter *filter, string inputFilepath, string outputFilepath);
 	~TabletFilterTester();
 
-	bool Start();
-	bool Stop();
-	void OnTimerTick();
-	
-private:
-	
-	static VOID CALLBACK TimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWaitFired) {
-		TabletFilterTester *tester = (TabletFilterTester *)lpParameter;
-		tester->OnTimerTick();
-	}
+	bool Open();
+	void Run();
+	bool Close();
+
 };
 

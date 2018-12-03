@@ -12,6 +12,7 @@ public:
 	void Add(Vector2D vector);
 	void Multiply(double value);
 	double Distance(Vector2D target);
+	double Angle(Vector2D target);
 	void LerpAdd(Vector2D target, double t);
 };
 

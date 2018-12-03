@@ -80,7 +80,12 @@ void RunTabletThread() {
 			} else {
 				continue;
 			}
-			// Reading failed
+
+		// Ignore report
+		} else if(status == Tablet::ReportIgnore) {
+			continue;
+
+		// Reading failed
 		} else {
 			LOG_ERROR("Tablet Read Error!\n");
 			CleanupAndExit(1);
@@ -95,7 +100,7 @@ void RunTabletThread() {
 		}
 
 		// Debug messages
-		if(tablet->debugEnabled) {
+		if(logger.debugEnabled) {
 			timeNow = chrono::high_resolution_clock::now();
 			double delta = (timeNow - timeBegin).count() / 1000000.0;
 			LOG_DEBUG("STATE: %0.3f, %d, %0.3f, %0.3f, %0.3f\n",
@@ -129,7 +134,7 @@ void RunTabletThread() {
 				if(filter != NULL && filter->isEnabled) {
 
 					// Process
-					filter->SetTarget(tablet->state.position);
+					filter->SetTarget(&tablet->state);
 					filter->Update();
 					filter->GetPosition(&tablet->state.position);
 				}
@@ -172,6 +177,10 @@ VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWa
 		return;
 	}
 
+	memcpy(&outputState, &tablet->state, sizeof(outputState));
+	
+
+
 	// Loop through filters
 	for(int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
 
@@ -186,13 +195,13 @@ VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWa
 		}
 
 		// Set filter targets
-		filter->SetTarget(position);
+		filter->SetTarget(&outputState);
 
 		// Update filter position
 		filter->Update();
 
 		// Set output vector
-		filter->GetPosition(&position);
+		filter->GetPosition(&outputState.position);
 
 	}
 
@@ -200,8 +209,6 @@ VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWa
 		return;
 	}
 
-	memcpy(&outputState, &tablet->state, sizeof(outputState));
-	outputState.position.Set(position);
 	SetOutput(&outputState);
 }
 

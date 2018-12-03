@@ -30,9 +30,10 @@ TabletFilterNoiseReduction::~TabletFilterNoiseReduction() {
 //
 
 // Set target position
-void TabletFilterNoiseReduction::SetTarget(Vector2D targetVector) {
-	latestTarget.Set(targetVector);
-	buffer.Add(targetVector);
+void TabletFilterNoiseReduction::SetTarget(TabletState *tabletState) {
+	latestTarget.Set(tabletState->position);
+	buffer.Add(tabletState->position);
+	timeNow = tablet->state.time;
 }
 
 // Set position
@@ -52,7 +53,6 @@ bool TabletFilterNoiseReduction::GetPosition(Vector2D *outputVector) {
 void TabletFilterNoiseReduction::Update() {
 
 	// Report rate calculation
-	timeNow = chrono::high_resolution_clock::now();
 	double timeDelta = (timeNow - timeLastReport).count() / 1000000.0;
 	if(timeDelta >= 1 && timeDelta <= 10) {
 		reportRate += ((1000.0 / timeDelta) - reportRate) * (timeDelta / 1000.0) * 5.0;
@@ -60,8 +60,8 @@ void TabletFilterNoiseReduction::Update() {
 	timeLastReport = timeNow;
 
 	// Velocity calculation
-	double velocity = latestTarget.Distance(lastTarget) * reportRate;
-	lastTarget.Set(latestTarget);
+	double velocity = latestTarget.Distance(oldTarget) * reportRate;
+	oldTarget.Set(latestTarget);
 
 	
 
@@ -113,7 +113,7 @@ void TabletFilterNoiseReduction::Update() {
 			}
 
 			// Debug message
-			if(tablet->debugEnabled) {
+			if(logger.debugEnabled) {
 				LOG_DEBUG("Threshold! D=%0.2f mm, R=%0.2f, V=%0.2f mm/s, V2=%0.2f mm/s\n",
 					distance,
 					distanceRatio,
@@ -126,7 +126,7 @@ void TabletFilterNoiseReduction::Update() {
 	}
 
 	// Debug message
-	if(tablet->debugEnabled) {
+	if(logger.debugEnabled) {
 		double distance = position.Distance(latestTarget);
 		double latency;
 		if(velocity <= 0) {

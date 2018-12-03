@@ -1,9 +1,11 @@
 #pragma once
 #include "Vector2D.h"
+#include "TabletState.h"
+#include <chrono>
 
 class TabletFilter {
 public:
-	virtual void SetTarget(Vector2D vector) = 0;
+	virtual void SetTarget(TabletState *tabletState) = 0;
 	virtual void SetPosition(Vector2D vector) = 0;
 	virtual bool GetPosition(Vector2D *vector) = 0;
 	virtual void Update() = 0;

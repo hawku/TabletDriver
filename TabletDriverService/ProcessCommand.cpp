@@ -611,20 +611,20 @@ bool ProcessCommand(CommandLine *cmd) {
 		// Enable
 		} else {
 
-			double power = cmd->GetDouble(0, 1.0);
-			double multiplier = cmd->GetDouble(1, 1.0);
+			double shape = cmd->GetDouble(0, 1.0);
+			double compensation = cmd->GetDouble(1, 1.0);
 
-			if(power <= 0) {
+			if(shape <= 0) {
 				tablet->antiSmoothing.isEnabled = false;
 				LOG_INFO("Anti-smoothing = off\n");
 			}
 			else {
-				tablet->antiSmoothing.power = power;
-				tablet->antiSmoothing.multiplier = multiplier;
+				tablet->antiSmoothing.shape = shape;
+				tablet->antiSmoothing.compensation = compensation;
 				tablet->antiSmoothing.isEnabled = true;
-				LOG_INFO("Anti-smoothing = P:%0.2f M:%0.2f\n",
-					tablet->antiSmoothing.power,
-					tablet->antiSmoothing.multiplier
+				LOG_INFO("Anti-smoothing = Shape:%0.2f Compensation:%0.2f\n",
+					tablet->antiSmoothing.shape,
+					tablet->antiSmoothing.compensation
 				);
 			}
 		}
@@ -640,12 +640,17 @@ bool ProcessCommand(CommandLine *cmd) {
 		string outputFilepath = cmd->GetStringLower(2, "tester_output.txt");
 		TabletFilter *filter = NULL;
 		TabletFilterTester *tester = NULL;
+		char settingsString[1024];
 
 		if(filterName.compare(0, 4, "anti") == 0) {
 			LOG_DEBUG("Anti!\n");
 			filter = new TabletFilterAntiSmoothing();
-			((TabletFilterAntiSmoothing*)filter)->power = tablet->antiSmoothing.power;
-			((TabletFilterAntiSmoothing*)filter)->multiplier = tablet->antiSmoothing.multiplier;
+			((TabletFilterAntiSmoothing*)filter)->shape = tablet->antiSmoothing.shape;
+			((TabletFilterAntiSmoothing*)filter)->compensation = tablet->antiSmoothing.compensation;
+			sprintf_s(settingsString, "settings AntiSmoothing shape=%0.3f compensation=%0.3f",
+				tablet->antiSmoothing.shape,
+				tablet->antiSmoothing.compensation
+			);
 
 		} else if(filterName.compare(0, 5, "noise") == 0) {
 			filter = new TabletFilterNoiseReduction();
@@ -653,24 +658,32 @@ bool ProcessCommand(CommandLine *cmd) {
 			((TabletFilterNoiseReduction*)filter)->distanceThreshold = tablet->noise.distanceThreshold;
 			((TabletFilterNoiseReduction*)filter)->distanceMaximum = tablet->noise.distanceMaximum;
 			((TabletFilterNoiseReduction*)filter)->iterations = tablet->noise.iterations;
+			sprintf_s(settingsString, "settings NoiseReduction buffer=%d threshold=%0.3f maximum=%0.3f iterations=%d",
+				tablet->noise.buffer.length,
+				tablet->noise.distanceThreshold,
+				tablet->noise.distanceMaximum,
+				tablet->noise.iterations
+			);
 			
 
 		}
 		if(filter != NULL) {
 
+			logger.directPrint = true;
+
 			LOG_INFO("Filter test starting!\n");
-			Sleep(100);
+
 			tester = new TabletFilterTester(filter, inputFilepath, outputFilepath);
-			bool result = tester->Start();
+			bool result = tester->Open();
 			if(!result) {
-				LOG_ERROR("Filter tester startup failed!\n");
+				LOG_ERROR("Filter tester can't open files!\n");
 			}
-			while(tester->isRunning) {
-				Sleep(100);
-			}
-			tester->Stop();
+			tester->outputFile << settingsString << "\n";
+			tester->Run();
 			LOG_INFO("Filter test ended!\n");
-			Sleep(100);
+
+			logger.ProcessMessages();
+			logger.directPrint = false;
 
 		} else {
 			LOG_INFO("Usage: FilterTester <filter name>\n");
@@ -690,9 +703,8 @@ bool ProcessCommand(CommandLine *cmd) {
 	// Debug
 	else if(cmd->is("Debug")) {
 		if(!CheckTablet()) return true;
-		tablet->debugEnabled = cmd->GetBoolean(0, tablet->debugEnabled);
-		//vmulti->debugEnabled = tablet->debugEnabled;
-		LOG_INFO("Tablet debug = %s\n", tablet->debugEnabled ? "True" : "False");
+		logger.debugEnabled = cmd->GetBoolean(0, logger.debugEnabled);
+		LOG_INFO("Debug logging = %s\n", logger.debugEnabled ? "True" : "False");
 	}
 
 

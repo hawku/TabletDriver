@@ -13,7 +13,8 @@ TabletFilterAntiSmoothing::TabletFilterAntiSmoothing() {
 	shape = 1.0;
 	compensation = 1;
 
-	reportRate = 1;
+	reportRate = 100;
+	reportRateAverage = 100;
 	velocity = 0;
 	acceleration = 0;
 	jerk = 0;
@@ -67,7 +68,12 @@ void TabletFilterAntiSmoothing::Update() {
 	// Report rate calculation (moving average)
 	timeDelta = (timeNow - timeLastReport).count() / 1000000.0;
 	if(timeDelta >= 1 && timeDelta <= 10) {
-		reportRate += ((1000.0 / timeDelta) - reportRate) * (timeDelta / 1000.0) / 0.1;
+		reportRateAverage += ((1000.0 / timeDelta) - reportRateAverage) * (timeDelta / 1000.0) * 10;
+		if(reportRateAverage > reportRate) {
+			reportRate = reportRateAverage;
+		} else {
+			reportRate -= reportRate * (timeDelta / 1000.0) * 0.1;
+		}
 	} else {
 		//timeLastReport = timeNow;
 		//return;
@@ -142,12 +148,13 @@ void TabletFilterAntiSmoothing::Update() {
 	// Debug message
 	if(logger.debugEnabled) {
 		double delta = position.Distance(latestTarget);
-		LOG_DEBUG("T=%0.0f T=[%0.2f,%0.2f] P=[%0.2f,%0.2f] D=%0.3f R=%0.2f V=%0.2f PV=%0.2f A=%0.0f J=%0.0f L=%0.2f\n",
+		LOG_DEBUG("T=%0.2f T=[%0.2f,%0.2f] P=[%0.2f,%0.2f] D=%0.3f R=%0.2f RA=%0.2f V=%0.2f PV=%0.2f A=%0.0f J=%0.0f L=%0.2f\n",
 			(timeNow - timeBegin).count() / 1000000.0,
 			latestTarget.x, latestTarget.y,
 			position.x, position.y,
 			delta,
 			reportRate,
+			reportRateAverage,
 			velocity,
 			predictedVelocity,
 			acceleration,

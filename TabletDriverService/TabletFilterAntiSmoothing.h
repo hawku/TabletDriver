@@ -23,6 +23,7 @@ public:
 	~TabletFilterAntiSmoothing();
 private:
 	double reportRate;
+	double reportRateAverage;
 	double velocity;
 	double acceleration;
 	double jerk;

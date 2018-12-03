@@ -105,6 +105,9 @@
     <ClInclude Include="TabletFilterTester.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OutputDummy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -195,6 +198,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TabletFilterTester.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OutputDummy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

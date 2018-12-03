@@ -6,7 +6,7 @@
 #include "OutputVMultiRelative.h"
 #include "OutputVMultiDigitizer.h"
 #include "OutputSendInputAbsolute.h"
-
+#include "OutputDummy.h"
 
 class OutputManager : public Output {
 public:
@@ -18,22 +18,24 @@ public:
 		ModeVMultiDigitizer,
 		ModeSendInputAbsolute,
 		ModeSendInputRelative,
+		ModeDummy
 	};
 
-	Output * output;
-	Output *outputs[6];
-	
+	Output *output;
+	Output *outputs[7];
+
 	OutputVMultiAbsolute vmultiAbsolute;
 	OutputVMultiAbsoluteV2 vmultiAbsoluteV2;
 	OutputVMultiRelative vmultiRelative;
 	OutputVMultiDigitizer vmultiDigitizer;
 	OutputSendInputAbsolute sendInputAbsolute;
-	
+	OutputDummy dummy;
+
 	OutputMode mode;
 
 	void SetOutputMode(OutputMode newMode);
 
-	bool Set(unsigned char buttons, double x, double y, double pressure);
+	bool Set(TabletState *tabletState);
 	bool Write();
 	bool Reset();
 

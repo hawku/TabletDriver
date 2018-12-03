@@ -10,7 +10,6 @@
 //
 OutputSendInputAbsolute::OutputSendInputAbsolute() {
 	lastButtons = 0;
-
 	UpdateMonitorInfo();
 }
 
@@ -34,14 +33,28 @@ void OutputSendInputAbsolute::UpdateMonitorInfo() {
 	monitorInfo.virtualY = GetSystemMetrics(SM_YVIRTUALSCREEN);
 }
 
+//
+// Initialize
+//
+void OutputSendInputAbsolute::Init() {
+	UpdateMonitorInfo();
+}
 
 //
 // Set output
 //
-bool OutputSendInputAbsolute::Set(unsigned char buttons, double x, double y, double pressure) {
+bool OutputSendInputAbsolute::Set(TabletState *tabletState) {
 
+	double x = tabletState->position.x;
+	double y = tabletState->position.y;
+	unsigned char buttons = tabletState->buttons;
 
-	if(debugEnabled) {
+	// Map position to virtual screen (values between 0 and 1)
+	mapper->GetScreenPosition(&x, &y);
+
+	
+
+	if(logger.debugEnabled) {
 		LOG_DEBUG("%0.0f,%0.0f | %0.0f,%0.0f | %0.0f,%0.0f\n",
 			monitorInfo.primaryWidth, monitorInfo.primaryHeight,
 			monitorInfo.virtualWidth, monitorInfo.virtualHeight,

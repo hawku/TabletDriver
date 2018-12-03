@@ -30,13 +30,21 @@ OutputVMultiAbsoluteV2::~OutputVMultiAbsoluteV2() {
 //
 // Set output
 //
-bool OutputVMultiAbsoluteV2::Set(unsigned char buttons, double x, double y, double pressure) {
-	report.buttons = buttons;
+bool OutputVMultiAbsoluteV2::Set(TabletState *tabletState) {
+
+	double x = tabletState->position.x;
+	double y = tabletState->position.y;
+
+	// Map position to virtual screen (values between 0 and 1)
+	mapper->GetScreenPosition(&x, &y);
+
+	report.buttons = tabletState->buttons;
 	report.x = (USHORT)round(x * 32767.0);
 	report.y = (USHORT)round(y * 32767.0);
+	//report.pressure = (USHORT)round(tabletState->pressure * 8191.0);
 	vmulti->SetReport(&report, sizeof(report));
 
-	if(debugEnabled) {
+	if(logger.debugEnabled) {
 		LOG_DEBUGBUFFER(&report, 10, "Report: ");
 	}
 

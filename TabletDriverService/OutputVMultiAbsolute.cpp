@@ -30,8 +30,15 @@ OutputVMultiAbsolute::~OutputVMultiAbsolute() {
 //
 // Set output
 //
-bool OutputVMultiAbsolute::Set(unsigned char buttons, double x, double y, double pressure) {
-	report.buttons = buttons;
+bool OutputVMultiAbsolute::Set(TabletState *tabletState) {
+
+	double x = tabletState->position.x;
+	double y = tabletState->position.y;
+
+	// Map position to virtual screen (values between 0 and 1)
+	mapper->GetScreenPosition(&x, &y);
+
+	report.buttons = tabletState->buttons;
 	report.x = (USHORT)round(x * 32767.0);
 	report.y = (USHORT)round(y * 32767.0);
 	report.wheel = 0;

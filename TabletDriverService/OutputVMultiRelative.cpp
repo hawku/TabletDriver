@@ -33,9 +33,15 @@ OutputVMultiRelative::~OutputVMultiRelative() {
 //
 // Set output
 //
-bool OutputVMultiRelative::Set(unsigned char buttons, double x, double y, double pressure) {
+bool OutputVMultiRelative::Set(TabletState *tabletState) {
+
 	double dx, dy, distance;
 
+	double x = tabletState->position.x;
+	double y = tabletState->position.y;
+
+	// Map position to virtual screen (values between 0 and 1)
+	mapper->GetRotatedTabletPosition(&x, &y);
 
 	if(firstReport) {
 		settings->relativeState.lastPosition.x = x;
@@ -44,7 +50,7 @@ bool OutputVMultiRelative::Set(unsigned char buttons, double x, double y, double
 	}
 
 	// Buttons
-	report.buttons = buttons;
+	report.buttons = tabletState->buttons;
 
 	// Mouse move delta
 	dx = x - settings->relativeState.lastPosition.x;
@@ -87,7 +93,7 @@ bool OutputVMultiRelative::Set(unsigned char buttons, double x, double y, double
 	report.y = (char)relativeY;
 
 	vmulti->SetReport(&report, sizeof(report));
-	if(debugEnabled) {
+	if(logger.debugEnabled) {
 		LOG_DEBUGBUFFER(&report, 10, "Report: ");
 	}
 	return true;

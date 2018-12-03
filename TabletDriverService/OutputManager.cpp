@@ -9,25 +9,27 @@ OutputManager::OutputManager() {
 	output = &vmultiAbsolute;
 	mode = ModeVMultiAbsolute;
 
+	// Set outputs array
 	outputs[ModeVMultiAbsolute] = &vmultiAbsolute;
 	outputs[ModeVMultiAbsoluteV2] = &vmultiAbsoluteV2;
 	outputs[ModeVMultiRelative] = &vmultiRelative;
 	outputs[ModeVMultiDigitizer] = &vmultiDigitizer;
 	outputs[ModeSendInputAbsolute] = &sendInputAbsolute;
 	outputs[ModeSendInputRelative] = &sendInputAbsolute;
+	outputs[ModeDummy] = &dummy;
 
-
+	// Use same settings on all outputs
 	settings = new OutputSettings();
-
 	for(int i = 0; i < (sizeof(outputs) / sizeof(Output*)); i++) {
 		outputs[i]->settings = settings;
-		LOG_DEBUG("LOOP!\n");
 	}
 
 }
 
 
 OutputManager::~OutputManager() {
+	if(settings != NULL)
+		delete settings;
 }
 
 void OutputManager::SetOutputMode(OutputMode newMode) {
@@ -38,29 +40,17 @@ void OutputManager::SetOutputMode(OutputMode newMode) {
 	}
 	mode = newMode;
 
-	switch(newMode) {
-	case ModeVMultiAbsolute:
-	case ModeVMultiAbsoluteV2:
-	case ModeVMultiRelative:
-	case ModeVMultiDigitizer:
-		output = outputs[newMode];
-		break;
-	case ModeSendInputAbsolute:
-		output = outputs[newMode];
-		sendInputAbsolute.UpdateMonitorInfo();
-		break;
-	default:
-		LOG_ERROR("Unknown Output Mode!\n");
-		output = NULL;
-		break;
-	}
+	// Set new output
+	output = outputs[newMode];
 
-	//Reset();
+	// Initialize new output
+	output->Init();
+
 }
 
-bool OutputManager::Set(unsigned char buttons, double x, double y, double pressure) {
+bool OutputManager::Set(TabletState *tabletState) {
 	if(output == NULL) return false;
-	return output->Set(buttons, x, y, pressure);
+	return output->Set(tabletState);
 }
 
 bool OutputManager::Write() {

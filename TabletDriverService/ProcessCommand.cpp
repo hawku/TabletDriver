@@ -459,6 +459,12 @@ bool ProcessCommand(CommandLine *cmd) {
 			LOG_INFO("Output Mode = SendInput Absolute\n");
 		}
 
+		// Dummy
+		else if(mode == "dummy") {
+			outputManager->SetOutputMode(OutputManager::ModeDummy);
+			LOG_INFO("Output Mode = Dummy\n");
+		}
+
 		else {
 			LOG_ERROR("Unknown output mode '%s'\n", mode.c_str());
 		}

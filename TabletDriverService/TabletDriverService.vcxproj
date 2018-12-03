@@ -172,6 +172,7 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClInclude Include="HIDDevice.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Output.h" />
+    <ClInclude Include="OutputDummy.h" />
     <ClInclude Include="OutputManager.h" />
     <ClInclude Include="OutputSendInputAbsolute.h" />
     <ClInclude Include="OutputSettings.h" />
@@ -204,6 +205,7 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClCompile Include="HIDDevice.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Output.cpp" />
+    <ClCompile Include="OutputDummy.cpp" />
     <ClCompile Include="OutputManager.cpp" />
     <ClCompile Include="OutputSendInputAbsolute.cpp" />
     <ClCompile Include="OutputSettings.cpp" />

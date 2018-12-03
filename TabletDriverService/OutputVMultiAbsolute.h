@@ -15,7 +15,7 @@ public:
 		BYTE wheel;
 	} report;
 
-	bool Set(unsigned char buttons, double x, double y, double pressure);
+	bool Set(TabletState *tabletState);
 	bool Write();
 	bool Reset();
 

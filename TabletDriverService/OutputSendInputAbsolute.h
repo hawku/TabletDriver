@@ -18,7 +18,8 @@ public:
 
 	void UpdateMonitorInfo();
 
-	bool Set(unsigned char buttons, double x, double y, double pressure);
+	void Init() override;
+	bool Set(TabletState *tabletState);
 	bool Write();
 	bool Reset();
 

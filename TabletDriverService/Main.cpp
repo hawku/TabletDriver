@@ -213,55 +213,13 @@ VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWa
 }
 
 
-
 //
 // Set Output
 //
-
 void SetOutput(TabletState *outputState) {
-
-	double x, y;
-
-
-	// Relative mode
-	if(outputManager->mode == OutputManager::ModeVMultiRelative) {
-
-		x = outputState->position.x;
-		y = outputState->position.y;
-
-		// Map position to virtual screen (values between 0 and 1)
-		mapper->GetRotatedTabletPosition(&x, &y);
-
-		outputManager->Set(outputState->buttons, x, y, outputState->pressure);
-		outputManager->Write();
-
-
-	}
-
-	// Absolute / Digitizer mode
-	else {
-		// Get x & y from the tablet state
-		x = outputState->position.x;
-		y = outputState->position.y;
-
-		// Map position to virtual screen (values betweeb 0->1)
-		mapper->GetScreenPosition(&x, &y);
-
-		outputManager->Set(outputState->buttons, x, y, outputState->pressure);
-		outputManager->Write();
-		/*
-			// Create VMulti report
-			vmulti->CreateReport(outputState->buttons, x, y, outputState->pressure);
-
-			// Write report to VMulti device
-			vmulti->WriteReport();
-
-		*/
-
-	}
+	outputManager->Set(outputState);
+	outputManager->Write();
 }
-
-
 
 
 //

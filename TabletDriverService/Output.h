@@ -1,18 +1,13 @@
 #pragma once
 #include "OutputSettings.h"
+#include "TabletState.h"
 
 class Output {
 public:
+	OutputSettings *settings = NULL;
 
-	OutputSettings * settings;
-	bool isEnabled;
-	bool debugEnabled;
-
-
-	virtual bool Set(unsigned char buttons, double x, double y, double pressure) = 0;
+	virtual void Init();
+	virtual bool Set(TabletState *tabletState) = 0;
 	virtual bool Write() = 0;
 	virtual bool Reset() = 0;
-
-	Output();
-
 };

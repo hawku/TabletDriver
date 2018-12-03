@@ -113,8 +113,8 @@ void Logger::LogBuffer(int level, string module, void *buffer, int length, const
 	// Clamp level
 	if(level < 2)
 		level = 2;
-	else if(level > 7)
-		level = 7;
+	else if(level > 8)
+		level = 8;
 
 	if(level <= verbosity) {
 		index = 0;

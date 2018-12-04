@@ -12,7 +12,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-### http://hwk.fi/TabletDriver/TabletDriverV0.1.5.zip
+### http://hwk.fi/TabletDriver/TabletDriverV0.2.zip
 
 #
 
@@ -25,6 +25,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 #
 
 ### Supported tablets:
+  - Wacom CTE-440
   - Wacom CTL-470
   - Wacom CTH-470
   - Wacom CTL-471
@@ -37,11 +38,14 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   - Wacom CTL-672
   - Wacom CTL-680
   - Wacom CTH-680
+  - Wacom PTH-660
   - Wacom PTH-451
   - Wacom PTH-850
   - XP-Pen G430 (New 2017+ "Model B")
   - XP-Pen G540 Pro
   - XP-Pen G640
+  - XP-Pen Deco 01
+  - XP-Pen Deco 01 v2
   - Huion 420
   - Huion H420
   - Huion H430P
@@ -50,7 +54,6 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   
 ### Configured, but not properly tested:
   - Huion osu!tablet
-  - XP-Pen Deco 01
   - Wacom CTL-4100 USB
   - Wacom CTL-4100 Bluetooth
   - https://github.com/hawku/TabletDriver/blob/master/TabletDriverService/config/wacom.cfg
@@ -95,6 +98,22 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ## Changelog
+>**v0.2:**
+> - **Improved the noise reduction filter and added the settings to the GUI.**
+> - **Added an anti-smoothing filter which reduces the input latency on tablets that use hardware smoothing.**
+> - Wacom CTE-440 support by [Poliwrath](https://github.com/Poliwrath)
+> - Wacom PTH-660 support by [Implojin](https://github.com/Implojin)
+> - XP-PEN Deco 01 v2 support by [Itsyuka](https://github.com/Itsyuka)
+> - Modified Huion 420 and H420 tablet area size to match with the 2000 LPI resolution.
+> - Updated Huion drivers to the latest version.
+> - Moved the filter settings to filters tab in the GUI.
+> - Added `Measure` command. Measures distances between clicked points.
+> - Added an ability to "draw" tablet area by clicking two points with the pen.
+> - Added "Restart driver" option to the notification icon menu.
+> - Added 1000 Hz smoothing filter rate option to the GUI.
+> - Added few tablets to wacom.cfg
+> - Major code refactoring.
+
 >**v0.1.5:**
 > - New tablet configurations: Wacom CTL-4100 (USB only model), XP-Pen G540 Pro, XP-Pen Deco 01 and Huion osu!tablet
 >   Thanks to /u/THEqrunt for capturing the XP-Pen Deco 01 USB data.

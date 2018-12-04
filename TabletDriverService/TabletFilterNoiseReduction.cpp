@@ -134,7 +134,7 @@ void TabletFilterNoiseReduction::Update() {
 		} else {
 			latency = distance / velocity * 1000.0;
 		}
-		LOG_DEBUG("T=%0.0f B=%d T=[%0.2f,%0.2f] P=[%0.2f,%0.2f] D=%0.2f R=%0.2f V=%0.2f L=%0.2f\n",
+		LOG_DEBUG("T=%0.0f B=%d Ta=[%0.2f,%0.2f] Po=[%0.2f,%0.2f] D=%0.2f R=%0.2f V=%0.2f L=%0.2f\n",
 			(timeNow - timeBegin).count() / 1000000.0,
 			buffer.count,
 			latestTarget.x, latestTarget.y,

@@ -576,7 +576,7 @@
                       VerticalAlignment="Bottom"
                       HorizontalAlignment="Left"
                       Margin="0,5,0,0"
-                      Width="300"
+                      Width="340"
             >
               <GroupBox.ToolTip>
                 <StackPanel>
@@ -618,6 +618,13 @@
                     <LineBreak/>
                     <LineBreak/>
                     <TextBlock FontWeight="Bold">
+                    Ignore when dragging
+                    </TextBlock>
+                    <LineBreak/>
+                    This feature is mainly meant for Wacom CTL-490, but might be useful with other tablets too.
+                    <LineBreak/>
+                    <LineBreak/>
+                    <TextBlock FontWeight="Bold">
                       Recommended value ranges
                     </TextBlock>
                     <LineBreak/>
@@ -644,7 +651,7 @@
                       Shape = 0.5, Compensation = 3.5, Invalid low speed data, use noise reduction 10/0.5 mm
                       <LineBreak/>                   
                       <TextBlock FontWeight="Bold">Wacom CTL-490 Hover:</TextBlock>
-                      Shape = 0.5, Compensation = 3.5
+                      Shape = 0.5, Compensation = 3.5, Enable "Ignore when dragging"
                       </TextBlock>
                   </TextBlock>
                 </StackPanel>
@@ -674,6 +681,14 @@
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">20</TextBox>
                 </GroupBox>
+
+                <!-- Anti-smoothing filter enabled -->
+                <CheckBox Name="checkBoxAntiSmoothingIgnoreWhenDragging"
+                            VerticalAlignment="Center"
+                            Margin="5,10,5,0"
+                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">
+                  Ignore when dragging
+                </CheckBox>
 
               </StackPanel>
 

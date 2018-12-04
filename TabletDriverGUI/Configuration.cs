@@ -40,6 +40,7 @@ namespace TabletDriverGUI
         // Anti-smoothing filter
         public double AntiSmoothingShape;
         public double AntiSmoothingCompensation;
+        public bool AntiSmoothingIgnoreWhenDragging;
         public bool AntiSmoothingEnabled;
 
         public Area DesktopSize;

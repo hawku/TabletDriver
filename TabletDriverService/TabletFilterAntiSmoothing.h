@@ -10,9 +10,12 @@ public:
 	Vector2D position;
 	Vector2D latestTarget;
 	Vector2D oldTarget;
+	TabletState tabletState;
+	TabletState oldTabletState;
 
 	double shape;
 	double compensation;
+	bool ignoreWhenDragging;
 
 	void SetTarget(TabletState *tabletState);
 	void SetPosition(Vector2D vector);

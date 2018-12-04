@@ -12,6 +12,7 @@
 TabletFilterAntiSmoothing::TabletFilterAntiSmoothing() {
 	shape = 1.0;
 	compensation = 1;
+	ignoreWhenDragging = false;
 
 	reportRate = 100;
 	reportRateAverage = 100;
@@ -44,6 +45,7 @@ TabletFilterAntiSmoothing::~TabletFilterAntiSmoothing() {
 void TabletFilterAntiSmoothing::SetTarget(TabletState *tabletState) {
 	latestTarget.Set(tabletState->position);
 	timeNow = tabletState->time;
+	memcpy(&this->tabletState, tabletState, sizeof(TabletState));
 }
 
 // Set position
@@ -108,6 +110,7 @@ void TabletFilterAntiSmoothing::Update() {
 		ignoreInvalidReports = 2;
 	}
 
+
 	// Velocity prediction
 	double predictedVelocity = velocity + (acceleration + jerk / reportRate) / reportRate;
 
@@ -145,6 +148,32 @@ void TabletFilterAntiSmoothing::Update() {
 	}
 
 
+	//
+	// Ignore filter when dragging
+	//
+	if(ignoreWhenDragging) {
+
+		// Ignore anti-smoothing pen pressure is detected
+		if(tabletState.pressure > 0) {
+			position.Set(latestTarget);
+		}
+
+		// Switching from drag to hover
+		if(tabletState.pressure == 0 && oldTabletState.pressure > 0) {
+			ignoreInvalidReports = 1;
+			position.Set(latestTarget);
+		}
+
+		// Switching from hover to drag
+		if(tabletState.pressure > 0 && oldTabletState.pressure == 0) {
+			ignoreInvalidReports = 1;
+			position.Set(latestTarget);
+		}
+
+	}
+
+
+
 	// Debug message
 	if(logger.debugEnabled) {
 		double delta = position.Distance(latestTarget);
@@ -168,7 +197,7 @@ void TabletFilterAntiSmoothing::Update() {
 	oldAcceleration = acceleration;
 	oldJerk = jerk;
 	oldTarget.Set(latestTarget);
-
+	memcpy(&this->oldTabletState, &this->tabletState, sizeof(TabletState));
 
 
 }

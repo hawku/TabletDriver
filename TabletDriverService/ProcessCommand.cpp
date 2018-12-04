@@ -97,23 +97,37 @@ bool ProcessCommand(CommandLine *cmd) {
 	}
 
 
-	// HID Device 2
-	else if(cmd->is("HID2")) {
+	// HID Auxiliary Device
+	else if(cmd->is("HIDAux") || cmd->is("HIDAuxiliary")) {
 
 		if(cmd->valueCount == 4) {
 			USHORT vendorID = cmd->GetInt(0, 0);
 			USHORT productID = cmd->GetInt(1, 0);
 			USHORT usagePage = cmd->GetInt(2, 0);
 			USHORT usage = cmd->GetInt(3, 0);
-			if(tablet->hidDevice2 == NULL) {
-				tablet->hidDevice2 = new HIDDevice(vendorID, productID, usagePage, usage);
-				if(tablet->hidDevice2->isOpen) {
+			if(tablet->hidDeviceAux == NULL) {
+				tablet->hidDeviceAux = new HIDDevice(vendorID, productID, usagePage, usage);
+				if(tablet->hidDeviceAux->isOpen) {
 					LOG_INFO("HID Device found!\n");
 				} else {
 					LOG_ERROR("Can't open HID device 0x%04X 0x%04X 0x%04X 0x%04X\n", vendorID, productID, usagePage, usage);
-					delete tablet->hidDevice2;
-					tablet->hidDevice2 = NULL;
+					delete tablet->hidDeviceAux;
+					tablet->hidDeviceAux = NULL;
 				}
+			}
+		}
+	}
+
+	// Auxiliary Read Read
+	else if(cmd->is("HIDAuxRead")) {
+			
+		if(cmd->valueCount > 1 && tablet->hidDeviceAux != NULL) {
+			int length = cmd->GetInt(0, 1);
+			int count = cmd->GetInt(1, 1);
+			UCHAR buffer[1024];
+			for(int i = 0; i < count; i++) {
+				tablet->hidDeviceAux->Read(buffer, length);
+				LOG_INFOBUFFER(buffer, length, "Aux read(%d): ", i+1);
 			}
 		}
 	}
@@ -619,18 +633,20 @@ bool ProcessCommand(CommandLine *cmd) {
 
 			double shape = cmd->GetDouble(0, 1.0);
 			double compensation = cmd->GetDouble(1, 1.0);
+			bool ignoreWhenDragging = cmd->GetBoolean(2, false);
 
 			if(shape <= 0) {
 				tablet->antiSmoothing.isEnabled = false;
 				LOG_INFO("Anti-smoothing = off\n");
-			}
-			else {
+			} else {
 				tablet->antiSmoothing.shape = shape;
 				tablet->antiSmoothing.compensation = compensation;
+				tablet->antiSmoothing.ignoreWhenDragging = ignoreWhenDragging;
 				tablet->antiSmoothing.isEnabled = true;
-				LOG_INFO("Anti-smoothing = Shape:%0.2f Compensation:%0.2f\n",
+				LOG_INFO("Anti-smoothing = Shape:%0.2f Compensation:%0.2f DragIgnore:%s\n",
 					tablet->antiSmoothing.shape,
-					tablet->antiSmoothing.compensation
+					tablet->antiSmoothing.compensation,
+					tablet->antiSmoothing.ignoreWhenDragging ? "true" : "false"
 				);
 			}
 		}
@@ -653,9 +669,11 @@ bool ProcessCommand(CommandLine *cmd) {
 			filter = new TabletFilterAntiSmoothing();
 			((TabletFilterAntiSmoothing*)filter)->shape = tablet->antiSmoothing.shape;
 			((TabletFilterAntiSmoothing*)filter)->compensation = tablet->antiSmoothing.compensation;
-			sprintf_s(settingsString, "settings AntiSmoothing shape=%0.3f compensation=%0.3f",
+			((TabletFilterAntiSmoothing*)filter)->ignoreWhenDragging = tablet->antiSmoothing.ignoreWhenDragging;
+			sprintf_s(settingsString, "settings AntiSmoothing shape=%0.3f compensation=%0.3f dragignore=%s",
 				tablet->antiSmoothing.shape,
-				tablet->antiSmoothing.compensation
+				tablet->antiSmoothing.compensation,
+				tablet->antiSmoothing.ignoreWhenDragging ? "true" : "false"
 			);
 
 		} else if(filterName.compare(0, 5, "noise") == 0) {
@@ -670,7 +688,7 @@ bool ProcessCommand(CommandLine *cmd) {
 				tablet->noise.distanceMaximum,
 				tablet->noise.iterations
 			);
-			
+
 
 		}
 		if(filter != NULL) {

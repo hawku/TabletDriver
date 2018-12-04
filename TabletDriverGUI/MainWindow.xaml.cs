@@ -527,15 +527,18 @@ namespace TabletDriverGUI
             checkBoxAntiSmoothing.IsChecked = config.AntiSmoothingEnabled;
             textAntiSmoothingShape.Text = Utils.GetNumberString(config.AntiSmoothingShape, "0.00");
             textAntiSmoothingCompensation.Text = Utils.GetNumberString(config.AntiSmoothingCompensation, "0.00");
+            checkBoxAntiSmoothingIgnoreWhenDragging.IsChecked = config.AntiSmoothingIgnoreWhenDragging;
             if (config.AntiSmoothingEnabled)
             {
                 textAntiSmoothingShape.IsEnabled = true;
                 textAntiSmoothingCompensation.IsEnabled = true;
+                checkBoxAntiSmoothingIgnoreWhenDragging.IsEnabled = true;
             }
             else
             {
                 textAntiSmoothingShape.IsEnabled = false;
                 textAntiSmoothingCompensation.IsEnabled = false;
+                checkBoxAntiSmoothingIgnoreWhenDragging.IsEnabled = false;
             }
 
 
@@ -708,15 +711,18 @@ namespace TabletDriverGUI
                 config.AntiSmoothingShape = val;
             if (Utils.ParseNumber(textAntiSmoothingCompensation.Text, out val))
                 config.AntiSmoothingCompensation = val;
+            config.AntiSmoothingIgnoreWhenDragging = (bool)checkBoxAntiSmoothingIgnoreWhenDragging.IsChecked;
             if (config.AntiSmoothingEnabled)
             {
                 textAntiSmoothingShape.IsEnabled = true;
                 textAntiSmoothingCompensation.IsEnabled = true;
+                checkBoxAntiSmoothingIgnoreWhenDragging.IsEnabled = true;
             }
             else
             {
                 textAntiSmoothingShape.IsEnabled = false;
                 textAntiSmoothingCompensation.IsEnabled = false;
+                checkBoxAntiSmoothingIgnoreWhenDragging.IsEnabled = false;
             }
 
 
@@ -1837,7 +1843,9 @@ namespace TabletDriverGUI
             // Anti-smoothing filter
             if (config.AntiSmoothingEnabled)
             {
-                driver.SendCommand("AntiSmoothing " + Utils.GetNumberString(config.AntiSmoothingShape) + " " + Utils.GetNumberString(config.AntiSmoothingCompensation));
+                driver.SendCommand("AntiSmoothing " + Utils.GetNumberString(config.AntiSmoothingShape) + " " +
+                    Utils.GetNumberString(config.AntiSmoothingCompensation) + " " +
+                    (config.AntiSmoothingIgnoreWhenDragging ? "true" : "false"));
             }
             else
             {

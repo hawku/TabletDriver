@@ -10,7 +10,7 @@
 #include "CommandLine.h"
 #include "ProcessCommand.h"
 
-#define LOG_MODULE ""
+#define LOG_MODULE "Main"
 #include "Logger.h"
 
 #pragma comment(lib, "hid.lib")
@@ -51,7 +51,6 @@ void RunTabletThread() {
 	bool filterTimedEnabled;
 
 	chrono::high_resolution_clock::time_point timeBegin = chrono::high_resolution_clock::now();
-	chrono::high_resolution_clock::time_point timeNow = chrono::high_resolution_clock::now();
 
 	//
 	// Main Loop
@@ -101,9 +100,8 @@ void RunTabletThread() {
 
 		// Debug messages
 		if(logger.debugEnabled) {
-			timeNow = chrono::high_resolution_clock::now();
-			double delta = (timeNow - timeBegin).count() / 1000000.0;
-			LOG_DEBUG("STATE: %0.3f, %d, %0.3f, %0.3f, %0.3f\n",
+			double delta = (tablet->state.time - timeBegin).count() / 1000000.0;
+			LOG_DEBUG("TabletState: T=%0.3f, B=%d, X=%0.3f, Y=%0.3f, P=%0.3f\n",
 				delta,
 				tablet->state.buttons,
 				tablet->state.position.x,

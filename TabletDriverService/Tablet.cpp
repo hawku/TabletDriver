@@ -40,7 +40,7 @@ Tablet::Tablet() {
 	name = "Unknown";
 	usbDevice = NULL;
 	hidDevice = NULL;
-	hidDevice2 = NULL;
+	hidDeviceAux = NULL;
 
 	usbPipeId = 0;
 
@@ -86,8 +86,8 @@ Tablet::~Tablet() {
 		delete usbDevice;
 	if(hidDevice != NULL)
 		delete hidDevice;
-	if(hidDevice2 != NULL)
-		delete hidDevice2;
+	if(hidDeviceAux != NULL)
+		delete hidDeviceAux;
 	if(initReport != NULL)
 		delete initReport;
 	if(initFeature != NULL)

@@ -18,9 +18,9 @@ using namespace std;
 class Tablet {
 public:
 
-	USBDevice * usbDevice;
-	HIDDevice * hidDevice;
-	HIDDevice * hidDevice2;
+	USBDevice *usbDevice;
+	HIDDevice *hidDevice;
+	HIDDevice *hidDeviceAux;
 	int usbPipeId;
 
 	//

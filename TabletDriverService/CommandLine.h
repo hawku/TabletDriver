@@ -20,6 +20,8 @@ public:
 	CommandLine(string text);
 	~CommandLine();
 	bool is(string command);
+	string GetCommandLowerCase();
+	string GetParameterString();
 	int Parse(string text);
 	string ParseHex(string str);
 	string GetString(int index, string defaultValue);

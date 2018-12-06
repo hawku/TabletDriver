@@ -29,6 +29,8 @@ TabletFilterAntiSmoothing::TabletFilterAntiSmoothing() {
 	timeBegin = chrono::high_resolution_clock::now();
 	timeLastReport = timeBegin;
 	timeNow = timeBegin;
+	
+	outputPosition = &outputState.position;
 }
 
 //
@@ -37,31 +39,21 @@ TabletFilterAntiSmoothing::TabletFilterAntiSmoothing() {
 TabletFilterAntiSmoothing::~TabletFilterAntiSmoothing() {
 }
 
-//
-// TabletFilter methods
-//
 
-// Set target position
+//
+// Set target
+//
 void TabletFilterAntiSmoothing::SetTarget(TabletState *tabletState) {
 	latestTarget.Set(tabletState->position);
 	timeNow = tabletState->time;
 	memcpy(&this->tabletState, tabletState, sizeof(TabletState));
+	memcpy(&outputState, tabletState, sizeof(TabletState));
 }
 
-// Set position
-void TabletFilterAntiSmoothing::SetPosition(Vector2D vector) {
-	position.x = vector.x;
-	position.y = vector.y;
-}
 
-// Get position
-bool TabletFilterAntiSmoothing::GetPosition(Vector2D *outputVector) {
-	outputVector->x = position.x;
-	outputVector->y = position.y;
-	return true;
-}
-
-// Update
+//
+// Update filter
+//
 void TabletFilterAntiSmoothing::Update() {
 
 	double timeDelta;
@@ -124,7 +116,7 @@ void TabletFilterAntiSmoothing::Update() {
 				timeDelta
 			);
 		}
-		position.Set(latestTarget);
+		outputPosition->Set(latestTarget);
 		ignoreInvalidReports--;
 
 
@@ -140,11 +132,11 @@ void TabletFilterAntiSmoothing::Update() {
 		//
 		predictedPosition.Set(oldTarget);
 		predictedPosition.LerpAdd(latestTarget, pow(predictedVelocity / velocity, shape) * compensation);
-		position.Set(predictedPosition);
+		outputPosition->Set(predictedPosition);
 
 	// Invalid velocity -> set the position to the latest target
 	} else {
-		position.Set(latestTarget);
+		outputPosition->Set(latestTarget);
 	}
 
 
@@ -155,32 +147,30 @@ void TabletFilterAntiSmoothing::Update() {
 
 		// Ignore anti-smoothing pen pressure is detected
 		if(tabletState.pressure > 0) {
-			position.Set(latestTarget);
+			outputPosition->Set(latestTarget);
 		}
 
 		// Switching from drag to hover
 		if(tabletState.pressure == 0 && oldTabletState.pressure > 0) {
 			ignoreInvalidReports = 1;
-			position.Set(latestTarget);
+			outputPosition->Set(latestTarget);
 		}
 
 		// Switching from hover to drag
 		if(tabletState.pressure > 0 && oldTabletState.pressure == 0) {
 			ignoreInvalidReports = 1;
-			position.Set(latestTarget);
+			outputPosition->Set(latestTarget);
 		}
 
 	}
 
-
-
 	// Debug message
 	if(logger.debugEnabled) {
-		double delta = position.Distance(latestTarget);
+		double delta = outputPosition->Distance(latestTarget);
 		LOG_DEBUG("T=%0.2f T=[%0.2f,%0.2f] P=[%0.2f,%0.2f] D=%0.3f R=%0.2f RA=%0.2f V=%0.2f PV=%0.2f A=%0.0f J=%0.0f L=%0.2f\n",
 			(timeNow - timeBegin).count() / 1000000.0,
 			latestTarget.x, latestTarget.y,
-			position.x, position.y,
+			outputPosition->x, outputPosition->y,
 			delta,
 			reportRate,
 			reportRateAverage,

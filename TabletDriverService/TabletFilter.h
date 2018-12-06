@@ -5,22 +5,20 @@
 
 class TabletFilter {
 public:
-	virtual void SetTarget(TabletState *tabletState) = 0;
-	virtual void SetPosition(Vector2D vector) = 0;
-	virtual bool GetPosition(Vector2D *vector) = 0;
-	virtual void Update() = 0;
 
-	HANDLE timer;
-	WAITORTIMERCALLBACK callback;
+	TabletState outputState;
 	double timerInterval;
-
 	bool isEnabled;
 	bool isValid;
 
 	TabletFilter();
 
-	bool StartTimer();
-	bool StopTimer();
+	virtual void SetTarget(TabletState *tabletState) = 0;
+	virtual void SetOutput(TabletState *tabletState);
+	virtual bool GetOutput(TabletState *tabletState);
+	virtual void OnTimerIntervalChange(double oldInterval, double newInterval);
+	virtual void Update() = 0;
 
+	
 };
 

@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "TabletFilterSmoothing.h"
 
+#define LOG_MODULE "Smoothing"
+#include "Logger.h"
+
 //
 // Constructor
 //
@@ -25,19 +28,15 @@ TabletFilterSmoothing::~TabletFilterSmoothing() {
 // Set target position
 void TabletFilterSmoothing::SetTarget(TabletState *tabletState) {
 	target.Set(tabletState->position);
+	memcpy(&outputState, tabletState, sizeof(TabletState));
 }
 
-// Set current position
-void TabletFilterSmoothing::SetPosition(Vector2D vector) {
-	position.x = vector.x;
-	position.y = vector.y;
-}
-
-// Get current position
-bool TabletFilterSmoothing::GetPosition(Vector2D *outputVector) {
-	outputVector->x = position.x;
-	outputVector->y = position.y;
-	return true;
+//
+// Filter timer interval changed
+//
+void TabletFilterSmoothing::OnTimerIntervalChange(double oldInterval, double newInterval) {
+	timerInterval = newInterval;
+	SetLatency(latency);
 }
 
 // Update
@@ -45,20 +44,36 @@ void TabletFilterSmoothing::Update() {
 
 	double deltaX, deltaY, distance;
 
-	deltaX = target.x - position.x;
-	deltaY = target.y - position.y;
+	deltaX = target.x - outputPosition.x;
+	deltaY = target.y - outputPosition.y;
 	distance = sqrt(deltaX*deltaX + deltaY * deltaY);
+
+	if(logger.debugEnabled) {
+		LOG_DEBUG("TX=%0.2f TY=%0.2f OX=%0.2f OY=%0.2f DX=%0.2f DY=%0.2f D=%0.2f W=%0.3f\n",
+			target.x,
+			target.y,
+			outputPosition.x,
+			outputPosition.y,
+			deltaX,
+			deltaY,
+			distance,
+			weight
+		);
+	}
+	
 
 	// Distance large enough?
 	if(distance > 0.01) {
-		position.x += deltaX * weight;
-		position.y += deltaY * weight;
+		outputPosition.x += deltaX * weight;
+		outputPosition.y += deltaY * weight;
 
 	// Too short distance -> set output values as target values
 	} else {
-		position.x = target.x;
-		position.y = target.y;
+		outputPosition.x = target.x;
+		outputPosition.y = target.y;
 	}
+
+	outputState.position.Set(outputPosition);
 
 }
 

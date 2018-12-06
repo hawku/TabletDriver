@@ -9,15 +9,16 @@ public:
 	double weight;
 	double threshold;
 	Vector2D target;
-	Vector2D position;
+	Vector2D outputPosition;
 
 	TabletFilterSmoothing();
 	~TabletFilterSmoothing();
 
 	void SetTarget(TabletState *tabletState);
-	void SetPosition(Vector2D vector);
-	bool GetPosition(Vector2D *outputVector);
+	void OnTimerIntervalChange(double oldInterval, double newInterval) override;
 	void Update();
+
+
 
 	double GetLatency(double filterWeight, double interval, double threshold);
 	double GetLatency(double filterWeight);

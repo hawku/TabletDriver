@@ -17,6 +17,7 @@ TabletFilterNoiseReduction::TabletFilterNoiseReduction() {
 	timeBegin = chrono::high_resolution_clock::now();
 	timeLastReport = timeBegin;
 	timeNow = timeBegin;
+	outputPosition = &outputState.position;
 }
 
 //
@@ -34,19 +35,7 @@ void TabletFilterNoiseReduction::SetTarget(TabletState *tabletState) {
 	latestTarget.Set(tabletState->position);
 	buffer.Add(tabletState->position);
 	timeNow = tablet->state.time;
-}
-
-// Set position
-void TabletFilterNoiseReduction::SetPosition(Vector2D vector) {
-	position.x = vector.x;
-	position.y = vector.y;
-}
-
-// Get position
-bool TabletFilterNoiseReduction::GetPosition(Vector2D *outputVector) {
-	outputVector->x = position.x;
-	outputVector->y = position.y;
-	return true;
+	memcpy(&outputState, tabletState, sizeof(TabletState));
 }
 
 // Update
@@ -68,18 +57,18 @@ void TabletFilterNoiseReduction::Update() {
 
 	// One position in the buffer?
 	if(buffer.count == 1) {
-		position.Set(latestTarget);
+		outputPosition->Set(latestTarget);
 		return;
 	}
 
 	// Calculate geometric median from the buffer positions
-	GetGeometricMedianVector(&position, iterations);
+	GetGeometricMedianVector(outputPosition, iterations);
 
 	// Reset the buffer when distance to latest target position is larger than the threshold
 	if(buffer.isValid) {
 
 		// Distance between latest position and ring buffer geometric median
-		double distance = latestTarget.Distance(position);
+		double distance = latestTarget.Distance(outputPosition);
 
 		// Distance larger than threshold -> modify the ring buffer
 		if(distance > distanceThreshold && distanceMaximum > 0) {
@@ -103,13 +92,13 @@ void TabletFilterNoiseReduction::Update() {
 				for(int i = 0; i < buffer.count; i++) {
 					buffer[i]->Set(latestTarget);
 				}
-				position.Set(latestTarget);
+				outputPosition->Set(latestTarget);
 
 			// Move buffer positions and current position towards the latest target using linear interpolation
 			// Amount of movement is the distance ratio between threshold and maximum
 			} else {
 				buffer.LerpAdd(latestTarget, distanceRatio);
-				position.LerpAdd(latestTarget, distanceRatio);
+				outputPosition->LerpAdd(latestTarget, distanceRatio);
 			}
 
 			// Debug message
@@ -127,7 +116,7 @@ void TabletFilterNoiseReduction::Update() {
 
 	// Debug message
 	if(logger.debugEnabled) {
-		double distance = position.Distance(latestTarget);
+		double distance = outputPosition->Distance(latestTarget);
 		double latency;
 		if(velocity <= 0) {
 			latency = 0;
@@ -138,7 +127,7 @@ void TabletFilterNoiseReduction::Update() {
 			(timeNow - timeBegin).count() / 1000000.0,
 			buffer.count,
 			latestTarget.x, latestTarget.y,
-			position.x, position.y,
+			outputPosition->x, outputPosition->y,
 			distance,
 			reportRate,
 			velocity,

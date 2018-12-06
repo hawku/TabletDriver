@@ -52,11 +52,12 @@ Tablet::Tablet() {
 
 	// Timed filters
 	filterTimed[0] = &smoothing;
-	filterTimedCount = 1;
+	filterTimed[1] = &gravityFilter;
+	filterTimedCount = 2;
 
 	// Report filters
 	filterReport[0] = &antiSmoothing;
-	filterReport[1] = &noise;
+	filterReport[1] = &noiseFilter;
 	filterReportCount = 2;
 
 	// Button map

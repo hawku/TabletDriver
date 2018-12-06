@@ -2,36 +2,32 @@
 #include "TabletFilter.h"
 
 
+//
+// Constructor
+//
 TabletFilter::TabletFilter() {
-	timer = NULL;
-	timerInterval = 2;
+	timerInterval = 10;
 	isValid = false;
 	isEnabled = false;
 }
 
-//
-// Start Timer
-//
-bool TabletFilter::StartTimer() {
-	return CreateTimerQueueTimer(
-		&timer,
-		NULL, callback,
-		NULL,
-		0,
-		(int)timerInterval,
-		WT_EXECUTEDEFAULT
-	);
-}
-
 
 //
-// Stop Timer
+// Set filter output position
 //
-bool TabletFilter::StopTimer() {
-	if(timer == NULL) return false;
-	bool result = DeleteTimerQueueTimer(NULL, timer, NULL);
-	if(result) {
-		timer = NULL;
-	}
-	return result;
+void TabletFilter::SetOutput(TabletState * tabletState) {
+	memcpy(&outputState, tabletState, sizeof(TabletState));
 }
+
+//
+// Get filter output position
+//
+bool TabletFilter::GetOutput(TabletState *tabletState) {
+	memcpy(tabletState, &outputState, sizeof(TabletState));
+	return true;
+}
+
+void TabletFilter::OnTimerIntervalChange(double oldInterval, double newInterval) {
+	timerInterval = newInterval;
+}
+

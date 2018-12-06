@@ -30,19 +30,12 @@ TabletFilterPeak::~TabletFilterPeak() {
 // Set target position
 void TabletFilterPeak::SetTarget(TabletState *tabletState) {
 	buffer.Add(tabletState->position);
+	memcpy(&outputState, tabletState, sizeof(TabletState));
 }
-// Set position
-void TabletFilterPeak::SetPosition(Vector2D vector) {
-	position.x = vector.x;
-	position.y = vector.y;
-}
-// Get position
-bool TabletFilterPeak::GetPosition(Vector2D *outputVector) {
-	outputVector->x = position.x;
-	outputVector->y = position.y;
-	return true;
-}
+
+//
 // Update
+//
 void TabletFilterPeak::Update() {
 	Vector2D oldPosition;
 	double distance;
@@ -51,11 +44,11 @@ void TabletFilterPeak::Update() {
 	if(
 		buffer.GetLatest(&oldPosition, -1)
 		&&
-		buffer.GetLatest(&position, 0)
+		buffer.GetLatest(&outputState.position, 0)
 	) {
 
 		// Jump longer than the distance threshold?
-		distance = oldPosition.Distance(position);
+		distance = oldPosition.Distance(outputState.position);
 		if(distance > distanceThreshold) {
 
 			/*
@@ -66,8 +59,7 @@ void TabletFilterPeak::Update() {
 			);
 			*/
 
-			position.x = oldPosition.x;
-			position.y = oldPosition.y;
+			outputState.position.Set(oldPosition);
 
 			// Reset buffer
 			buffer.Reset();

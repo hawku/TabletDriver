@@ -33,6 +33,23 @@ bool CommandLine::is(string command) {
 	return false;
 }
 
+//
+// Get command in lower case
+//
+string CommandLine::GetCommandLowerCase() {
+	transform(command.begin(), command.end(), command.begin(), ::tolower);
+	return command;
+}
+
+//
+// Get command parameters as as string
+//
+string CommandLine::GetParameterString() {
+	if(command.size() < line.size())
+		return line.substr(command.size() + 1);
+	return "";
+}
+
 
 //
 // Parse

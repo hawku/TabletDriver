@@ -8,6 +8,11 @@ Vector2D::Vector2D() {
 	x = 0;
 	y = 0;
 }
+Vector2D::Vector2D(double x, double y) {
+	this->x = x;
+	this->y = y;
+}
+
 
 //
 // Destructor
@@ -38,10 +43,29 @@ void Vector2D::Multiply(double value) {
 	this->y *= value;
 }
 
+void Vector2D::Divide(double value) {
+	this->x /= value;
+	this->y /= value;
+}
+
+void Vector2D::Normalize() {
+	Divide(Magnitude());
+}
+
+double Vector2D::Magnitude() {
+	return sqrt(x * x + y * y);
+}
+
+
+
 double Vector2D::Distance(Vector2D target) {
 	double dx = target.x - this->x;
 	double dy = target.y - this->y;
 	return sqrt(dx * dx + dy * dy);
+}
+
+double Vector2D::Distance(Vector2D * target) {
+	return Distance(*target);
 }
 
 double Vector2D::Angle(Vector2D target) {

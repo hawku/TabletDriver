@@ -7,9 +7,10 @@
 
 class TabletFilterAntiSmoothing : public TabletFilter {
 public:
-	Vector2D position;
 	Vector2D latestTarget;
 	Vector2D oldTarget;
+	Vector2D *outputPosition;
+
 	TabletState tabletState;
 	TabletState oldTabletState;
 
@@ -18,8 +19,6 @@ public:
 	bool ignoreWhenDragging;
 
 	void SetTarget(TabletState *tabletState);
-	void SetPosition(Vector2D vector);
-	bool GetPosition(Vector2D *outputVector);
 	void Update();
 
 	TabletFilterAntiSmoothing();

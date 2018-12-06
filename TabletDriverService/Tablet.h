@@ -10,6 +10,7 @@
 #include "TabletFilterNoiseReduction.h"
 #include "TabletFilterAntiSmoothing.h"
 #include "TabletFilterPeak.h"
+#include "TabletFilterGravity.h"
 #include "TabletMeasurement.h"
 #include "Vector2D.h"
 
@@ -63,10 +64,13 @@ public:
 	TabletFilterSmoothing smoothing;
 
 	// Noise reduction filter
-	TabletFilterNoiseReduction noise;
+	TabletFilterNoiseReduction noiseFilter;
 
 	// Anti-smoothing filter
 	TabletFilterAntiSmoothing antiSmoothing;
+
+	// Gravity filter
+	TabletFilterGravity gravityFilter;
 
 	// Timed filters
 	TabletFilter *filterTimed[10];

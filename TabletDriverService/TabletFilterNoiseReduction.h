@@ -9,9 +9,9 @@ class TabletFilterNoiseReduction : public TabletFilter {
 public:
 
 	PositionRingBuffer buffer;
-	Vector2D position;
 	Vector2D latestTarget;
 	Vector2D oldTarget;
+	Vector2D *outputPosition;
 
 	int iterations;
 	double distanceThreshold;
@@ -23,8 +23,6 @@ public:
 
 
 	void SetTarget(TabletState *tabletState);
-	void SetPosition(Vector2D vector);
-	bool GetPosition(Vector2D *outputVector);
 	void Update();
 
 	bool GetAverageVector(Vector2D *output);

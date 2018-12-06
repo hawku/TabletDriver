@@ -39,11 +39,11 @@ void TabletFilterTester::Run() {
 	double time;
 	chrono::high_resolution_clock::time_point timeBegin;
 	chrono::high_resolution_clock::time_point timeNow;
-	Vector2D position, newPosition;
+	Vector2D position;
 	string line;
 	bool firstReport;
 	double distance;
-	TabletState tabletState;
+	TabletState tabletState, outputState;
 
 	firstReport = true;
 
@@ -73,19 +73,20 @@ void TabletFilterTester::Run() {
 			if(firstReport) {
 				timeBegin = chrono::high_resolution_clock::now();
 				firstReport = false;
-				newPosition.Set(position);
+				outputState.position.Set(position);
 				LOG_DEBUG("First report: %0.3f, %0.2f, %0.2f\n", time, position.x, position.y);
 				
 			} else {
 				tabletState.time = timeNow;
 				tabletState.position.Set(position);
+				memcpy(&outputState, &tabletState, sizeof(TabletState));
 				filter->SetTarget(&tabletState);
 				filter->Update();
-				filter->GetPosition(&newPosition);
+				filter->GetOutput(&outputState);
 			}
 
 			timeNow = timeBegin + chrono::microseconds((int)(time * 1000.0));
-			distance = position.Distance(newPosition);
+			distance = position.Distance(outputState.position);
 
 			LOG_DEBUG("Output: %0.3f ms, %0.2f, %0.2f (%0.3f mm)\n",
 				time,
@@ -94,7 +95,7 @@ void TabletFilterTester::Run() {
 				distance
 			);
 
-			outputFile << "position " << time << " " << newPosition.x << " " << newPosition.y << fixed << setprecision(2) << "\n";
+			outputFile << "position " << time << " " << outputState.position.x << " " << outputState.position.y << fixed << setprecision(2) << "\n";
 
 
 		}

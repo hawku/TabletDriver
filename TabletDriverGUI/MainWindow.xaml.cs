@@ -1821,8 +1821,8 @@ namespace TabletDriverGUI
             // Smoothing filter
             if (config.SmoothingEnabled)
             {
+                driver.SendCommand("FilterTimerInterval " + Utils.GetNumberString(config.SmoothingInterval));
                 driver.SendCommand("Smoothing " + Utils.GetNumberString(config.SmoothingLatency));
-                driver.SendCommand("SmoothingInterval " + Utils.GetNumberString(config.SmoothingInterval));
             }
             else
             {

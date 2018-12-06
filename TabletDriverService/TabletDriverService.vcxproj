@@ -168,6 +168,8 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="CommandHandler.h" />
     <ClInclude Include="CommandLine.h" />
     <ClInclude Include="HIDDevice.h" />
     <ClInclude Include="Logger.h" />
@@ -187,7 +189,9 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Tablet.h" />
     <ClInclude Include="TabletFilterAntiSmoothing.h" />
+    <ClInclude Include="TabletFilterGravity.h" />
     <ClInclude Include="TabletFilterTester.h" />
+    <ClInclude Include="TabletHandler.h" />
     <ClInclude Include="TabletMeasurement.h" />
     <ClInclude Include="TabletFilter.h" />
     <ClInclude Include="TabletFilterNoiseReduction.h" />
@@ -201,6 +205,8 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClInclude Include="VMulti.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Command.cpp" />
+    <ClCompile Include="CommandHandler.cpp" />
     <ClCompile Include="CommandLine.cpp" />
     <ClCompile Include="HIDDevice.cpp" />
     <ClCompile Include="Logger.cpp" />
@@ -219,7 +225,9 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClCompile Include="ScreenMapper.cpp" />
     <ClCompile Include="Tablet.cpp" />
     <ClCompile Include="TabletFilterAntiSmoothing.cpp" />
+    <ClCompile Include="TabletFilterGravity.cpp" />
     <ClCompile Include="TabletFilterTester.cpp" />
+    <ClCompile Include="TabletHandler.cpp" />
     <ClCompile Include="TabletMeasurement.cpp" />
     <ClCompile Include="TabletFilter.cpp" />
     <ClCompile Include="TabletFilterNoiseReduction.cpp" />

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "USBDevice.h"
 #include "HIDDevice.h"
@@ -18,7 +19,6 @@ using namespace std;
 
 class Tablet {
 public:
-
 	USBDevice *usbDevice;
 	HIDDevice *hidDevice;
 	HIDDevice *hidDeviceAux;
@@ -99,8 +99,11 @@ public:
 	int initFeatureLength;
 	BYTE *initReport;
 	int initReportLength;
+	vector<int> initStrings;
 
-	Tablet(string usbGUID, int stringId, string stringMatch);
+
+
+	Tablet(string usbGUID);
 	Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage);
 	Tablet();
 	~Tablet();
@@ -108,6 +111,7 @@ public:
 	bool Init();
 	bool IsConfigured();
 
+	string GetDeviceString(UCHAR stringId);
 	int ReadPosition();
 	bool Write(void *buffer, int length);
 	bool Read(void *buffer, int length);

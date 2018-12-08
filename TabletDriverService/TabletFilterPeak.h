@@ -16,4 +16,3 @@ public:
 	TabletFilterPeak();
 	~TabletFilterPeak();
 };
-

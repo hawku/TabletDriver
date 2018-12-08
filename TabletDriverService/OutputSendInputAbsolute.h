@@ -11,8 +11,8 @@ public:
 		double virtualY = GetSystemMetrics(SM_YVIRTUALSCREEN);
 	} monitorInfo;
 
-	INPUT input = {0};
-	INPUT lastInput = {0};
+	INPUT input = { 0 };
+	INPUT lastInput = { 0 };
 	unsigned char lastButtons;
 
 

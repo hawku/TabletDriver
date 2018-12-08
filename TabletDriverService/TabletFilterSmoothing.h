@@ -10,6 +10,7 @@ public:
 	double threshold;
 	Vector2D target;
 	Vector2D outputPosition;
+	chrono::high_resolution_clock::time_point lastTargetTime;
 
 	TabletFilterSmoothing();
 	~TabletFilterSmoothing();

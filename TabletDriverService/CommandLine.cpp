@@ -67,7 +67,7 @@ int CommandLine::Parse(string line) {
 	char currentChar;
 	char previousChar = 0;
 	char splitChars[] = " ,:(){}[]";
-	char endChars[] = {'\r', '\n', ';', 0};
+	char endChars[] = { '\r', '\n', ';', 0 };
 	char commentChar = '#';
 	char escapeChar = '\\';
 	char enclosingChar = '"';
@@ -152,7 +152,8 @@ int CommandLine::Parse(string line) {
 				item = "";
 				itemLength = 0;
 				itemCount++;
-			} else {
+			}
+			else {
 				item = "";
 				itemLength = 0;
 			}
@@ -163,11 +164,15 @@ int CommandLine::Parse(string line) {
 			}
 
 			// Add text to item
-		} else if(currentChar >= 32) {
+		}
+		else if(currentChar >= 32) {
 			if(itemCount == 0 && currentChar == '=') {
-			} else if(isEnclosingChar) {
-			} else if(currentChar == escapeChar && !isEnclosed) {
-			} else {
+			}
+			else if(isEnclosingChar) {
+			}
+			else if(currentChar == escapeChar && !isEnclosed) {
+			}
+			else {
 				item.push_back(currentChar);
 				itemLength++;
 			}
@@ -180,7 +185,8 @@ int CommandLine::Parse(string line) {
 	if(itemCount > 0) {
 		command = items[0];
 		isValid = true;
-	} else {
+	}
+	else {
 		isValid = false;
 	}
 

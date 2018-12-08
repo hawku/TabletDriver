@@ -38,15 +38,15 @@ bool OutputVMultiDigitizer::Set(TabletState *tabletState) {
 	// Map position to virtual screen (values between 0 and 1)
 	mapper->GetScreenPosition(&x, &y);
 
+	// Offset coordinates by one pixel
+	double offsetX = -(32767.0 / mapper->areaVirtualScreen.width);
+	double offsetY = -(32767.0 / mapper->areaVirtualScreen.height);
+
 	report.buttons = tabletState->buttons | 0x20;
-	report.x = (USHORT)round(x * 32767.0);
-	report.y = (USHORT)round(y * 32767.0);
+	report.x = (USHORT)round(x * 32767.0 + offsetX);
+	report.y = (USHORT)round(y * 32767.0 + offsetY);
 	report.pressure = (USHORT)round(tabletState->pressure * 2047.0);
 	vmulti->SetReport(&report, sizeof(report));
-
-	if(logger.debugEnabled) {
-		LOG_DEBUGBUFFER(&report, 9, "Report: ");
-	}
 
 	return true;
 }
@@ -59,6 +59,12 @@ bool OutputVMultiDigitizer::Write() {
 
 	// Write report to VMulti device if report has changed
 	if(vmulti->HasReportChanged()) {
+
+		// Debug message
+		if(logger.debugEnabled) {
+			LOG_DEBUGBUFFER(&report, 10, "Report: ");
+		}
+
 		vmulti->WriteReport();
 		return true;
 	}

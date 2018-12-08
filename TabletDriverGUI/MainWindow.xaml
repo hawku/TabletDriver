@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TabletDriverGUI"
         mc:Ignorable="d"
+        Keyboard.PreviewKeyDown="Window_PreviewKeyDown"
         Title="TabletDriverGUI" Height="703" Width="680"
         >
   <Window.Resources>
@@ -715,6 +716,7 @@
                     AcceptsReturn="True"
                     TextWrapping="NoWrap"
                     VerticalScrollBarVisibility="Auto"
+                    Keyboard.PreviewKeyDown="TextCommands_PreviewKeyDown"
                     TextChanged="TextChanged" />
             <GroupBox.ToolTip>
               <TextBlock>
@@ -729,6 +731,7 @@
                     AcceptsReturn="True"
                     TextWrapping="NoWrap"
                     VerticalScrollBarVisibility="Auto"
+                    Keyboard.PreviewKeyDown="TextCommands_PreviewKeyDown"
                     TextChanged="TextChanged" />
             <GroupBox.ToolTip>
               <TextBlock>
@@ -739,7 +742,7 @@
         </Grid>
       </TabItem>
       <TabItem Name="tabConsole" Header="Console">
-        <Grid Margin="5,0">
+        <Grid Margin="0,2,0,0">
           <ScrollViewer Name="scrollConsole" Margin="5,5,5,30"
                         VerticalScrollBarVisibility="Auto"
                         HorizontalScrollBarVisibility="Auto">
@@ -751,27 +754,26 @@
                      FontFamily="Courier New" FontSize="12"                   
                      >
               
-              <!-- Menu -->
+              <!-- Console Context Menu -->
               <TextBlock.ContextMenu>
                 <ContextMenu>
                   <MenuItem Name="menuCopyAll" Header="Copy all" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuCopyDebug" Header="Copy [DEBUG] messages" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuCopyErrors" Header="Copy [ERROR] messages" Click="ConsoleMenuClick"></MenuItem>
                   <Separator/>
-                  <MenuItem Name="menuStartDebug" Header="Start Debug Log" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuStopDebug" Header="Stop Debug Log" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuOpenDebug" Header="Open Latest Debug Log" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuRunBenchmark" Header="Run Benchmark" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuCopyBenchmark" Header="Copy Benchmark Result" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuMeasure2" Header="Measure 2 points" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuMeasure3" Header="Measure 3 points" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuMeasure4" Header="Measure 4 points" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuStartDebug" Header="Start debugging" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuStopDebug" Header="Stop debugging" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuFindLatestDebugLog" Header="Find latest debug log" Click="ConsoleMenuClick"></MenuItem>
                   <Separator/>
-                  <MenuItem Name="menuOpenStartup" Header="Open Startup Log" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuOpenFolder" Header="Open TabletDriver Folder" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuFindStartupLog" Header="Find startuplog.txt" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuOpenFolder" Header="Open TabletDriver folder" Click="ConsoleMenuClick"></MenuItem>
+                  <Separator/>
+                  <MenuItem Name="menuRunBenchmark" Header="Run benchmark" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuCopyBenchmark" Header="Copy benchmark result" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuMeasure2" Header="Measure 2 points" Click="ConsoleMenuClick"></MenuItem>
                   <Separator/>
                   <MenuItem Name="menuOpenGithub" Header="Open GitHub page" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuOpenLatestURL" Header="Open Latest URL" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuOpenLatestURL" Header="Open latest URL" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuReportProblem" Header="Report a problem" Click="ConsoleMenuClick"></MenuItem>
                 </ContextMenu>
               </TextBlock.ContextMenu>
@@ -808,12 +810,18 @@
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 
         <!-- Restart Driver -->
-        <Button Name="buttonRestartDriver" Margin="5,5,15,5" Padding="5,0,5,0"
+        <Button Name="buttonRestartDriver" Margin="5,5,5,5" Padding="5,0,5,0"
               Click="RestartDriverClick"
                 ToolTip="Restarts the TabletDriverService">Restart Driver</Button>
 
+        <!-- Automatic restart -->
+        <CheckBox Name="checkBoxAutomaticRestart" Margin="5,5,5,5" 
+                VerticalAlignment="Center" VerticalContentAlignment="Center"
+                Checked="CheckboxChanged" Unchecked="CheckboxChanged"
+                ToolTip="Automatically restarts the driver when it shuts down.">Auto Restart</CheckBox>
+
         <!-- Run at Startup -->
-        <CheckBox Name="checkRunAtStartup"
+        <CheckBox Name="checkBoxRunAtStartup"
                 VerticalAlignment="Center" VerticalContentAlignment="Center"
                 Checked="CheckboxChanged" Unchecked="CheckboxChanged"
                 ToolTip="Starts and hides the TabletDriverGUI at Windows startup">Run at Windows startup</CheckBox>

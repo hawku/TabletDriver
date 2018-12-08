@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -12,29 +13,35 @@ namespace TabletDriverGUI
         public delegate void DriverEventHandler(object sender, DriverEventArgs e);
         public event DriverEventHandler MessageReceived;
         public event DriverEventHandler ErrorReceived;
+        public event DriverEventHandler StatusReceived;
         public event EventHandler Started;
         public event EventHandler Stopped;
         public enum DriverEventType
         {
             Error,
-            Message
+            Message,
+            Status
         }
         public class DriverEventArgs : EventArgs
         {
             public DriverEventType Type;
             public string Message;
-            public DriverEventArgs(DriverEventType type, string message)
+            public string Parameters;
+            public DriverEventArgs(DriverEventType type, string message, string parameters)
             {
                 Type = type;
                 Message = message;
+                Parameters = parameters;
             }
         }
+
 
         // Console stuff
         public List<string> ConsoleBuffer;
         public bool HasConsoleUpdated;
         private readonly int ConsoleMaxLines;
         private System.Threading.Mutex mutexConsoleUpdate;
+        private Dictionary<String, String> commands;
 
         // Other variables
         private readonly string servicePath;
@@ -56,6 +63,9 @@ namespace TabletDriverGUI
             ConsoleMaxLines = 300;
             ConsoleBuffer = new List<string>(ConsoleMaxLines);
             mutexConsoleUpdate = new System.Threading.Mutex();
+
+            commands = new Dictionary<string, string>();
+
         }
 
         //
@@ -126,11 +136,134 @@ namespace TabletDriverGUI
 
 
         //
+        // Command name complete
+        //
+        public string CompleteCommandName(string inputText, bool showCommands)
+        {
+            List<string> commandsFound = new List<string>();
+            string result = inputText;
+
+            // Find commands
+            foreach (var item in commands)
+            {
+                if (item.Key.StartsWith(inputText.ToLower()))
+                {
+                    commandsFound.Add(item.Value);
+                }
+            }
+           
+
+            // Only one command found
+            if (commandsFound.Count == 1)
+            {
+                result = commandsFound[0];
+            }
+
+            // Multiple commands found
+            else if (commandsFound.Count > 1)
+            {
+
+                // Sort 
+                commandsFound.Sort();
+
+                // Create a string from found commands
+                string commandsString = "  | ";
+                int maxWidth = 1;
+                foreach (string command in commandsFound)
+                {
+                    if (command.Length > maxWidth)
+                    {
+                        maxWidth = command.Length;
+                    }
+                }
+                int columns = (int)Math.Ceiling(100.0 / maxWidth);
+                int rows = (int)Math.Ceiling((double)commandsFound.Count / columns);
+
+                string[,] commandMatrix = new string[rows,columns];
+                int row = 0;
+                int column = 0;
+
+                foreach (string command in commandsFound)
+                {
+                    if (rows == 1)
+                    {
+                        commandMatrix[row, column] = command + " | ";
+                    }
+                    else
+                    {
+                        commandMatrix[row, column] = command.PadRight(maxWidth) + " | ";
+                    }
+                    row++;
+                    if (row >= rows)
+                    {
+                        row = 0;
+                        column++;
+                        if (column >= columns) break;
+                    }
+                }
+
+                for(row = 0; row < rows; row++) {
+                    if(row != 0)
+                    commandsString += "\r\n  | ";
+                    for (column = 0; column < columns; column++)
+                    {
+                        string commandString = commandMatrix[row, column];
+                        if (commandString != null)
+                        {
+                            commandsString += commandString;
+                        }
+                    }
+                }
+
+                // Add commands to console output
+                if (showCommands)
+                {
+                    ConsoleAddText("");
+                    ConsoleAddText("Commands: ");
+                    ConsoleAddText(commandsString);
+                }
+
+                // Fill input text
+                string completedText = inputText;
+
+                // Loop through commands
+                foreach (string name in commandsFound)
+                {
+                    for (int i = 1; i <= name.Length; i++)
+                    {
+                        string completeTest = name.Substring(0, i);
+                        bool completeOK = true;
+
+                        // Check if the command complete is OK
+                        foreach (string name2 in commandsFound)
+                        {
+                            // Not OK
+                            if (!name2.ToLower().StartsWith(completeTest.ToLower()))
+                            {
+                                completeOK = false;
+                                break;
+                            }
+                        }
+                        if (completeOK)
+                        {
+                            completedText = completeTest;
+                        }
+                    }
+                }
+
+                result = completedText;
+            }
+
+            return result;
+        }
+
+
+        //
         // Raise error message
         //
         private void RaiseError(string text)
         {
-            ErrorReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Error, text));
+            ErrorReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Error, text, ""));
         }
 
         //
@@ -155,7 +288,7 @@ namespace TabletDriverGUI
         private void ProcessService_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
             ConsoleAddText("ERROR! " + e.Data);
-            ErrorReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Error, e.Data));
+            ErrorReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Error, e.Data, ""));
         }
 
         //
@@ -170,8 +303,45 @@ namespace TabletDriverGUI
             }
             else
             {
+                string line = e.Data;
+
+                // Status line?
+                if (line.Contains("[STATUS]")) {
+
+                    // Parse status variable and value
+                    Match match = Regex.Match(line, "^.+\\[STATUS\\] ([^ ]+) (.*?)$");
+                    if (!match.Success) return;
+
+                    string variableName = match.Groups[1].ToString().ToLower();
+                    string parameters = match.Groups[2].ToString();
+
+                    //
+                    // Commands status message
+                    //
+                    if (variableName == "commands")
+                    {
+                        string[] commandNames = parameters.Split(' ');
+                        string lowerCaseName;
+                        foreach (string name in commandNames)
+                        {
+                            lowerCaseName = name.Trim().ToLower();
+                            if (lowerCaseName.Length > 0)
+                            {
+                                if (!commands.ContainsKey(lowerCaseName))
+                                {
+                                    commands.Add(lowerCaseName, name);
+                                }
+                            }
+                        }
+                    }
+
+                    StatusReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Status, variableName, parameters));
+
+                }
+
+
                 ConsoleAddText(e.Data);
-                MessageReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Message, e.Data));
+                MessageReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Message, e.Data, ""));
             }
         }
 

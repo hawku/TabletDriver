@@ -8,9 +8,8 @@
 #include "Tablet.h"
 #include "ScreenMapper.h"
 #include "CommandLine.h"
-#include "ProcessCommand.h"
 
-#define LOG_MODULE "Main"
+#define LOG_MODULE ""
 #include "Logger.h"
 
 #pragma comment(lib, "hid.lib")
@@ -25,23 +24,9 @@ VMulti *vmulti;
 CommandHandler *commandHandler;
 OutputManager *outputManager;
 ScreenMapper *mapper;
-//thread *tabletThread;
 
-
-//
-// Init console parameters
-//
-void InitConsole() {
-	HANDLE inputHandle;
-	DWORD consoleMode = 0;
-	inputHandle = GetStdHandle(STD_INPUT_HANDLE);
-	GetConsoleMode(inputHandle, &consoleMode);
-	consoleMode = (consoleMode & ~ENABLE_QUICK_EDIT_MODE);
-	consoleMode = (consoleMode & ~ENABLE_MOUSE_INPUT);
-	consoleMode = (consoleMode & ~ENABLE_WINDOW_INPUT);
-	SetConsoleMode(inputHandle, consoleMode);
-}
-
+void InitConsole();
+bool ProcessCommand(CommandLine *cmd);
 
 //
 // Main
@@ -56,19 +41,23 @@ int main(int argc, char**argv) {
 	vmulti = NULL;
 	tablet = NULL;
 	tabletHandler = NULL;
-	//tabletThread = NULL;
-	outputManager = new OutputManager();
-
+	
 	// Init console
 	InitConsole();
+
+	// Tablet handler
+	tabletHandler = new TabletHandler();
+
+	// Command handler
+	commandHandler = new CommandHandler();
+	commandHandler->CreateCommands();
 
 	// Screen mapper
 	mapper = new ScreenMapper(tablet);
 	mapper->SetRotation(0);
 
-	// Command handler
-	commandHandler = new CommandHandler();
-	commandHandler->CreateCommands();
+	// Output manager
+	outputManager = new OutputManager();
 
 	//
 	// Command: Start
@@ -76,7 +65,6 @@ int main(int argc, char**argv) {
 	// Starts the driver
 	//
 	commandHandler->AddCommand(new Command("Start", [&](CommandLine *cmd) {
-		LOG_INFO(">> %s\n", cmd->line.c_str());
 
 		if(running) {
 			LOG_INFO("Driver is already started!\n");
@@ -108,25 +96,11 @@ int main(int argc, char**argv) {
 		// Set running state
 		running = true;
 
-
 		LOG_INFO("TabletDriver started!\n");
 		commandHandler->ExecuteCommand("Status");
 
 		return true;
 	}));
-
-	//
-	// Command: Echo
-	//
-	commandHandler->AddCommand(new Command("Echo", [&](CommandLine *cmd) {
-		if(cmd->valueCount > 0) {
-			LOG_INFO("%s\n", cmd->line.c_str() + 5);
-		} else {
-			LOG_INFO("\n");
-		}
-		return true;
-	}));
-
 
 	//
 	// Command: Exit
@@ -163,9 +137,6 @@ int main(int argc, char**argv) {
 		LOG_ERROR("Can't open '%s'\n", filename.c_str());
 	}
 
-	// Create tablet handler
-	tabletHandler = new TabletHandler();
-
 	//
 	// Main loop that reads input from the console.
 	//
@@ -184,13 +155,14 @@ int main(int argc, char**argv) {
 		// Process valid lines
 		if(line.length() > 0) {
 			cmd = new CommandLine(line);
-			
+
 			//
 			// Hide echo input 
 			//
 			if(cmd->is("Echo")) {
 				commandHandler->ExecuteCommand(cmd);
-			} else {
+			}
+			else {
 				ProcessCommand(cmd);
 			}
 
@@ -216,7 +188,7 @@ void CleanupAndExit(int code) {
 		delete vmulti;
 		*/
 
-	// Stop filter timer
+		// Stop filter timer
 	if(tabletHandler != NULL) {
 		tabletHandler->StopTimer();
 	}
@@ -232,5 +204,54 @@ void CleanupAndExit(int code) {
 	//printf("Press enter to exit...");
 	//getchar();
 	exit(code);
+}
+
+
+//
+// Process Command
+//
+bool ProcessCommand(CommandLine *cmd) {
+
+	bool logResult = false;
+
+	LOG_INFO(">> %s\n", cmd->line.c_str());
+
+	//
+	// Execute command handler command
+	//
+	if(cmd->command.back() == '?') {
+		logResult = true;
+		cmd->command.pop_back();
+	}
+	if(commandHandler->IsValidCommand(cmd->command)) {
+		bool result = commandHandler->ExecuteCommand(cmd->command, cmd);
+		if(logResult) {
+			LOG_INFO("Result: %s\n", result ? "True" : "False");
+		}
+		return result;
+
+	}
+
+	// Unknown
+	else if(cmd->isValid) {
+		LOG_WARNING("Unknown command: %s\n", cmd->line.c_str());
+	}
+
+	return true;
+}
+
+
+//
+// Init console parameters
+//
+void InitConsole() {
+	HANDLE inputHandle;
+	DWORD consoleMode = 0;
+	inputHandle = GetStdHandle(STD_INPUT_HANDLE);
+	GetConsoleMode(inputHandle, &consoleMode);
+	consoleMode = (consoleMode & ~ENABLE_QUICK_EDIT_MODE);
+	consoleMode = (consoleMode & ~ENABLE_MOUSE_INPUT);
+	consoleMode = (consoleMode & ~ENABLE_WINDOW_INPUT);
+	SetConsoleMode(inputHandle, consoleMode);
 }
 

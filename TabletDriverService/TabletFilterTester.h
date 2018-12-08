@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <vector>
 
 
 class TabletFilterTester {
@@ -16,15 +17,17 @@ public:
 	HANDLE timer;
 	WAITORTIMERCALLBACK callback;
 
-	TabletFilter *filter;
+	vector<TabletFilter *> filters;
 	string inputFilepath;
 	string outputFilepath;
 
 	ifstream inputFile;
 	ofstream outputFile;
 
-	TabletFilterTester(TabletFilter *filter, string inputFilepath, string outputFilepath);
+	TabletFilterTester(string inputFilepath, string outputFilepath);
 	~TabletFilterTester();
+
+	void AddFilter(TabletFilter *filter);
 
 	bool Open();
 	void Run();

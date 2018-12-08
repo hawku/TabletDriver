@@ -27,7 +27,8 @@ PositionRingBuffer::~PositionRingBuffer() {
 void PositionRingBuffer::SetLength(int len) {
 	if(len > maxLength) {
 		length = maxLength;
-	} else {
+	}
+	else {
 		length = len;
 	}
 }

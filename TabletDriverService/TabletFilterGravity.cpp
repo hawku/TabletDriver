@@ -35,11 +35,13 @@ void TabletFilterGravity::Update() {
 	//
 	if((outputState.buttons & 0x07) == 0) {
 		if(ignoreButton-- > 0) {
-		} else {
+		}
+		else {
 			outputPosition.Set(targetPosition);
 			velocityVector.Set(0, 0);
 		}
-	} else {
+	}
+	else {
 		ignoreButton = 2;
 	}
 
@@ -67,8 +69,8 @@ void TabletFilterGravity::Update() {
 	//
 	double velocityMagnitude = velocityVector.Magnitude();
 
-	// Apply friction when the velocity is over 1 mm/s and distance over 1 mm
-	if(velocityMagnitude > 1.0 * timeDelta && distance > 1.0) {
+	// Apply friction when the velocity is over 1 mm/s
+	if(velocityMagnitude > 1.0 * timeDelta) {
 
 		double frictionForce = velocityMagnitude * (friction + outputState.pressure * pressureFriction) * timeDelta;
 
@@ -78,7 +80,8 @@ void TabletFilterGravity::Update() {
 		);
 		velocityVector.Add(frictionVector);
 
-	} else {
+	}
+	else {
 		velocityVector.Set(0, 0);
 	}
 
@@ -96,7 +99,7 @@ void TabletFilterGravity::Update() {
 
 
 	// Debug message
-	if(logger.debugEnabled) {
+	if(logger.debugEnabled && distance > 0.0) {
 		LOG_DEBUG("X=%0.2f Y=%0.2f DX=%0.2f DY=%0.2f VX=%0.2f VY=%0.2f\n",
 			outputPosition.x,
 			outputPosition.y,

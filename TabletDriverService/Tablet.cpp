@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Tablet.h"
+#include "TabletHandler.h"
 
 #define LOG_MODULE "Tablet"
 #include "Logger.h"
@@ -8,12 +9,13 @@
 //
 // USB Device Constructor
 //
-Tablet::Tablet(string usbGUID, int stringId, string stringMatch) : Tablet() {
-	usbDevice = new USBDevice(usbGUID, stringId, stringMatch);
+Tablet::Tablet(string usbGUID) : Tablet() {
+	usbDevice = new USBDevice(usbGUID);
 	if(usbDevice->isOpen) {
 		this->isOpen = true;
 		usbPipeId = 0x81;
-	} else {
+	}
+	else {
 		delete usbDevice;
 		usbDevice = NULL;
 	}
@@ -26,7 +28,8 @@ Tablet::Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage
 	hidDevice = new HIDDevice(vendorId, productId, usagePage, usage);
 	if(hidDevice->isOpen) {
 		this->isOpen = true;
-	} else {
+	}
+	else {
 		delete hidDevice;
 		hidDevice = NULL;
 	}
@@ -101,6 +104,13 @@ Tablet::~Tablet() {
 //
 bool Tablet::Init() {
 
+	// Init string requests
+	if(initStrings.size() > 0) {
+		for(int stringId : initStrings) {
+			GetDeviceString(stringId);
+		}
+	}
+
 	// Feature report
 	if(initFeature != NULL) {
 		if(hidDevice->SetFeature(initFeature, initFeatureLength)) {
@@ -117,23 +127,6 @@ bool Tablet::Init() {
 		return false;
 	}
 
-	// USB (Huion)
-	if(usbDevice != NULL) {
-		BYTE buffer[64];
-		int status;
-
-		// String Id 200
-		status = usbDevice->ControlTransfer(0x80, 0x06, (0x03 << 8) | 200, 0x0409, buffer, 64);
-
-		// String Id 100
-		status += usbDevice->ControlTransfer(0x80, 0x06, (0x03 << 8) | 100, 0x0409, buffer, 64);
-
-		if(status > 0) {
-			return true;
-		}
-		return false;
-	}
-	
 	return true;
 }
 
@@ -151,6 +144,42 @@ bool Tablet::IsConfigured() {
 	) return true;
 	return false;
 }
+
+
+//
+// Get a device string from HID or USB device.
+//
+string Tablet::GetDeviceString(UCHAR stringId)
+{
+	string resultString = "";
+	UCHAR buffer[256];
+	int bytesRead = 0;
+
+	// USB device
+	if(usbDevice != NULL) {
+		bytesRead = usbDevice->StringRequest(stringId, buffer, 256);
+	}
+
+	// HID device
+	else if(hidDevice != NULL) {
+		if(hidDevice->isReading) {
+			throw runtime_error("HID string request can't be sent when the device is in use!");
+		}
+		else {
+			bytesRead = hidDevice->StringRequest(stringId, buffer, 256);
+		}
+	}
+
+	// Reply received?
+	if(bytesRead > 0) {
+		for(int i = 0; i < bytesRead; i += 2) {
+			resultString.push_back(buffer[i]);
+		}
+	}
+
+	return resultString;
+}
+
 
 //
 // Read Position
@@ -174,16 +203,24 @@ int Tablet::ReadPosition() {
 
 
 	// Set data pointer
-	if(settings.type == TabletSettings::TypeWacomDrivers) {
+	if(settings.dataFormat == TabletSettings::TabletFormatWacomDrivers) {
 		data = buffer + 1;
-	} else {
+	}
+	else {
 		data = buffer;
 	}
 
+
 	//
-	// Wacom Intuos data format
+	// Wacom Intuos data format V2
 	//
-	if(settings.type == TabletSettings::TypeWacomIntuos) {
+	if(settings.dataFormat == TabletSettings::TabletFormatWacomIntuosV2) {
+
+		// Wacom driver device
+		if(settings.reportLength == 11) {
+			data = buffer + 1;
+		}
+
 		reportData.reportId = data[0];
 		reportData.buttons = data[1] & ~0x01;
 		reportData.x = ((data[2] * 0x100 + data[3]) << 1) | ((data[9] >> 1) & 1);
@@ -191,10 +228,13 @@ int Tablet::ReadPosition() {
 		reportData.pressure = (data[6] << 3) | ((data[7] & 0xC0) >> 5) | (data[1] & 1);
 		//distance = buffer[9] >> 2;
 
+
+	}
+
 	//
-	// Wacom 4100 data format
+	// Wacom Intuos data format V3 (Wacom 4100)
 	//
-	} else if(settings.type == TabletSettings::TypeWacom4100) {
+	else if(settings.dataFormat == TabletSettings::TabletFormatWacomIntuosV3) {
 
 		// Wacom driver device
 		if(settings.reportLength == 193) {
@@ -207,10 +247,29 @@ int Tablet::ReadPosition() {
 		reportData.y = (data[5] | (data[6] << 8) | (data[7] << 16));
 		reportData.pressure = (data[8] | (data[9] << 8));
 
+	}
+
+	//
+	// Skip first data byte (VEIKK S640)
+	//
+	else if(settings.dataFormat == TabletSettings::TabletFormatSkipFirstDataByte) {
+
+		// Validate report length
+		if(settings.reportLength >= 9) {
+
+			// Offset report data
+			memcpy(&reportData, (data + 1), sizeof(reportData));
+
+			// Set report id
+			reportData.reportId = data[0];
+		}
+
+	}
+
 	//
 	// Copy buffer to struct
 	//
-	} else {
+	else {
 		memcpy(&reportData, data, sizeof(reportData));
 	}
 
@@ -241,8 +300,11 @@ int Tablet::ReadPosition() {
 			reportData.buttons |= 1;
 		}
 
+
+	}
+
 	// Force tip button down if pressure is detected
-	} else if(reportData.pressure > 10) {
+	else if(reportData.pressure > 10) {
 		reportData.buttons |= 1;
 	}
 
@@ -306,7 +368,8 @@ bool Tablet::Read(void *buffer, int length) {
 	bool status = false;
 	if(usbDevice != NULL) {
 		status = usbDevice->Read(usbPipeId, buffer, length) > 0;
-	} else if(hidDevice != NULL) {
+	}
+	else if(hidDevice != NULL) {
 		status = hidDevice->Read(buffer, length);
 	}
 	if(logger.debugEnabled && status) {
@@ -322,7 +385,8 @@ bool Tablet::Write(void *buffer, int length) {
 	if(!isOpen) return false;
 	if(usbDevice != NULL) {
 		return usbDevice->Write(usbPipeId, buffer, length) > 0;
-	} else if(hidDevice != NULL) {
+	}
+	else if(hidDevice != NULL) {
 		return hidDevice->Write(buffer, length);
 	}
 	return false;
@@ -335,7 +399,8 @@ void Tablet::CloseDevice() {
 	if(isOpen) {
 		if(usbDevice != NULL) {
 			usbDevice->CloseDevice();
-		} else if(hidDevice != NULL) {
+		}
+		else if(hidDevice != NULL) {
 			hidDevice->CloseDevice();
 		}
 	}

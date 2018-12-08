@@ -67,7 +67,7 @@ void TabletMeasurement::Stop() {
 void TabletMeasurement::Update(TabletState state) {
 
 	DWORD time;
-	
+
 
 	if(isRunning) {
 		if(reportCounter > 0 || reportCounter <= -1) {
@@ -96,7 +96,8 @@ void TabletMeasurement::Update(TabletState state) {
 			lastState.buttons = state.buttons;
 			lastState.isValid = true;
 			reportCounter--;
-		} else {
+		}
+		else {
 			isRunning = false;
 		}
 	}

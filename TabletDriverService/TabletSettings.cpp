@@ -18,7 +18,7 @@ TabletSettings::TabletSettings() {
 	width = 1;
 	height = 1;
 	skew = 0;
-	type = TabletNormal;
+	dataFormat = TabletFormatNormal;
 }
 
 //

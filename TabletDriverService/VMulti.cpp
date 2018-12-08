@@ -19,7 +19,8 @@ VMulti::VMulti() {
 		isOpen = true;
 		outputEnabled = true;
 
-	} else {
+	}
+	else {
 		delete hidDevice;
 		hidDevice = NULL;
 	}

@@ -11,9 +11,9 @@
 
 #include "VMulti.h"
 #include "Tablet.h"
+#include "TabletHandler.h"
 #include "ScreenMapper.h"
 #include "OutputManager.h"
-#include "TabletHandler.h"
 #include "CommandHandler.h"
 
 // Global variables...

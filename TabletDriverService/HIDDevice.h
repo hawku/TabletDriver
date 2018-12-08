@@ -19,6 +19,7 @@ private:
 public:
 	bool isOpen;
 	bool debugEnabled;
+	bool isReading;
 	USHORT vendorId;
 	USHORT productId;
 	USHORT usagePage;
@@ -32,5 +33,6 @@ public:
 	int Write(void *buffer, int length);
 	bool SetFeature(void *buffer, int length);
 	bool GetFeature(void *buffer, int length);
+	int StringRequest(UCHAR stringId, UCHAR *buffer, int length);
 	void CloseDevice();
 };

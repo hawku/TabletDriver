@@ -2,11 +2,12 @@
 class TabletSettings {
 public:
 
-	enum TabletType {
-		TabletNormal,
-		TypeWacomIntuos,
-		TypeWacom4100,
-		TypeWacomDrivers
+	enum TabletDataFormat {
+		TabletFormatNormal,
+		TabletFormatWacomIntuosV2,
+		TabletFormatWacomIntuosV3,
+		TabletFormatWacomDrivers,
+		TabletFormatSkipFirstDataByte
 	};
 
 	BYTE detectMask;
@@ -21,7 +22,7 @@ public:
 	BYTE reportId;
 	int reportLength;
 	double skew;
-	TabletType type;
+	TabletDataFormat dataFormat;
 
 	TabletSettings();
 	~TabletSettings();

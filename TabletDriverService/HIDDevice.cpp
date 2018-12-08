@@ -12,10 +12,12 @@ HIDDevice::HIDDevice(USHORT VendorId, USHORT ProductId, USHORT UsagePage, USHORT
 	if(this->OpenDevice(&this->_deviceHandle, this->vendorId, this->productId, this->usagePage, this->usage)) {
 		isOpen = true;
 	}
+	isReading = false;
 }
 
 HIDDevice::HIDDevice() {
 	isOpen = false;
+	isReading = false;
 	_deviceHandle = NULL;
 }
 
@@ -99,7 +101,8 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 						for(int i = 0; i < (int)sizeof(stringBytes); i += 2) {
 							if(stringBytes[i]) {
 								manufacturerName.push_back(stringBytes[i]);
-							} else {
+							}
+							else {
 								break;
 							}
 						}
@@ -110,7 +113,8 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 						for(int i = 0; i < (int)sizeof(stringBytes); i += 2) {
 							if(stringBytes[i]) {
 								productName.push_back(stringBytes[i]);
-							} else {
+							}
+							else {
 								break;
 							}
 						}
@@ -141,9 +145,10 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 					hidCapabilities.Usage == usage
 				) {
 					resultHandle = deviceHandle;
+				}
 
 				// Close the HID handle if the device is incorrect
-				} else {
+				else {
 					CloseHandle(deviceHandle);
 				}
 
@@ -175,6 +180,7 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 int HIDDevice::Read(void *buffer, int length) {
 	//return HidD_GetInputReport(_deviceHandle, buffer, length);
 	DWORD bytesRead;
+	isReading = true;
 	if(ReadFile(_deviceHandle, buffer, length, &bytesRead, 0)) {
 		return bytesRead;
 	}
@@ -198,6 +204,22 @@ bool HIDDevice::SetFeature(void *buffer, int length) {
 // Get feature report
 bool HIDDevice::GetFeature(void *buffer, int length) {
 	return HidD_GetFeature(_deviceHandle, buffer, length);
+}
+
+// String request
+int HIDDevice::StringRequest(UCHAR stringId, UCHAR * buffer, int length)
+{
+	if(HidD_GetIndexedString(_deviceHandle, stringId, buffer, length)) {
+		int realLength = length;
+		for(int i = 0; i < length; i += 2) {
+			if(buffer[i] == 0) {
+				realLength = i;
+				break;
+			}
+		}
+		return realLength;
+	}
+	return 0;
 }
 
 // Close the device

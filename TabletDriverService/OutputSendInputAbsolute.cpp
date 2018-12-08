@@ -52,7 +52,7 @@ bool OutputSendInputAbsolute::Set(TabletState *tabletState) {
 	// Map position to virtual screen (values between 0 and 1)
 	mapper->GetScreenPosition(&x, &y);
 
-	
+
 
 	if(logger.debugEnabled) {
 		LOG_DEBUG("%0.0f,%0.0f | %0.0f,%0.0f | %0.0f,%0.0f\n",
@@ -116,7 +116,7 @@ bool OutputSendInputAbsolute::Write() {
 //
 bool OutputSendInputAbsolute::Reset() {
 
-	INPUT input = {0};
+	INPUT input = { 0 };
 	input.type = INPUT_MOUSE;
 	input.mi.mouseData = 0;
 	input.mi.dx = 0;
@@ -125,7 +125,7 @@ bool OutputSendInputAbsolute::Reset() {
 	if(lastButtons & 0x01) input.mi.dwFlags |= MOUSEEVENTF_LEFTUP;
 	if(lastButtons & 0x02) input.mi.dwFlags |= MOUSEEVENTF_RIGHTUP;
 	if(lastButtons & 0x04) input.mi.dwFlags |= MOUSEEVENTF_MIDDLEUP;
-	
+
 	SendInput(1, &input, sizeof(INPUT));
 
 	return true;

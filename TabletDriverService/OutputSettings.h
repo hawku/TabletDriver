@@ -13,14 +13,16 @@ public:
 
 	struct {
 		PixelPosition pixelPosition;
-		Vector2D lastPosition;
 		Vector2D targetPosition;
+		Vector2D lastPosition;
+		chrono::high_resolution_clock::time_point lastTime;
 	} relativeState;
 
 	double relativeSensitivity;
 	double relativeResetDistance;
+	double relativeResetTime;
 
-	void ResetRelativeState(double x, double y);
+	void ResetRelativeState(double x, double y, chrono::high_resolution_clock::time_point time);
 
 	OutputSettings();
 	~OutputSettings();

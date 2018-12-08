@@ -6,14 +6,21 @@
 
 
 // Constructor
-TabletFilterTester::TabletFilterTester(TabletFilter *f, string input, string output) {
-	this->filter = f;
+TabletFilterTester::TabletFilterTester(string input, string output) {
 	this->inputFilepath = input;
 	this->outputFilepath = output;
 }
 
 // Destructor
 TabletFilterTester::~TabletFilterTester() {
+}
+
+//
+// Add filter
+//
+void TabletFilterTester::AddFilter(TabletFilter *filter)
+{
+	filters.push_back(filter);
 }
 
 
@@ -25,10 +32,11 @@ bool TabletFilterTester::Open() {
 	inputFile = ifstream(inputFilepath, ifstream::in);
 	if(!inputFile) return false;
 
+
 	outputFile = ofstream(outputFilepath, ofstream::out);
 	if(!outputFile) return false;
 
-	return false;
+	return true;
 }
 
 //
@@ -60,10 +68,10 @@ void TabletFilterTester::Run() {
 		// Parse input
 		CommandLine cmd(line);
 		if(cmd.is("position")) {
-			time = cmd.GetDouble(0, 0) ;
+			time = cmd.GetDouble(0, 0);
 			position.x = cmd.GetDouble(1, 0);
 			position.y = cmd.GetDouble(2, 0);
-			LOG_DEBUG("Input: %0.3f ms, %0.2f, %0.2f\n",
+			LOG_DEBUG("IN : %0.3f ms, %0.2f, %0.2f\n",
 				time,
 				position.x,
 				position.y
@@ -75,20 +83,24 @@ void TabletFilterTester::Run() {
 				firstReport = false;
 				outputState.position.Set(position);
 				LOG_DEBUG("First report: %0.3f, %0.2f, %0.2f\n", time, position.x, position.y);
-				
-			} else {
+			}
+			else {
 				tabletState.time = timeNow;
 				tabletState.position.Set(position);
 				memcpy(&outputState, &tabletState, sizeof(TabletState));
-				filter->SetTarget(&tabletState);
-				filter->Update();
-				filter->GetOutput(&outputState);
+
+				// Process filters
+				for(TabletFilter *filter : filters) {
+					filter->SetTarget(&outputState);
+					filter->Update();
+					filter->GetOutput(&outputState);
+				}
 			}
 
 			timeNow = timeBegin + chrono::microseconds((int)(time * 1000.0));
 			distance = position.Distance(outputState.position);
 
-			LOG_DEBUG("Output: %0.3f ms, %0.2f, %0.2f (%0.3f mm)\n",
+			LOG_DEBUG("OUT: %0.3f ms, %0.2f, %0.2f (%0.3f mm)\n",
 				time,
 				position.x,
 				position.y,
@@ -108,7 +120,7 @@ void TabletFilterTester::Run() {
 // Close files
 //
 bool TabletFilterTester::Close() {
-	
+
 	if(inputFile && inputFile.is_open()) {
 		inputFile.close();
 	}

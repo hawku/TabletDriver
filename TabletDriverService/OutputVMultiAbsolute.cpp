@@ -44,10 +44,6 @@ bool OutputVMultiAbsolute::Set(TabletState *tabletState) {
 	report.wheel = 0;
 	vmulti->SetReport(&report, sizeof(report));
 
-	if(logger.debugEnabled) {
-		LOG_DEBUGBUFFER(&report, 9, "Report: ");
-	}
-
 	return true;
 }
 
@@ -58,6 +54,12 @@ bool OutputVMultiAbsolute::Write() {
 
 	// Write report to VMulti device if report has changed
 	if(vmulti->HasReportChanged()) {
+
+		// Debug message
+		if(logger.debugEnabled) {
+			LOG_DEBUGBUFFER(&report, 9, "Report: ");
+		}
+
 		vmulti->WriteReport();
 		return true;
 	}

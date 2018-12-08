@@ -8,15 +8,22 @@
 
 class CommandHandler {
 public:
-	map<string, Command*> commands;	
+	map<string, Command*> commands;
 	map<string, string> aliases;
+	map<string, string> aliasNames;
+	map<string, string> help;
 
 	CommandHandler();
 	~CommandHandler();
 
 	bool AddCommand(Command *command);
 	bool AddAlias(string commandName, string alias);
+	bool AddHelp(string commandName, string line);
 	void CreateCommands();
+	void CreateTabletCommands();
+	void CreateFilterCommands();
+	void CreateDeviceCommands();
+	void CreateOtherCommands();
 
 	bool IsValidCommand(string command);
 	bool ExecuteCommand(string command);

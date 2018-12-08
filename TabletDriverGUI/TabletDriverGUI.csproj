@@ -77,6 +77,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="MainWindow.Driver.cs" />
+    <Compile Include="MainWindow.Console.cs" />
+    <Compile Include="MainWindow.Settings.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="TabletDriver.cs" />
     <Compile Include="NativeMethods.cs" />

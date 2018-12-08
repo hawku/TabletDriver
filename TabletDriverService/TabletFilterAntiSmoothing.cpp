@@ -29,7 +29,7 @@ TabletFilterAntiSmoothing::TabletFilterAntiSmoothing() {
 	timeBegin = chrono::high_resolution_clock::now();
 	timeLastReport = timeBegin;
 	timeNow = timeBegin;
-	
+
 	outputPosition = &outputState.position;
 }
 
@@ -65,10 +65,12 @@ void TabletFilterAntiSmoothing::Update() {
 		reportRateAverage += ((1000.0 / timeDelta) - reportRateAverage) * (timeDelta / 1000.0) * 10;
 		if(reportRateAverage > reportRate) {
 			reportRate = reportRateAverage;
-		} else {
+		}
+		else {
 			reportRate -= reportRate * (timeDelta / 1000.0) * 0.1;
 		}
-	} else {
+	}
+	else {
 		//timeLastReport = timeNow;
 		//return;
 	}
@@ -120,12 +122,13 @@ void TabletFilterAntiSmoothing::Update() {
 		ignoreInvalidReports--;
 
 
-	// Velocity validation
-	} else if(
-		velocity > 0.1 && predictedVelocity > 0.1
-		&&
-		velocity < 2000 && predictedVelocity < 2000
-	) {
+		// Velocity validation
+	}
+	else if(
+	 velocity > 0.1 && predictedVelocity > 0.1
+	 &&
+	 velocity < 2000 && predictedVelocity < 2000
+ ) {
 		//
 		// Extrapolate a position by using the difference between predicted velocity and current velocity.
 		// LerpAdd (linear interpolation) method will move the position beyond the target position when the second parameter is larger than 1
@@ -134,8 +137,9 @@ void TabletFilterAntiSmoothing::Update() {
 		predictedPosition.LerpAdd(latestTarget, pow(predictedVelocity / velocity, shape) * compensation);
 		outputPosition->Set(predictedPosition);
 
-	// Invalid velocity -> set the position to the latest target
-	} else {
+		// Invalid velocity -> set the position to the latest target
+	}
+	else {
 		outputPosition->Set(latestTarget);
 	}
 

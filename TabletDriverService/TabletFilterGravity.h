@@ -5,7 +5,6 @@ class TabletFilterGravity :
 public:
 	Vector2D targetPosition;
 	Vector2D outputPosition;
-	
 	Vector2D velocityVector;
 
 	double gravity;

@@ -91,7 +91,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -122,6 +122,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -183,7 +184,6 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClInclude Include="OutputVMultiDigitizer.h" />
     <ClInclude Include="OutputVMultiRelative.h" />
     <ClInclude Include="PositionRingBuffer.h" />
-    <ClInclude Include="ProcessCommand.h" />
     <ClInclude Include="RelativeMouseState.h" />
     <ClInclude Include="ScreenMapper.h" />
     <ClInclude Include="stdafx.h" />
@@ -207,6 +207,10 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
   <ItemGroup>
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="CommandHandler.cpp" />
+    <ClCompile Include="CommandHandler.Device.cpp" />
+    <ClCompile Include="CommandHandler.Filters.cpp" />
+    <ClCompile Include="CommandHandler.Other.cpp" />
+    <ClCompile Include="CommandHandler.Tablet.cpp" />
     <ClCompile Include="CommandLine.cpp" />
     <ClCompile Include="HIDDevice.cpp" />
     <ClCompile Include="Logger.cpp" />
@@ -220,7 +224,6 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClCompile Include="OutputVMultiDigitizer.cpp" />
     <ClCompile Include="OutputVMultiRelative.cpp" />
     <ClCompile Include="PositionRingBuffer.cpp" />
-    <ClCompile Include="ProcessCommand.cpp" />
     <ClCompile Include="RelativeMouseState.cpp" />
     <ClCompile Include="ScreenMapper.cpp" />
     <ClCompile Include="Tablet.cpp" />

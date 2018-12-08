@@ -75,6 +75,7 @@ public:
 	};
 	typedef struct {
 		tm time;
+		SYSTEMTIME systemTime;
 		int level;
 		string module;
 		string text;

@@ -14,22 +14,35 @@ Logger::Logger() {
 
 void Logger::OutputMessage(LogItem *message) {
 	char timeBuffer[64];
+	char levelNameBuffer[128];
 	char moduleBuffer[128];
 
-	strftime(timeBuffer, 64, "%Y-%m-%d %H:%M:%S", &message->time);
+
+	int index = strftime(timeBuffer, 64, "[%Y-%m-%d %H:%M:%S", &message->time);
+	sprintf_s(timeBuffer + index, 64 - index, ".%03d] ", message->systemTime.wMilliseconds);
+
 	if(message->module.length() > 0) {
-		sprintf_s(moduleBuffer, " [%s]", message->module.c_str());
-	} else {
+		sprintf_s(moduleBuffer, "[%s] ", message->module.c_str());
+	}
+	else {
 		moduleBuffer[0] = 0;
 	}
 
+	if(message->level != LogLevelInfo) {
+		sprintf_s(levelNameBuffer, "[%s] ", levelNames[message->level].c_str());
+	}
+	else {
+		levelNameBuffer[0] = 0;
+	}
+
+
 	try {
-		cout << timeBuffer << moduleBuffer << " [" << levelNames[message->level] << "] " << message->text << flush;
+		cout << timeBuffer << levelNameBuffer << moduleBuffer << message->text << flush;
 	} catch(exception) {
 		exit(1);
 	}
 	if(logFile && logFile.is_open()) {
-		logFile << timeBuffer << moduleBuffer << " [" << levelNames[message->level] << "] " << message->text << flush;
+		logFile << timeBuffer << levelNameBuffer << moduleBuffer << message->text << flush;
 	}
 }
 
@@ -92,6 +105,7 @@ void Logger::LogMessage(int level, string module, const char *fmt, ...) {
 		// Add message
 		LogItem logItem;
 		localtime_s(&logItem.time, &t);
+		GetSystemTime(&logItem.systemTime);
 		logItem.level = level;
 		logItem.module = module;
 		logItem.text = message;
@@ -131,7 +145,8 @@ void Logger::LogBuffer(int level, string module, void *buffer, int length, const
 		if(newLine) {
 			if(index < maxLength) index += snprintf(message + index, maxLength - index, "  { ");
 
-		} else {
+		}
+		else {
 			if(index < maxLength) index += snprintf(message + index, maxLength - index, "{ ");
 		}
 
@@ -144,7 +159,8 @@ void Logger::LogBuffer(int level, string module, void *buffer, int length, const
 				if(index < maxLength) index += snprintf(message + index, maxLength - index, "0x%02x", ((unsigned char*)buffer)[i]);
 
 				//
-			} else {
+			}
+			else {
 				if(index < maxLength) index += snprintf(message + index, maxLength - index, "0x%02x, ", ((unsigned char*)buffer)[i]);
 
 			}
@@ -166,6 +182,7 @@ void Logger::LogBuffer(int level, string module, void *buffer, int length, const
 		// Add message
 		LogItem logItem;
 		localtime_s(&logItem.time, &t);
+		GetSystemTime(&logItem.systemTime);
 		logItem.level = level;
 		logItem.module = module;
 		logItem.text = message;
@@ -205,7 +222,7 @@ void Logger::run() {
 		// Wait for messages
 		if(newMessage) {
 
-		// Set new message flag to false
+			// Set new message flag to false
 			newMessage = false;
 
 			// Process messages

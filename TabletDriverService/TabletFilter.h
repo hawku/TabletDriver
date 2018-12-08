@@ -19,6 +19,5 @@ public:
 	virtual void OnTimerIntervalChange(double oldInterval, double newInterval);
 	virtual void Update() = 0;
 
-	
 };
 

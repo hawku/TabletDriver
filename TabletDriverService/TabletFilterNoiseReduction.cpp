@@ -34,7 +34,7 @@ TabletFilterNoiseReduction::~TabletFilterNoiseReduction() {
 void TabletFilterNoiseReduction::SetTarget(TabletState *tabletState) {
 	latestTarget.Set(tabletState->position);
 	buffer.Add(tabletState->position);
-	timeNow = tablet->state.time;
+	timeNow = tabletState->time;
 	memcpy(&outputState, tabletState, sizeof(TabletState));
 }
 

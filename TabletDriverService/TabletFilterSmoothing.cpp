@@ -11,6 +11,7 @@ TabletFilterSmoothing::TabletFilterSmoothing() {
 	latency = 2.0;
 	weight = 1.000;
 	threshold = 0.9;
+	lastTargetTime = chrono::high_resolution_clock::now();
 }
 
 
@@ -29,6 +30,14 @@ TabletFilterSmoothing::~TabletFilterSmoothing() {
 void TabletFilterSmoothing::SetTarget(TabletState *tabletState) {
 	target.Set(tabletState->position);
 	memcpy(&outputState, tabletState, sizeof(TabletState));
+
+	// Reset output position if last tablet state update is older than 100 milliseconds.
+	double timeDelta = (tabletState->time - lastTargetTime).count() / 1000000.0;
+	if(timeDelta > 100.0) {
+		outputPosition.Set(tabletState->position);
+	}
+
+	lastTargetTime = tabletState->time;
 }
 
 //
@@ -48,27 +57,34 @@ void TabletFilterSmoothing::Update() {
 	deltaY = target.y - outputPosition.y;
 	distance = sqrt(deltaX*deltaX + deltaY * deltaY);
 
-	if(logger.debugEnabled) {
-		LOG_DEBUG("TX=%0.2f TY=%0.2f OX=%0.2f OY=%0.2f DX=%0.2f DY=%0.2f D=%0.2f W=%0.3f\n",
-			target.x,
-			target.y,
-			outputPosition.x,
-			outputPosition.y,
-			deltaX,
-			deltaY,
-			distance,
-			weight
-		);
-	}
-	
+	double timeDelta = (chrono::high_resolution_clock::now() - outputState.time).count() / 1000000.0;
 
 	// Distance large enough?
 	if(distance > 0.01) {
-		outputPosition.x += deltaX * weight;
-		outputPosition.y += deltaY * weight;
 
+		// Move output position coordinates if last tablet update time is newer than 100 milliseconds.
+		if(timeDelta < 100.0) {
+			outputPosition.x += deltaX * weight;
+			outputPosition.y += deltaY * weight;
+		}
+
+		// Debug message
+		if(logger.debugEnabled) {
+			LOG_DEBUG("TX=%0.2f TY=%0.2f OX=%0.2f OY=%0.2f DX=%0.2f DY=%0.2f D=%0.2f W=%0.3f\n",
+				target.x,
+				target.y,
+				outputPosition.x,
+				outputPosition.y,
+				deltaX,
+				deltaY,
+				distance,
+				weight
+			);
+		}
+
+	}
 	// Too short distance -> set output values as target values
-	} else {
+	else {
 		outputPosition.x = target.x;
 		outputPosition.y = target.y;
 	}

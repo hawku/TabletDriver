@@ -139,5 +139,5 @@ bool ScreenMapper::GetScreenPosition(double *x, double *y) {
 	*x = mapX;
 	*y = mapY;
 
-	return 1;
+	return true;
 }

@@ -1,6 +1,7 @@
 #pragma once
-#include "Tablet.h"
 #include <thread>
+#include <mutex>
+#include "Tablet.h"
 
 class TabletHandler {
 public:
@@ -8,6 +9,11 @@ public:
 	thread *tabletInputThread;
 	HANDLE timer;
 	double timerInterval;
+	mutex lock;
+	chrono::high_resolution_clock::time_point timeBegin;
+	TabletState outputState;
+
+
 	bool isRunning;
 
 	TabletHandler();
@@ -19,8 +25,8 @@ public:
 	bool StopTimer();
 	void ChangeTimerInterval(int newInterval);
 	void RunTabletInputThread();
-
 	void OnTimerTick();
+	void WriteOutputState(TabletState *outputState);
 
 
 private:

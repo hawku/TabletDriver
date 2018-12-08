@@ -57,12 +57,29 @@ bool OutputVMultiRelative::Set(TabletState *tabletState) {
 	dy = y - settings->relativeState.lastPosition.y;
 	distance = sqrt(dx * dx + dy * dy);
 
-	// Reset relative position when the move distance is long enough
-	if(distance > settings->relativeResetDistance) {
-		settings->ResetRelativeState(x, y);
+
+	//
+	// Reset relative state depenging on the reset time (milliseconds)
+	//
+	if(settings->relativeResetTime > 0) {
+		double timeDelta = (tabletState->time - settings->relativeState.lastTime).count() / 1000000.0;
+		if(timeDelta > settings->relativeResetTime) {
+			settings->ResetRelativeState(x, y, tabletState->time);
+			dx = 0;
+			dy = 0;
+			distance = 0;
+		}
+	}
+
+	//
+	// Reset relative position when the movement distance is long enough
+	//
+	else if(distance > settings->relativeResetDistance) {
+		settings->ResetRelativeState(x, y, tabletState->time);
 		dx = 0;
 		dy = 0;
 	}
+
 
 	// Sensitivity
 	dx *= settings->relativeSensitivity;
@@ -85,17 +102,21 @@ bool OutputVMultiRelative::Set(TabletState *tabletState) {
 	settings->relativeState.pixelPosition.x += relativeX;
 	settings->relativeState.pixelPosition.y += relativeY;
 
-	// Last position
+	// Set last position
 	settings->relativeState.lastPosition.Set(x, y);
+
+	// Set last time if movement distance is long enough
+	if(distance > 0.1) {
+		settings->relativeState.lastTime = tabletState->time;
+	}
+
 
 	// Set relative mouse report output
 	report.x = (char)relativeX;
 	report.y = (char)relativeY;
 
 	vmulti->SetReport(&report, sizeof(report));
-	if(logger.debugEnabled) {
-		LOG_DEBUGBUFFER(&report, 10, "Report: ");
-	}
+
 	return true;
 }
 
@@ -106,6 +127,9 @@ bool OutputVMultiRelative::Write() {
 
 	// Write report to VMulti device if report has changed
 	if(vmulti->HasReportChanged() || report.x != 0 || report.y != 0) {
+		if(logger.debugEnabled) {
+			LOG_DEBUGBUFFER(&report, 10, "Report: ");
+		}
 		vmulti->WriteReport();
 		return true;
 	}

@@ -200,12 +200,7 @@ namespace TabletDriverGUI
 
 
         //
-        // Driver event handlers
-        //
-        //
-
-        //
-        // Driver Messages
+        // Driver message received
         //
         private void OnDriverMessageReceived(object sender, TabletDriver.DriverEventArgs e)
         {
@@ -214,7 +209,7 @@ namespace TabletDriverGUI
 
 
         //
-        // Driver Errors
+        // Driver error received
         //
         private void OnDriverErrorReceived(object sender, TabletDriver.DriverEventArgs e)
         {
@@ -223,7 +218,7 @@ namespace TabletDriverGUI
 
 
         //
-        // Driver Status messages
+        // Driver status message received
         //
         private void OnDriverStatusReceived(object sender, TabletDriver.DriverEventArgs e)
         {
@@ -234,6 +229,7 @@ namespace TabletDriverGUI
                 ProcessStatusMessage(variableName, parameters);
             });
         }
+        // Process driver status message
         private void ProcessStatusMessage(string variableName, string parameters)
         {
 
@@ -242,19 +238,20 @@ namespace TabletDriverGUI
             //
             if (variableName == "tablet")
             {
-                string title = "TabletDriverGUI - " + parameters;
+                string tabletName = parameters;
+                string title = "TabletDriverGUI - " + tabletName;
                 Title = title;
 
                 // Limit notify icon text length
                 if (title.Length > 63)
                 {
-                    notifyIcon.Text = title.Substring(0, 63);
+                    notifyIcon.Text = tabletName.Substring(0, 63);
                 }
                 else
                 {
-                    notifyIcon.Text = title;
+                    notifyIcon.Text = tabletName;
                 }
-                SetStatus("Connected to " + parameters);
+                SetStatus("Connected to " + tabletName);
             }
 
             //
@@ -319,11 +316,12 @@ namespace TabletDriverGUI
                             if (y < minimumY) minimumY = y;
                         }
                     }
+
                     double areaWidth = maximumX - minimumX;
                     double areaHeight = maximumY - minimumY;
                     double centerX = minimumX + areaWidth / 2.0;
                     double centerY = minimumY + areaHeight / 2.0;
-                    //MessageBox.Show("Area: " + areaWidth + " x " + areaHeight + " @ " + centerX + ", " + centerY);
+
                     config.TabletArea.Width = areaWidth;
                     config.TabletArea.Height = areaHeight;
                     config.TabletArea.X = centerX;
@@ -382,6 +380,8 @@ namespace TabletDriverGUI
         {
             if (running)
             {
+
+                // Automatic restart?
                 if (config.AutomaticRestart)
                 {
                     SetStatus("Driver stopped. Restarting! Check console !!!");
@@ -390,8 +390,6 @@ namespace TabletDriverGUI
                     // Run in the main application thread
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        Title = "TabletDriverGUI";
-                        notifyIcon.Text = "";
                         driver.Stop();
                         timerRestart.Start();
                     });
@@ -402,6 +400,14 @@ namespace TabletDriverGUI
                     SetStatus("Driver stopped!");
                     driver.ConsoleAddText("Driver stopped!");
                 }
+
+                // Run in the main application thread
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Title = "TabletDriverGUI";
+                    notifyIcon.Text = "No tablet found";
+                });
+
             }
         }
 

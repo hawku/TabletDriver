@@ -76,10 +76,14 @@ bool OutputVMultiDigitizer::Write() {
 // Reset output
 //
 bool OutputVMultiDigitizer::Reset() {
+
+	// Do not reset when buttons are not pressed
+	if(report.buttons == 0) {
+		return true;
+	}
+
 	report.buttons = 0;
 	report.pressure = 0;
-	report.x = 0;
-	report.y = 0;
 	vmulti->SetReport(&report, sizeof(report));
 	vmulti->WriteReport();
 	return true;

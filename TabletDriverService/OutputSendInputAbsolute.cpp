@@ -116,6 +116,11 @@ bool OutputSendInputAbsolute::Write() {
 //
 bool OutputSendInputAbsolute::Reset() {
 
+	// Do not reset when buttons are not pressed
+	if(lastButtons == 0) {
+		return true;
+	}
+
 	INPUT input = { 0 };
 	input.type = INPUT_MOUSE;
 	input.mi.mouseData = 0;

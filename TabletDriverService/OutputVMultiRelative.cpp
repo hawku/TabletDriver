@@ -141,6 +141,12 @@ bool OutputVMultiRelative::Write() {
 // Reset output
 //
 bool OutputVMultiRelative::Reset() {
+
+	// Do not reset when buttons are not pressed
+	if(report.buttons == 0) {
+		return true;
+	}
+
 	report.buttons = 0;
 	report.wheel = 0;
 	vmulti->SetReport(&report, sizeof(report));

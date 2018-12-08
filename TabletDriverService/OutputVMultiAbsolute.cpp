@@ -71,10 +71,14 @@ bool OutputVMultiAbsolute::Write() {
 // Reset output
 //
 bool OutputVMultiAbsolute::Reset() {
+
+	// Do not reset when buttons are not pressed
+	if(report.buttons == 0) {
+		return true;
+	}
+
 	report.buttons = 0;
 	report.wheel = 0;
-	report.x = 0;
-	report.y = 0;
 	vmulti->SetReport(&report, sizeof(report));
 	vmulti->WriteReport();
 	return true;

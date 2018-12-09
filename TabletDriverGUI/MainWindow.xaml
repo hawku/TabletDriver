@@ -743,7 +743,11 @@
       </TabItem>
       <TabItem Name="tabConsole" Header="Console">
         <Grid Margin="0,2,0,0">
-          <ScrollViewer Name="scrollConsole" Margin="5,5,5,30"
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <ScrollViewer Grid.Row="0" Name="scrollConsole" Margin="5,0,5,0"
                         VerticalScrollBarVisibility="Auto"
                         HorizontalScrollBarVisibility="Auto">
 
@@ -780,16 +784,31 @@
             </TextBlock>
           </ScrollViewer>
 
-          <!-- Console input -->
-          <TextBox Name="textConsoleInput" Margin="5,0,5,5" VerticalAlignment="Bottom"  Height="20" TextWrapping="Wrap" Text=""
+          <Grid Grid.Row="1" Height="25" Margin="5,0,5,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Console input -->
+            <TextBox Grid.Column="0" Name="textConsoleInput" Height="20" TextWrapping="Wrap" Text=""
+                     VerticalContentAlignment="Center"
+                     Padding="0"
                    FontFamily="Courier New" Background="White" Foreground="Black"
                    FontSize="12"
                    TabIndex="2"
                    PreviewKeyDown="TextConsoleInput_PreviewKeyDown"
-                   KeyDown="TextConsoleInput_KeyDown" Grid.ColumnSpan="2"
+                   KeyDown="TextConsoleInput_KeyDown"
              />
-
+            <CheckBox Grid.Column="1" Name="checkBoxDebugging"
+                      Height="16"
+                      Margin="5,1,0,0"
+                      Checked="CheckboxChanged"
+                      Unchecked="CheckboxChanged"
+            >Debug</CheckBox>
+          </Grid>
         </Grid>
+
       </TabItem>
     </TabControl>
 

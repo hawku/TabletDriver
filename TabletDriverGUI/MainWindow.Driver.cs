@@ -184,6 +184,17 @@ namespace TabletDriverGUI
                 driver.SendCommand("AntiSmoothing 0");
             }
 
+
+            // Debugging
+            if(config.DebuggingEnabled)
+            {
+                driver.SendCommand("Debug true");
+            } else
+            {
+                driver.SendCommand("Debug false");
+            }
+
+
             // Commands after settings
             if (config.CommandsAfter.Length > 0)
             {
@@ -346,6 +357,12 @@ namespace TabletDriverGUI
         //
         private void OnDriverStarted(object sender, EventArgs e)
         {
+            // Debugging commands
+            if(config.DebuggingEnabled)
+            {
+                driver.SendCommand("HIDList");
+            }
+
             driver.SendCommand("GetCommands");
             driver.SendCommand("Echo");
             driver.SendCommand("Echo   Driver version: " + Version);

@@ -66,8 +66,9 @@ namespace TabletDriverGUI
         public bool RunAtStartup;
 
         public string DriverPath;
-        public string DriverArguments;        
+        public string DriverArguments;
 
+        public bool DebuggingEnabled;
         public bool DeveloperMode;
 
 
@@ -115,6 +116,8 @@ namespace TabletDriverGUI
 
             DriverPath = "bin/TabletDriverService.exe";
             DriverArguments = "config/init.cfg";
+
+            DebuggingEnabled = false;
             DeveloperMode = false;
         }
 

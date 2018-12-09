@@ -54,10 +54,19 @@ namespace TabletDriverGUI
                 //
                 string[] tabletDriverProcessNames =
                 {
+
+                    // Wacom
                     "Pen_Tablet",
                     "Wacom_Tablet",
+
+                    // XP-Pen
                     "PentabletService",
-                    "Pentablet"
+                    "Pentablet",
+
+                    // VEIKK
+                    "TabletDriverCenter",
+                    "TabletDriverSetting"
+
                 };
 
                 processes = Process.GetProcesses();

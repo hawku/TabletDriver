@@ -65,7 +65,10 @@ namespace TabletDriverGUI
 
                     // VEIKK
                     "TabletDriverCenter",
-                    "TabletDriverSetting"
+                    "TabletDriverSetting",
+
+                    // Huion
+                    "Huion Tablet"
 
                 };
 

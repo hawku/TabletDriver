@@ -1157,8 +1157,7 @@ namespace TabletDriverGUI
                         if (processes.Length > 0)
                         {
                             IntPtr osuHandle = processes[0].MainWindowHandle;
-                            NativeMethods.RECT rect;
-                            NativeMethods.GetWindowRect(osuHandle, out rect);
+                            NativeMethods.GetWindowRect(osuHandle, out NativeMethods.RECT rect);
 
                             textScreenAreaX.Text = Utils.GetNumberString(rect.X - minX);
                             textScreenAreaY.Text = Utils.GetNumberString(rect.Y - minY);

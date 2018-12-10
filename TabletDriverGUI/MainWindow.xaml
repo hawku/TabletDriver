@@ -201,8 +201,15 @@
                       <Button Name="buttonDrawArea" Content="Draw Area" Width="80"
                             Padding="5 5 5 5" Margin="5 5 0 5"
                             Click="ButtonDrawArea_Click"
-                              ToolTip="To set the area, click the top left and the bottom right corners of the area with your tablet pen."
-                              />
+                              >
+                        <Button.ToolTip>
+                          <TextBlock>
+                            <TextBlock FontWeight="Bold" FontSize="14">Draw Area</TextBlock>
+                            <LineBreak/>
+                            To set the area, click the top left and the bottom right corners of the area with your tablet pen.
+                          </TextBlock>
+                        </Button.ToolTip>
+                      </Button>
 
                       <!-- Wacom Area -->
                       <Button Name="buttonWacomArea" Content="Wacom Area" Width="80"
@@ -235,14 +242,26 @@
                             Unchecked="CheckboxChanged">Full Area</CheckBox>
 
                     <!-- Output mode-->
-                    <GroupBox Header="Mode" Width="130" HorizontalAlignment="Left">
+                    <GroupBox Header="Mode" HorizontalAlignment="Left">
+                      <GroupBox.ToolTip>
+                        <TextBlock>
+                          <TextBlock FontWeight="Bold" FontSize="16">Mode</TextBlock>
+                          <LineBreak/>
+                          
+                          <TextBlock FontWeight="Bold">Absolute</TextBlock>: Use this with osu!
+                          <LineBreak/>
+                          <TextBlock FontWeight="Bold">Relative</TextBlock>: Mouse mode. Sensitivity is determined by your tablet area size.
+                          <LineBreak/>
+                          <TextBlock FontWeight="Bold">Windows Ink</TextBlock>: Pen pressure is enabled in this mode. Check if your drawing application supports Windows Ink.
+                        </TextBlock>
+                      </GroupBox.ToolTip>
                       <StackPanel>
                         <RadioButton Name="radioModeAbsolute" GroupName="OutputMode" Margin="2" Content="Absolute (osu!)" 
                                      IsChecked="True"
                                      Checked="CheckboxChanged" />
-                        <RadioButton Name="radioModeRelative" GroupName="OutputMode" Margin="2" Content="Relative (mouse)" 
+                        <RadioButton Name="radioModeRelative" GroupName="OutputMode" Margin="2" Content="Relative (Mouse)" 
                                      Checked="CheckboxChanged" />
-                        <RadioButton Name="radioModeDigitizer" GroupName="OutputMode" Margin="2" Content="Windows Ink" 
+                        <RadioButton Name="radioModeDigitizer" GroupName="OutputMode" Margin="2" Content="Windows Ink (Draw)"
                                      Checked="CheckboxChanged" />
 
                       </StackPanel>

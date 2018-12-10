@@ -398,12 +398,12 @@ void CommandHandler::CreateDeviceCommands() {
 
 		// Multiple ids
 		if(stringIdMin != stringIdMax) {
-			LOG_INFO("Requesting strings from ids %d - %d:\n", stringIdMin, stringIdMax);
+			LOG_INFO("Requesting string ids from %d to %d:\n", stringIdMin, stringIdMax);
 		}
 
 		// Single id
 		else {
-			LOG_INFO("Requesting strings id %d:\n", stringIdMin);
+			LOG_INFO("Requesting string id %d:\n", stringIdMin);
 		}
 
 		// Loop through string ids

@@ -12,7 +12,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-### http://hwk.fi/TabletDriver/TabletDriverV0.2.zip
+### http://hwk.fi/TabletDriver/TabletDriverV0.2.1.zip
 
 #
 
@@ -34,6 +34,8 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   - Wacom CTH-480
   - Wacom CTL-490
   - Wacom CTH-490
+  - Wacom CTL-4100 USB
+  - Wacom CTL-4100 Bluetooth
   - Wacom CTL-671
   - Wacom CTL-672
   - Wacom CTL-680
@@ -41,8 +43,8 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   - Wacom PTH-660
   - Wacom PTH-451
   - Wacom PTH-850
-  - XP-Pen G430 (New 2017+ "Model B")
-  - XP-Pen G540 Pro
+  - XP-Pen G430 (New 2017+ "Model B". Old G430 or G430S is not supported)
+  - XP-Pen G540 Pro (G540 is not supported)
   - XP-Pen G640
   - XP-Pen Deco 01
   - XP-Pen Deco 01 v2
@@ -54,8 +56,8 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   
 ### Configured, but not properly tested:
   - Huion osu!tablet
-  - Wacom CTL-4100 USB
-  - Wacom CTL-4100 Bluetooth
+  - XP-Pen G640S
+  - VEIKK S640
   - https://github.com/hawku/TabletDriver/blob/master/TabletDriverService/config/wacom.cfg
 
 #
@@ -98,12 +100,23 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ## Changelog
+>**v0.2.1:**
+> - XP-Pen G640S and VEIKK S640 configurations by [FRodriguez96](https://github.com/frodriguez96)
+> - Original XP-Pen, Huion and VEIKK driver processes will now be killed when the TabletDriverGUI starts.
+> - Fixed cursor jumping to the corner when driver restarts or tablet disconnects.
+> - Removed device list from driver startup. Might help with the problems that the driver restart is causing other USB devices to glitch out.
+> - Relative mode position reset is now decided by when the last tablet movement was received (default 100 ms, `RelativeResetTime` command).
+> - Added ability to disable automatic restart.
+> - Added command name autocomplete to the console input (tab) and commands tab (control + space).
+> - Added gravity filter (`GravityFilter` command). It's just for fun and testing. Works only when pen buttons are pressed.
+> - Added 32-bit VMulti and Huion drivers to the driver zip file.
+
 >**v0.2:**
 > - **Improved the noise reduction filter and added the settings to the GUI.**
 > - **Added an anti-smoothing filter which reduces the input latency on tablets that use hardware smoothing.**
 > - Wacom CTE-440 support by [Poliwrath](https://github.com/Poliwrath)
 > - Wacom PTH-660 support by [Implojin](https://github.com/Implojin)
-> - XP-PEN Deco 01 v2 support by [Itsyuka](https://github.com/Itsyuka)
+> - XP-Pen Deco 01 v2 support by [Itsyuka](https://github.com/Itsyuka)
 > - Modified Huion 420 and H420 tablet area size to match with the 2000 LPI resolution.
 > - Updated Huion drivers to the latest version.
 > - Moved the filter settings to filters tab in the GUI.

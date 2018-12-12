@@ -4,20 +4,27 @@
 #define LOG_MODULE "HIDDevice"
 #include "Logger.h"
 
-HIDDevice::HIDDevice(USHORT VendorId, USHORT ProductId, USHORT UsagePage, USHORT Usage) : HIDDevice() {
+HIDDevice::HIDDevice(USHORT VendorId, USHORT ProductId, USHORT UsagePage, USHORT Usage, bool IsExclusive) {
 	this->vendorId = VendorId;
 	this->productId = ProductId;
 	this->usagePage = UsagePage;
 	this->usage = Usage;
-	if(this->OpenDevice(&this->_deviceHandle, this->vendorId, this->productId, this->usagePage, this->usage)) {
+	this->isExclusive = IsExclusive;
+	if(this->OpenDevice(&this->_deviceHandle, this->vendorId, this->productId, this->usagePage, this->usage, this->isExclusive)) {
 		isOpen = true;
 	}
 	isReading = false;
 }
 
+HIDDevice::HIDDevice(USHORT VendorId, USHORT ProductId, USHORT UsagePage, USHORT Usage) : HIDDevice(VendorId, ProductId, UsagePage, Usage, false) {
+}
+
 HIDDevice::HIDDevice() {
 	isOpen = false;
 	isReading = false;
+	_manufacturerName = "";
+	_productName = "";
+	_serialNumber = "";
 	_deviceHandle = NULL;
 }
 
@@ -25,21 +32,58 @@ HIDDevice::~HIDDevice() {
 	CloseDevice();
 }
 
-bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage) {
+
+bool GetHIDStrings(HANDLE deviceHandle, string *manufacturerName, string *productName, string *serialNumber) {
+	BYTE buffer[1024];
+	int i;
+
+	// HID manufacturer string
+	if(HidD_GetManufacturerString(deviceHandle, &buffer, sizeof(buffer))) {
+		for(i = 0; i < (int)sizeof(buffer); i += 2) {
+			if(buffer[i]) manufacturerName->push_back(buffer[i]);
+			else break;
+		}
+	}
+
+	// HID product string
+	if(HidD_GetProductString(deviceHandle, &buffer, sizeof(buffer))) {
+		for(i = 0; i < (int)sizeof(buffer); i += 2) {
+			if(buffer[i]) productName->push_back(buffer[i]);
+			else break;
+		}
+	}
+
+	// HID serial number
+	if(HidD_GetSerialNumberString(deviceHandle, &buffer, sizeof(buffer))) {
+		for(i = 0; i < (int)sizeof(buffer); i += 2) {
+			if(buffer[i]) serialNumber->push_back(buffer[i]);
+			else break;
+		}
+	}
+
+	return true;
+}
+
+
+//
+// Open device
+//
+bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage, bool exclusive) {
 	HDEVINFO                         deviceInfo;
 	SP_DEVICE_INTERFACE_DATA         deviceInterfaceData;
 	PSP_DEVICE_INTERFACE_DETAIL_DATA deviceInterfaceDetailData;
 	SP_DEVINFO_DATA                  deviceInfoData;
 	DWORD dwSize, dwMemberIdx;
 	GUID hidGuid;
-	BYTE stringBytes[1024];
 
 	PHIDP_PREPARSED_DATA hidPreparsedData;
 	HIDD_ATTRIBUTES hidAttributes;
 	HIDP_CAPS hidCapabilities;
+	string manufacturerName;
+	string productName;
+	string serialNumber;
 
 	HANDLE deviceHandle;
-
 	HANDLE resultHandle = 0;
 
 	HidD_GetHidGuid(&hidGuid);
@@ -68,15 +112,29 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 		// Get interface detail
 		if(SetupDiGetDeviceInterfaceDetail(deviceInfo, &deviceInterfaceData, deviceInterfaceDetailData, dwSize, &dwSize, &deviceInfoData)) {
 
-			// Open HID
-			deviceHandle = CreateFile(
-				deviceInterfaceDetailData->DevicePath,
-				GENERIC_READ | GENERIC_WRITE,
-				FILE_SHARE_READ | FILE_SHARE_WRITE,
-				NULL,
-				OPEN_EXISTING,
-				0,
-				NULL);
+			// Open HID in exclusive mode
+			if(exclusive) {
+				deviceHandle = CreateFile(
+					deviceInterfaceDetailData->DevicePath,
+					GENERIC_READ | GENERIC_WRITE,
+					0, // No sharing
+					NULL,
+					OPEN_EXISTING,
+					0,
+					NULL);
+			}
+
+			// Open HID in sharing mode
+			else {
+				deviceHandle = CreateFile(
+					deviceInterfaceDetailData->DevicePath,
+					GENERIC_READ | GENERIC_WRITE,
+					FILE_SHARE_READ | FILE_SHARE_WRITE,
+					NULL,
+					OPEN_EXISTING,
+					0,
+					NULL);
+			}
 
 			// HID handle valid?
 			if(deviceHandle != INVALID_HANDLE_VALUE) {
@@ -93,34 +151,17 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 				// Debug logging
 				if(this->debugEnabled) {
 
-					string manufacturerName = "";
-					string productName = "";
+					manufacturerName = "";
+					productName = "";
+					serialNumber = "";
 
-					// HID manufacturer string
-					if(HidD_GetManufacturerString(deviceHandle, &stringBytes, sizeof(stringBytes))) {
-						for(int i = 0; i < (int)sizeof(stringBytes); i += 2) {
-							if(stringBytes[i]) {
-								manufacturerName.push_back(stringBytes[i]);
-							}
-							else {
-								break;
-							}
-						}
-					}
+					GetHIDStrings(deviceHandle, &manufacturerName, &productName, &serialNumber);
 
-					// HID product string
-					if(HidD_GetProductString(deviceHandle, &stringBytes, sizeof(stringBytes))) {
-						for(int i = 0; i < (int)sizeof(stringBytes); i += 2) {
-							if(stringBytes[i]) {
-								productName.push_back(stringBytes[i]);
-							}
-							else {
-								break;
-							}
-						}
-					}
-
-					LOG_DEBUG("HID Device: Vendor: '%s' Product: '%s'\n", manufacturerName.c_str(), productName.c_str());
+					LOG_DEBUG("HID Device: Vendor: '%s' Product: '%s', Serial: '%s'\n",
+						manufacturerName.c_str(),
+						productName.c_str(),
+						serialNumber.c_str()
+					);
 					LOG_DEBUG("  Vendor Id: 0x%04X, Product Id: 0x%04X\n",
 						hidAttributes.VendorID,
 						hidAttributes.ProductID
@@ -144,6 +185,8 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 					hidCapabilities.UsagePage == usagePage &&
 					hidCapabilities.Usage == usage
 				) {
+					GetHIDStrings(deviceHandle, &_manufacturerName, &_productName, &_serialNumber);
+
 					resultHandle = deviceHandle;
 				}
 
@@ -174,6 +217,14 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 	}
 
 	return false;
+}
+
+//
+// Open device
+//
+bool HIDDevice::OpenDevice(HANDLE * handle, USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage)
+{
+	return OpenDevice(handle, vendorId, productId, usagePage, usage, false);
 }
 
 // Read HID report
@@ -220,6 +271,47 @@ int HIDDevice::StringRequest(UCHAR stringId, UCHAR * buffer, int length)
 		return realLength;
 	}
 	return 0;
+}
+
+string HIDDevice::GetString(UCHAR stringId)
+{
+	string resultString = "";
+	UCHAR buffer[256];
+	int bytesRead = 0;
+
+	if(isReading) {
+		throw runtime_error("HID string request can't be sent when the device is in use!");
+	}
+	else {
+		bytesRead = StringRequest(stringId, buffer, 256);
+	}
+
+	// Reply received?
+	if(bytesRead > 0) {
+		for(int i = 0; i < bytesRead; i += 2) {
+			resultString.push_back(buffer[i]);
+		}
+	}
+
+	return resultString;
+}
+
+// Get HID manufacturer name
+string HIDDevice::GetManufacturerName()
+{
+	return _manufacturerName;
+}
+
+// Get HID product name
+string HIDDevice::GetProductName()
+{
+	return _productName;
+}
+
+// Get HID serial number
+string HIDDevice::GetSerialNumber()
+{
+	return _serialNumber;
 }
 
 // Close the device

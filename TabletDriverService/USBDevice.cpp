@@ -7,7 +7,7 @@
 USBDevice::USBDevice(string Guid) {
 	this->guid = Guid;
 	isOpen = false;
-	if(this->OpenDevice(&_deviceHandle, &_usbHandle, guid)) {
+	if(this->OpenDevice(&_deviceHandle, &_usbHandle, &deviceDescriptor, guid)) {
 		isOpen = true;
 	}
 }
@@ -16,31 +16,29 @@ USBDevice::~USBDevice() {
 }
 
 
-bool USBDevice::OpenDevice(HANDLE *outDeviceHandle, WINUSB_INTERFACE_HANDLE *outUSBHandle, string usbDeviceGUIDString) {
+bool USBDevice::OpenDevice(HANDLE *outDeviceHandle, WINUSB_INTERFACE_HANDLE *outUSBHandle, USB_DEVICE_DESCRIPTOR *outDeviceDescriptor, string usbDeviceGUIDString) {
 	GUID usbDeviceGUID;
 
 	HDEVINFO                         deviceInfo;
 	SP_DEVICE_INTERFACE_DATA         deviceInterfaceData;
 	PSP_DEVICE_INTERFACE_DETAIL_DATA deviceInterfaceDetailData;
 	SP_DEVINFO_DATA                  deviceInfoData;
+	USB_DEVICE_DESCRIPTOR			 usbDeviceDescriptor;
+	USB_INTERFACE_DESCRIPTOR		 usbInterfaceDescriptor;
+
 	DWORD dwSize;
 	DWORD dwMemberIdx;
+	ULONG bytesRead = 0;
+	bool deviceFound = false;
 
 	HANDLE deviceHandle = 0;
 	WINUSB_INTERFACE_HANDLE usbHandle = 0;
 
-	bool deviceFound = false;
-
-	USB_INTERFACE_DESCRIPTOR usbInterfaceDescriptor;
-
-	ULONG readBytes = 0;
-
-
-
-
+	// Create GUID wstring
 	std::wstring stemp = std::wstring(usbDeviceGUIDString.begin(), usbDeviceGUIDString.end());
 	LPCWSTR wstringGUID = stemp.c_str();
 
+	// Create CLSID from GUID string
 	HRESULT hr = CLSIDFromString(wstringGUID, (LPCLSID)&usbDeviceGUID);
 	if(hr != S_OK) {
 		LOG_ERROR("Can't create the USB Device GUID!\n");
@@ -55,38 +53,39 @@ bool USBDevice::OpenDevice(HANDLE *outDeviceHandle, WINUSB_INTERFACE_HANDLE *out
 		return false;
 	}
 
-	// Enumerate device interface data
+	// Enumerate device interfaces
 	deviceInterfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
 	dwMemberIdx = 0;
 	SetupDiEnumDeviceInterfaces(deviceInfo, NULL, &usbDeviceGUID, dwMemberIdx, &deviceInterfaceData);
+
 	while(GetLastError() != ERROR_NO_MORE_ITEMS) {
 
-		// Get the required buffer size. 
+		// Get the required interface detail buffer size. 
 		deviceInfoData.cbSize = sizeof(deviceInfoData);
 		SetupDiGetDeviceInterfaceDetail(deviceInfo, &deviceInterfaceData, NULL, 0, &dwSize, NULL);
 
-		// Allocate memory
+		// Allocate memory for interface detail data
 		deviceInterfaceDetailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA)malloc(dwSize);
 		deviceInterfaceDetailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
 		// Get device interface detail data
 		if(SetupDiGetDeviceInterfaceDetail(deviceInfo, &deviceInterfaceData, deviceInterfaceDetailData, dwSize, &dwSize, &deviceInfoData)) {
 
-			//LOG_DEBUG("USB Device path: %S\n", deviceInterfaceDetailData->DevicePath);
+			// Create device file
+			deviceHandle = CreateFile(
+				deviceInterfaceDetailData->DevicePath,
+				GENERIC_READ | GENERIC_WRITE,
+				FILE_SHARE_READ | FILE_SHARE_WRITE,
+				NULL,
+				OPEN_EXISTING,
+				FILE_FLAG_OVERLAPPED,
+				NULL
+			);
 
-			// Create File            
-			deviceHandle = CreateFile(deviceInterfaceDetailData->DevicePath,
-									  GENERIC_READ | GENERIC_WRITE,
-									  FILE_SHARE_READ | FILE_SHARE_WRITE,
-									  NULL,
-									  OPEN_EXISTING,
-									  FILE_FLAG_OVERLAPPED,
-									  NULL);
-
+			// Check file handle
 			if(deviceHandle != INVALID_HANDLE_VALUE) {
-				//LOG_DEBUG("Handle: %lu\n", (ULONG)deviceHandle);
 
-				// Init WinUsb
+				// Initialize WinUsb
 				WinUsb_Initialize(deviceHandle, &usbHandle);
 				if(!usbHandle) {
 					LOG_ERROR("ERROR! Unable to initialize WinUSB!\n");
@@ -94,35 +93,63 @@ bool USBDevice::OpenDevice(HANDLE *outDeviceHandle, WINUSB_INTERFACE_HANDLE *out
 						CloseHandle(deviceHandle);
 					return false;
 				}
-				//LOG_DEBUG("USB Handle: %d\n", (ULONG)usbHandle);
 
-				// Query interface settings
-				ZeroMemory(&usbInterfaceDescriptor, sizeof(USB_INTERFACE_DESCRIPTOR));
+				// Clear descriptors
+				memset(&usbDeviceDescriptor, 0, sizeof(USB_DEVICE_DESCRIPTOR));
+				memset(&usbInterfaceDescriptor, 0, sizeof(USB_INTERFACE_DESCRIPTOR));
+				bytesRead = 0;
 
-				// Can query interface settings?
-				if(WinUsb_QueryInterfaceSettings(usbHandle, 0, &usbInterfaceDescriptor)) {
+				//
+				// Is the device valid?
+				//
+				if(
+					// Get device descriptor
+					WinUsb_GetDescriptor(
+						usbHandle, USB_DEVICE_DESCRIPTOR_TYPE, 0, 0x409,
+						(UCHAR*)&usbDeviceDescriptor,
+						sizeof(usbDeviceDescriptor),
+						&bytesRead
+					)
+					&&
 
+					// Get device interface settings
+					WinUsb_QueryInterfaceSettings(usbHandle, 0, &usbInterfaceDescriptor)
+				) {
+
+					// Copy handles
 					memcpy(outDeviceHandle, &deviceHandle, sizeof(HANDLE));
 					memcpy(outUSBHandle, &usbHandle, sizeof(WINUSB_INTERFACE_HANDLE));
+
+					// Copy device descriptor
+					memcpy(outDeviceDescriptor, &usbDeviceDescriptor, sizeof(usbDeviceDescriptor));
+
 					deviceFound = true;
 				}
+
+				//
+				// Invalid device
+				//
 				else {
+
+					// Free WinUSB handle
 					if(usbHandle && usbHandle != INVALID_HANDLE_VALUE)
 						WinUsb_Free(usbHandle);
 
+					// Free device file
 					if(deviceHandle && deviceHandle != INVALID_HANDLE_VALUE)
 						CloseHandle(deviceHandle);
 				}
 			}
 		}
 
-		// Free memory
-		std::free(deviceInterfaceDetailData);
+		// Destroy interface detail data
+		free(deviceInterfaceDetailData);
 
-		// Continue looping
+		// Enumerate to the next interface
 		SetupDiEnumDeviceInterfaces(deviceInfo, NULL, &usbDeviceGUID, ++dwMemberIdx, &deviceInterfaceData);
 	}
 
+	// Destroy device info list
 	SetupDiDestroyDeviceInfoList(deviceInfo);
 
 	return deviceFound;
@@ -188,6 +215,46 @@ int USBDevice::StringRequest(UCHAR stringId, UCHAR *buffer, int length)
 	return bytesRead;
 }
 
+string USBDevice::GetString(UCHAR stringId) {
+	string resultString = "";
+	UCHAR buffer[256];
+	int bytesRead = 0;
+
+	bytesRead = StringRequest(stringId, buffer, 256);
+
+	// Reply received?
+	if(bytesRead > 0) {
+		for(int i = 0; i < bytesRead; i += 2) {
+			resultString.push_back(buffer[i]);
+		}
+	}
+
+	return resultString;
+}
+
+// Get WinUSB device manufacturer name
+string USBDevice::GetManufacturerName() {
+	if(deviceDescriptor.iManufacturer == 0) return "";
+	return GetString(deviceDescriptor.iManufacturer);
+}
+
+// Get WinUSB device product name
+string USBDevice::GetProductName()
+{
+	if(deviceDescriptor.iProduct == 0) return "";
+	return GetString(deviceDescriptor.iProduct);
+}
+
+// Get WinUSB device serial number
+string USBDevice::GetSerialNumber()
+{
+	if(deviceDescriptor.iSerialNumber == 0) return "";
+	return GetString(deviceDescriptor.iSerialNumber);
+}
+
+//
+// Close WinUSB device
+//
 void USBDevice::CloseDevice() {
 	if(_usbHandle != NULL && _usbHandle != INVALID_HANDLE_VALUE) {
 		try {

@@ -403,8 +403,8 @@ void TabletHandler::RunAuxInputThread()
 	USHORT lastButtons = 0;
 	Tablet::TabletAuxState auxState;
 
-	// No aux device
-	if(tablet->hidDeviceAux == NULL && tablet->usbDevice == NULL) {
+	// No aux device or not aux report id set
+	if(tablet->hidDeviceAux == NULL && tablet->usbDevice == NULL && tablet->settings.auxReportId <= 0) {
 		return;
 	}
 

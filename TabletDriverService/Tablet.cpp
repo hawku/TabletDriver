@@ -231,7 +231,7 @@ int Tablet::ReadState() {
 	}
 
 	// Process auxiliary data
-	if(settings.auxReportId > 0) {
+	if(settings.auxReportId > 0 && hidDeviceAux == NULL) {
 		ProcessAuxData(buffer, settings.reportLength);
 	}
 
@@ -318,8 +318,6 @@ int Tablet::ReadState() {
 			// Format data
 			dataFormatter.Format(&reportData, buffer);
 
-			//LOG_DEBUGBUFFER(buffer, dataFormatter.sourceLength, "Custom data source: ");
-			//LOG_DEBUGBUFFER(&reportData, dataFormatter.targetLength, "Custom data target: ");
 		}
 
 
@@ -415,7 +413,6 @@ int Tablet::ReadState() {
 			double pressure;
 			pressure = state.pressure - settings.pressureDeadzone;
 			pressure /= (1 - settings.pressureDeadzone);
-			//LOG_DEBUG("Pressure: %0.2f -> %0.2f\n", state.pressure, pressure);
 			state.pressure = pressure;
 		}
 
@@ -518,13 +515,13 @@ int Tablet::ReadAuxReport()
 		return ProcessAuxData(buffer, length);
 
 	}
-	else if(usbDevice != NULL) {
+	else if(usbDevice != NULL || settings.auxReportId > 0) {
 		if(auxState.isValid) {
-			Sleep(10);
+			Sleep(1);
 			return TabletAuxReportStatus::AuxReportValid;
 		}
 		else {
-			Sleep(10);
+			Sleep(1);
 			return TabletAuxReportStatus::AuxReportInvalid;
 		}
 	}

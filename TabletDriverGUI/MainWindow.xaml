@@ -40,11 +40,11 @@
                 Background="White"
                 >
 
-      <!-- General settings -->
+      <!-- Area tab -->
       <TabItem>
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#006600" FontWeight="Bold">
-            <AccessText Text="_Settings"/>
+            <AccessText Text="_Area"/>
           </TextBlock>
         </TabItem.Header>
 
@@ -351,6 +351,7 @@
         </ScrollViewer>
       </TabItem>
 
+      <!-- Buttons tab -->
       <TabItem>
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#006699" FontWeight="Bold">
@@ -680,6 +681,7 @@
         </StackPanel>
       </TabItem>
 
+      <!-- Filters tab -->
       <TabItem>
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#003399" FontWeight="Bold">
@@ -1018,7 +1020,7 @@
       <TabItem>
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#000066" FontWeight="Bold">
-            <AccessText Text="Misc"/>
+            <AccessText Text="_Misc"/>
           </TextBlock>
         </TabItem.Header>
 
@@ -1072,6 +1074,7 @@
         </StackPanel>
       </TabItem>
 
+      <!-- Commands tab -->
       <TabItem Name="tabCommands">
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#000" FontWeight="Bold">
@@ -1115,6 +1118,8 @@
           </GroupBox>
         </Grid>
       </TabItem>
+      
+      <!-- Console tab -->
       <TabItem Name="tabConsole">
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#000" FontWeight="Bold">
@@ -1190,6 +1195,7 @@
         </Grid>
 
       </TabItem>
+    
     </TabControl>
 
     <Grid Margin="5,5,5,25" Height="35" VerticalAlignment="Bottom">

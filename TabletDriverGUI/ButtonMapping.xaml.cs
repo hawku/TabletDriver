@@ -223,9 +223,9 @@ namespace TabletDriverGUI
 
 
         //
-        // Mouse combobox enter press -> set
+        // Mouse combobox or custom keys enter press -> set
         //
-        private void ComboBoxMouse_KeyUp(object sender, KeyEventArgs e)
+        private void OnEnterKeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {

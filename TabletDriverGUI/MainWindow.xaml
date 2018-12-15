@@ -456,7 +456,19 @@
 
 
             <!-- Scroll -->
-            <GroupBox Grid.Row="1" Header="Scroll">
+            <GroupBox Grid.Row="1" Header="Mouse Scroll">
+              <GroupBox.ToolTip>
+                <StackPanel>
+                  <TextBlock FontWeight="Bold" FontSize="16">
+                    Mouse Scroll
+                  </TextBlock>
+                  <TextBlock>
+                      - Use negative number in sensitivity to invert the direction.
+                      <LineBreak/>
+                      - Acceleration 1.0 = No acceleration. Recommended range is from 1 to 5.
+                  </TextBlock>
+                </StackPanel>
+              </GroupBox.ToolTip>
               <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 
                 <!-- Scroll sensitivity -->
@@ -464,7 +476,7 @@
                   <Grid>
                     <TextBox Name="textScrollSensitivity" Padding="4,0,0,0"
                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
-                             TextChanged="TextChanged">1.0</TextBox>
+                             TextChanged="TextChanged">0.5</TextBox>
                     <Label HorizontalAlignment="Right">s/mm</Label>
                   </Grid>
                 </GroupBox>

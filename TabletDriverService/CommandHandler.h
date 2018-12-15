@@ -23,6 +23,7 @@ public:
 	void CreateTabletCommands();
 	void CreateFilterCommands();
 	void CreateDeviceCommands();
+	void CreateAuxCommands();
 	void CreateOtherCommands();
 
 	bool IsValidCommand(string command);

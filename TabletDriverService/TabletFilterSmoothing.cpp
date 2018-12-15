@@ -11,6 +11,7 @@ TabletFilterSmoothing::TabletFilterSmoothing() {
 	latency = 2.0;
 	weight = 1.000;
 	threshold = 0.9;
+	onlyWhenButtonsDown = false;
 	lastTargetTime = chrono::high_resolution_clock::now();
 }
 
@@ -28,13 +29,20 @@ TabletFilterSmoothing::~TabletFilterSmoothing() {
 
 // Set target position
 void TabletFilterSmoothing::SetTarget(TabletState *tabletState) {
-	target.Set(tabletState->position);
-	memcpy(&outputState, tabletState, sizeof(TabletState));
+
+	// Set target state
+	memcpy(&target, tabletState, sizeof(TabletState));
+
+	// Set output state
+	outputState.time = target.time;
+	outputState.isValid = target.isValid;
+	outputState.buttons = target.buttons;
 
 	// Reset output position if last tablet state update is older than 100 milliseconds.
 	double timeDelta = (tabletState->time - lastTargetTime).count() / 1000000.0;
 	if(timeDelta > 100.0) {
-		outputPosition.Set(tabletState->position);
+		outputState.position.Set(tabletState->position);
+		outputState.pressure = tabletState->pressure;
 	}
 
 	lastTargetTime = tabletState->time;
@@ -51,45 +59,62 @@ void TabletFilterSmoothing::OnTimerIntervalChange(double oldInterval, double new
 // Update
 void TabletFilterSmoothing::Update() {
 
-	double deltaX, deltaY, distance;
-
-	deltaX = target.x - outputPosition.x;
-	deltaY = target.y - outputPosition.y;
-	distance = sqrt(deltaX*deltaX + deltaY * deltaY);
-
 	double timeDelta = (chrono::high_resolution_clock::now() - outputState.time).count() / 1000000.0;
 
-	// Distance large enough?
-	if(distance > 0.01) {
-
-		// Move output position coordinates if last tablet update time is newer than 100 milliseconds.
-		if(timeDelta < 100.0) {
-			outputPosition.x += deltaX * weight;
-			outputPosition.y += deltaY * weight;
-		}
-
-		// Debug message
-		if(logger.debugEnabled) {
-			LOG_DEBUG("TX=%0.2f TY=%0.2f OX=%0.2f OY=%0.2f DX=%0.2f DY=%0.2f D=%0.2f W=%0.3f\n",
-				target.x,
-				target.y,
-				outputPosition.x,
-				outputPosition.y,
-				deltaX,
-				deltaY,
-				distance,
-				weight
-			);
-		}
-
+	//
+	// Do not run the filter if the last state is older than 100 milliseconds.
+	//
+	if(timeDelta > 100) {
+		return;
 	}
-	// Too short distance -> set output values as target values
+
+	double deltaX, deltaY, deltaPressure, distance;
+
+	deltaX = target.position.x - outputState.position.x;
+	deltaY = target.position.y - outputState.position.y;
+	deltaPressure = target.pressure - outputState.pressure;
+	distance = sqrt(deltaX * deltaX + deltaY * deltaY);
+	
+	// Move output position only when buttons are down
+	if(onlyWhenButtonsDown) {
+
+		// Move output values
+		if((target.buttons & 0x1F) > 0) {
+			outputState.position.x += deltaX * weight;
+			outputState.position.y += deltaY * weight;
+			outputState.pressure += deltaPressure * weight;
+		}
+
+		// Set output values same as target
+		else {
+			outputState.position.Set(target.position);
+			outputState.pressure = target.pressure;
+		}
+	}
+
+	// Move output values
 	else {
-		outputPosition.x = target.x;
-		outputPosition.y = target.y;
+		outputState.position.x += deltaX * weight;
+		outputState.position.y += deltaY * weight;
+		outputState.pressure += deltaPressure * weight;
 	}
 
-	outputState.position.Set(outputPosition);
+	// Debug message
+	if(logger.debugEnabled) {
+		LOG_DEBUG("TX=%0.2f TY=%0.2f TP=%0.2f OX=%0.2f OY=%0.2f OP=%0.2f DX=%0.2f DY=%0.2f DP=%0.2f D=%0.2f W=%0.3f\n",
+			target.position.x,
+			target.position.y,
+			target.pressure,
+			outputState.position.x,
+			outputState.position.y,
+			outputState.pressure,
+			deltaX,
+			deltaY,
+			deltaPressure,
+			distance,
+			weight
+		);
+	}
 
 }
 

@@ -1,19 +1,10 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Shapes;
-using System.Windows.Threading;
 
 namespace TabletDriverGUI
 {
@@ -25,6 +16,7 @@ namespace TabletDriverGUI
         //
         void StartDriver()
         {
+
             if (running) return;
 
             // Try to start the driver
@@ -71,26 +63,13 @@ namespace TabletDriverGUI
         {
             if (!driver.IsRunning) return;
 
-            // Commands before settings
-            if (config.CommandsBefore.Length > 0)
-            {
-                foreach (string command in config.CommandsBefore)
-                {
-                    string tmp = command.Trim();
-                    if (tmp.Length > 0)
-                    {
-                        driver.SendCommand(tmp);
-                    }
-                }
-            }
-
+            settingCommands.Clear();
 
             // Desktop size
-            driver.SendCommand("DesktopSize " + textDesktopWidth.Text + " " + textDesktopHeight.Text);
-
+            settingCommands.Add("DesktopSize " + textDesktopWidth.Text + " " + textDesktopHeight.Text);
 
             // Screen area
-            driver.SendCommand("ScreenArea " +
+            settingCommands.Add("ScreenArea " +
                 Utils.GetNumberString(config.ScreenArea.Width) + " " + Utils.GetNumberString(config.ScreenArea.Height) + " " +
                 Utils.GetNumberString(config.ScreenArea.X) + " " + Utils.GetNumberString(config.ScreenArea.Y)
             );
@@ -102,24 +81,24 @@ namespace TabletDriverGUI
             // Inverted
             if (config.Invert)
             {
-                driver.SendCommand("TabletArea " +
+                settingCommands.Add("TabletArea " +
                     Utils.GetNumberString(config.TabletArea.Width) + " " +
                     Utils.GetNumberString(config.TabletArea.Height) + " " +
                     Utils.GetNumberString(config.TabletFullArea.Width - config.TabletArea.X) + " " +
                     Utils.GetNumberString(config.TabletFullArea.Height - config.TabletArea.Y)
                 );
-                driver.SendCommand("Rotate " + Utils.GetNumberString(config.TabletArea.Rotation + 180));
+                settingCommands.Add("Rotate " + Utils.GetNumberString(config.TabletArea.Rotation + 180));
             }
             // Normal
             else
             {
-                driver.SendCommand("TabletArea " +
+                settingCommands.Add("TabletArea " +
                     Utils.GetNumberString(config.TabletArea.Width) + " " +
                     Utils.GetNumberString(config.TabletArea.Height) + " " +
                     Utils.GetNumberString(config.TabletArea.X) + " " +
                     Utils.GetNumberString(config.TabletArea.Y)
                 );
-                driver.SendCommand("Rotate " + Utils.GetNumberString(config.TabletArea.Rotation));
+                settingCommands.Add("Rotate " + Utils.GetNumberString(config.TabletArea.Rotation));
             }
 
 
@@ -127,86 +106,156 @@ namespace TabletDriverGUI
             switch (config.OutputMode)
             {
                 case Configuration.OutputModes.Absolute:
-                    driver.SendCommand("Mode Absolute");
+                    settingCommands.Add("Mode Absolute");
                     break;
                 case Configuration.OutputModes.Relative:
-                    driver.SendCommand("Mode Relative");
-                    driver.SendCommand("RelativeSensitivity " + Utils.GetNumberString(config.ScreenArea.Width / config.TabletArea.Width));
+                    settingCommands.Add("Mode Relative");
+                    settingCommands.Add("RelativeSensitivity " + Utils.GetNumberString(config.ScreenArea.Width / config.TabletArea.Width));
                     break;
                 case Configuration.OutputModes.Digitizer:
-                    driver.SendCommand("Mode Digitizer");
+                    settingCommands.Add("Mode Digitizer");
                     break;
             }
 
-
-            // Button map
+            //
+            // Pen button map
+            //
             if (config.DisableButtons)
             {
-                driver.SendCommand("ButtonMap 0 0 0");
+                settingCommands.Add("ClearButtonMap");
             }
             else
             {
-                driver.SendCommand("ButtonMap " + String.Join(" ", config.ButtonMap));
+                settingCommands.Add("ClearButtonMap");
+                int button = 1;
+                foreach (string key in config.ButtonMap)
+                {
+                    settingCommands.Add("ButtonMap " + button + " \"" + key + "\"");
+                    button++;
+                }
             }
+
+            //
+            // Tablet button map
+            //
+            if (config.DisableTabletButtons)
+            {
+                settingCommands.Add("ClearAuxButtonMap");
+            }
+            else
+            {
+                settingCommands.Add("ClearAuxButtonMap");
+                int button = 1;
+                foreach (string key in config.TabletButtonMap)
+                {
+                    if (key != "")
+                    {
+                        settingCommands.Add("AuxButtonMap " + button + " \"" + key + "\"");
+                    }
+                    button++;
+                }
+            }
+
+
+            //
+            // Pressure
+            //
+            settingCommands.Add("PressureSensitivity " + Utils.GetNumberString(config.PressureSensitivity));
+            settingCommands.Add("PressureDeadzone " + Utils.GetNumberString(config.PressureDeadzone));
+
+
+            //
+            // Scroll
+            //
+            settingCommands.Add("ScrollSensitivity " + Utils.GetNumberString(config.ScrollSensitivity));
+            settingCommands.Add("ScrollAcceleration " + Utils.GetNumberString(config.ScrollAcceleration));
+
 
             // Smoothing filter
             if (config.SmoothingEnabled)
             {
-                driver.SendCommand("FilterTimerInterval " + Utils.GetNumberString(config.SmoothingInterval));
-                driver.SendCommand("Smoothing " + Utils.GetNumberString(config.SmoothingLatency));
+                settingCommands.Add("FilterTimerInterval " + Utils.GetNumberString(config.SmoothingInterval));
+                settingCommands.Add(
+                    "Smoothing " + Utils.GetNumberString(config.SmoothingLatency) + " 90 " +
+                    (config.SmoothingOnlyWhenButtons ? "true" : "false")
+                );
             }
             else
             {
-                driver.SendCommand("FilterTimerInterval 10");
-                driver.SendCommand("Smoothing 0");
+                settingCommands.Add("FilterTimerInterval 10");
+                settingCommands.Add("Smoothing 0");
             }
 
             // Noise filter
             if (config.NoiseFilterEnabled)
             {
-                driver.SendCommand("Noise " + Utils.GetNumberString(config.NoiseFilterBuffer) + " " + Utils.GetNumberString(config.NoiseFilterThreshold));
+                settingCommands.Add("Noise " + Utils.GetNumberString(config.NoiseFilterBuffer) + " " + Utils.GetNumberString(config.NoiseFilterThreshold));
             }
             else
             {
-                driver.SendCommand("Noise 0");
+                settingCommands.Add("Noise 0");
             }
 
 
             // Anti-smoothing filter
             if (config.AntiSmoothingEnabled)
             {
-                driver.SendCommand("AntiSmoothing " + Utils.GetNumberString(config.AntiSmoothingShape) + " " +
+                settingCommands.Add("AntiSmoothing " + Utils.GetNumberString(config.AntiSmoothingShape) + " " +
                     Utils.GetNumberString(config.AntiSmoothingCompensation) + " " +
-                    (config.AntiSmoothingIgnoreWhenDragging ? "true" : "false"));
+                    (config.AntiSmoothingOnlyWhenHover ? "true" : "false"));
             }
             else
             {
-                driver.SendCommand("AntiSmoothing 0");
+                settingCommands.Add("AntiSmoothing 0");
             }
 
 
             // Debugging
-            if(config.DebuggingEnabled)
+            if (config.DebuggingEnabled)
             {
-                driver.SendCommand("Debug true");
-            } else
+                settingCommands.Add("Debug true");
+            }
+            else
             {
-                driver.SendCommand("Debug false");
+                settingCommands.Add("Debug false");
             }
 
 
             // Commands after settings
-            if (config.CommandsAfter.Length > 0)
+            if (config.CustomCommands.Length > 0)
             {
-                foreach (string command in config.CommandsAfter)
+                foreach (string command in config.CustomCommands)
                 {
                     string tmp = command.Trim();
                     if (tmp.Length > 0)
                     {
-                        driver.SendCommand(tmp);
+                        settingCommands.Add(tmp);
                     }
                 }
             }
+
+            //
+            // Send commands to the driver
+            //
+            foreach (string command in settingCommands)
+            {
+                // Skip comments
+                if (command.StartsWith("#")) continue;
+
+                driver.SendCommand(command);
+            }
+
+            //
+            // Write settings to usersettings.cfg
+            //
+            try
+            {
+                File.WriteAllLines("config\\usersettings.cfg", settingCommands.ToArray());
+            }
+            catch (Exception)
+            {
+            }
+
         }
 
 
@@ -348,7 +397,32 @@ namespace TabletDriverGUI
             }
 
 
+            if (variableName == "aux_buttons")
+            {
+                if (Utils.ParseNumber(parameters, out double test))
+                {
+                    tabletButtonCount = (int)test;
+                    if(tabletButtonCount > 0)
+                    {
+                        for (int i = 0; i < 16; i++)
+                        {
+                            GroupBox box = (GroupBox)wrapPanelTabletButtons.Children[i];
+                            if (i >= tabletButtonCount) {
+                                box.Visibility = Visibility.Collapsed;
+                            }
+                            else
+                            {
+                                box.Visibility = Visibility.Visible;
+                            }
+                        }
+                        groupBoxTabletButtons.Visibility = Visibility.Visible;
 
+                    }
+                    if (isFirstStart)
+                        SendSettingsToDriver();
+                }
+
+            }
         }
 
 
@@ -358,7 +432,7 @@ namespace TabletDriverGUI
         private void OnDriverStarted(object sender, EventArgs e)
         {
             // Debugging commands
-            if(config.DebuggingEnabled)
+            if (config.DebuggingEnabled)
             {
                 driver.SendCommand("HIDList");
             }
@@ -423,6 +497,7 @@ namespace TabletDriverGUI
                 {
                     Title = "TabletDriverGUI";
                     notifyIcon.Text = "No tablet found";
+                    groupBoxTabletButtons.Visibility = Visibility.Collapsed;
                 });
 
             }

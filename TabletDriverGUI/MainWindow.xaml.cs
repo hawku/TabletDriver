@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -24,7 +25,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.2.1";
+        public string Version = "0.2.2";
 
         // Console stuff
         private List<string> commandHistory;
@@ -37,8 +38,9 @@ namespace TabletDriverGUI
         // Driver
         private TabletDriver driver;
         private Dictionary<String, String> driverCommands;
+        private List<string> settingCommands;
         private bool running;
-
+        private int tabletButtonCount;
 
         // Timers
         private DispatcherTimer timerStatusbar;
@@ -82,6 +84,14 @@ namespace TabletDriverGUI
 
         // Measurement to area
         private bool isEnabledMeasurementToArea = false;
+
+        // Ink canvas undo history
+        StrokeCollection inkCanvasUndoHistory;
+
+        // Ink canvas DrawingAttributes
+        DrawingAttributes inkCanvasDrawingAttributes;
+
+
 
         //
         // Constructor
@@ -133,6 +143,9 @@ namespace TabletDriverGUI
             commandHistory = new List<string> { "" };
             commandHistoryIndex = 0;
 
+            // Init setting commands list
+            settingCommands = new List<string>();
+
             // Init tablet driver
             driver = new TabletDriver("TabletDriverService.exe");
             driverCommands = new Dictionary<string, string>();
@@ -171,23 +184,43 @@ namespace TabletDriverGUI
 
 
             //
-            // Buttom Map ComboBoxes
+            // Hide tablet button mapping
             //
-            comboBoxButton1.Items.Clear();
-            comboBoxButton2.Items.Clear();
-            comboBoxButton3.Items.Clear();
-            comboBoxButton1.Items.Add("Disable");
-            comboBoxButton2.Items.Add("Disable");
-            comboBoxButton3.Items.Add("Disable");
-            for (int i = 1; i <= 5; i++)
+            groupBoxTabletButtons.Visibility = Visibility.Collapsed;
+
+            //
+            // Create tablet button map WrapPanel items
+            //
+            for (int i = 0; i < 16; i++)
             {
-                comboBoxButton1.Items.Add("Mouse " + i);
-                comboBoxButton2.Items.Add("Mouse " + i);
-                comboBoxButton3.Items.Add("Mouse " + i);
+                GroupBox groupBox = new GroupBox
+                {
+                    Width = 90,
+                    Header = "Button " + (i + 1).ToString()
+                };
+                Button button = new Button
+                {
+                    Height = 22,
+                    Content = "",
+                    Padding = new Thickness(2,0,2,0),
+                    ToolTip = "Empty",
+                    Background = Brushes.White
+                };
+                button.Click += ButtonMap_Click;
+                button.ToolTipOpening += ButtonMap_ToolTipOpening;
+
+                groupBox.Content = button;
+                wrapPanelTabletButtons.Children.Add(groupBox);
             }
-            comboBoxButton1.SelectedIndex = 0;
-            comboBoxButton2.SelectedIndex = 0;
-            comboBoxButton3.SelectedIndex = 0;
+            CheckBox checkBox = new CheckBox
+            {
+                Content = "Disable buttons"
+            };
+            checkBox.Checked += CheckboxChanged;
+            checkBox.Unchecked += CheckboxChanged;
+            checkBox.VerticalAlignment = VerticalAlignment.Bottom;
+            checkBox.Margin = new Thickness(5, 5, 5, 10);
+            wrapPanelTabletButtons.Children.Add(checkBox);
 
 
             //
@@ -199,6 +232,18 @@ namespace TabletDriverGUI
                 comboBoxSmoothingRate.Items.Add((1000.0 / i).ToString("0") + " Hz");
             }
             comboBoxSmoothingRate.SelectedIndex = 3;
+
+
+            // Ink canvas undo history
+            inkCanvasUndoHistory = new StrokeCollection();
+
+            // Ink canvas drawing attributes
+            inkCanvasDrawingAttributes = new DrawingAttributes();
+            inkCanvasDrawingAttributes.Width = 10;
+            inkCanvasDrawingAttributes.Height = 10;
+            inkCanvasDrawingAttributes.Color = Color.FromRgb(0x55, 0x55, 0x55);
+            inkCanvasDrawingAttributes.StylusTip = StylusTip.Ellipse;
+            inkCanvas.DefaultDrawingAttributes = inkCanvasDrawingAttributes;
 
             // Process command line arguments
             ProcessCommandLineArguments();
@@ -558,7 +603,6 @@ namespace TabletDriverGUI
 
 
         #endregion
-
 
     }
 }

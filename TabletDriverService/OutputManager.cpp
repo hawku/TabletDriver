@@ -28,6 +28,7 @@ OutputManager::OutputManager() {
 
 
 OutputManager::~OutputManager() {
+	Reset();
 	if(settings != NULL)
 		delete settings;
 }

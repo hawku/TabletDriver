@@ -28,36 +28,44 @@ namespace TabletDriverGUI
         public Area ScreenArea;
 
         // Smoothing filter
+        public bool SmoothingEnabled;
         public double SmoothingLatency;
         public int SmoothingInterval;
-        public bool SmoothingEnabled;
+        public bool SmoothingOnlyWhenButtons;
 
         // Noise filter
+        public bool NoiseFilterEnabled;
         public int NoiseFilterBuffer;
         public double NoiseFilterThreshold;
-        public bool NoiseFilterEnabled;
 
         // Anti-smoothing filter
+        public bool AntiSmoothingEnabled;
         public double AntiSmoothingShape;
         public double AntiSmoothingCompensation;
-        public bool AntiSmoothingIgnoreWhenDragging;
-        public bool AntiSmoothingEnabled;
+        public bool AntiSmoothingOnlyWhenHover;
 
         public Area DesktopSize;
         public bool AutomaticDesktopSize;
 
         [XmlArray("ButtonMap")]
         [XmlArrayItem("Button")]
-        public int[] ButtonMap;
+        public string[] ButtonMap;
         public bool DisableButtons;
 
-        [XmlArray("CommandsAfter")]
-        [XmlArrayItem("Command")]
-        public string[] CommandsAfter;
+        [XmlArray("TabletButtonMap")]
+        [XmlArrayItem("Button")]
+        public string[] TabletButtonMap;
+        public bool DisableTabletButtons;
 
-        [XmlArray("CommandsBefore")]
+        public double PressureSensitivity;
+        public double PressureDeadzone;
+
+        public double ScrollSensitivity;
+        public double ScrollAcceleration;
+
+        [XmlArray("CustomCommands")]
         [XmlArrayItem("Command")]
-        public string[] CommandsBefore;
+        public string[] CustomCommands;
 
         public int WindowWidth;
         public int WindowHeight;
@@ -90,12 +98,21 @@ namespace TabletDriverGUI
             DesktopSize = new Area(0, 0, 0, 0);
             AutomaticDesktopSize = true;
 
-            ButtonMap = new int[] { 1, 2, 3 };
+            ButtonMap = new string[] { "MOUSE1", "MOUSE2", "MOUSE3" };
             DisableButtons = false;
+
+            TabletButtonMap = new string[16];
+            for (int i = 0; i < 16; i++) TabletButtonMap[i] = "";
+            DisableTabletButtons = false;
+
+            PressureSensitivity = 0;
+            ScrollSensitivity = 1.0;
+            ScrollAcceleration = 1.0;
 
             SmoothingEnabled = false;
             SmoothingLatency = 0;
             SmoothingInterval = 4;
+            SmoothingOnlyWhenButtons = false;
 
             NoiseFilterEnabled = false;
             NoiseFilterBuffer = 10;
@@ -103,10 +120,9 @@ namespace TabletDriverGUI
 
             AntiSmoothingEnabled = false;
             AntiSmoothingShape = 0.5;
-            AntiSmoothingCompensation = 4.0;
+            AntiSmoothingCompensation = 20.0;
 
-            CommandsAfter = new string[] { "" };
-            CommandsBefore = new string[] { "" };
+            CustomCommands = new string[] { "" };
 
             WindowWidth = 700;
             WindowHeight = 710;

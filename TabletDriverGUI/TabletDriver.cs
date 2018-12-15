@@ -42,6 +42,7 @@ namespace TabletDriverGUI
         private readonly int ConsoleMaxLines;
         private System.Threading.Mutex mutexConsoleUpdate;
         private Dictionary<String, String> commands;
+        public Dictionary<String, String> Commands { get { return commands; } }
 
         // Other variables
         private readonly string servicePath;
@@ -66,6 +67,7 @@ namespace TabletDriverGUI
 
             commands = new Dictionary<string, string>();
 
+         
         }
 
         //
@@ -134,14 +136,13 @@ namespace TabletDriverGUI
             mutexConsoleUpdate.ReleaseMutex();
         }
 
-
         //
         // Command name complete
         //
         public string CompleteCommandName(string inputText, bool showCommands)
         {
             List<string> commandsFound = new List<string>();
-            string result = inputText;
+            string result = null;
 
             // Find commands
             foreach (var item in commands)

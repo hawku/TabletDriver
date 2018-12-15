@@ -20,6 +20,7 @@ void CommandHandler::CreateFilterCommands() {
 
 		double latency = cmd->GetDouble(0, tablet->smoothing.GetLatency());
 		double threshold = cmd->GetDouble(1, tablet->smoothing.threshold * 100);
+		bool onlyWhenButtonsDown = cmd->GetBoolean(2, tablet->smoothing.onlyWhenButtonsDown);
 
 		threshold /= 100;
 
@@ -42,10 +43,18 @@ void CommandHandler::CreateFilterCommands() {
 		// Set smoothing filter latency
 		tablet->smoothing.SetLatency(latency);
 
+		// Only on button down
+		tablet->smoothing.onlyWhenButtonsDown = onlyWhenButtonsDown;
+
 		// Print output
 		if(tablet->smoothing.weight < 1.0) {
 			tablet->smoothing.isEnabled = true;
-			LOG_INFO("Smoothing = %0.2f ms to reach %0.0f%% (weight = %f)\n", latency, tablet->smoothing.threshold * 100, tablet->smoothing.weight);
+			LOG_INFO("Smoothing = %0.2f ms to reach %0.0f%% (weight = %f), OnlyWhenButtonDown=%s\n",
+				latency, tablet->smoothing.threshold * 100,
+				tablet->smoothing.weight,
+				tablet->smoothing.onlyWhenButtonsDown ? "True" : "False"
+
+			);
 		}
 		else {
 			tablet->smoothing.isEnabled = false;
@@ -112,6 +121,7 @@ void CommandHandler::CreateFilterCommands() {
 	AddAlias("Noise", "NoiseReduction");
 	AddCommand(new Command("NoiseReduction", [&](CommandLine *cmd) {
 
+		if(!ExecuteCommand("TabletValid")) return false;
 		string stringValue = cmd->GetStringLower(0, "");
 
 		// Off / False
@@ -196,23 +206,28 @@ void CommandHandler::CreateFilterCommands() {
 		}
 		else {
 
-			double shape = cmd->GetDouble(0, 1.0);
-			double compensation = cmd->GetDouble(1, 1.0);
-			bool ignoreWhenDragging = cmd->GetBoolean(2, false);
+			double shape = cmd->GetDouble(0, tablet->antiSmoothing.shape);
+			double compensation = cmd->GetDouble(1, tablet->antiSmoothing.compensation);
+			bool onlyWhenHover = cmd->GetBoolean(2, tablet->antiSmoothing.onlyWhenHover);
 
-			if(shape <= 0) {
+			if(cmd->valueCount == 0) {
+				LOG_INFO("Usage: %s <shape> <compensation> <only on hover> <target report rate>\n", cmd->command.c_str());
+			}
+			else if(shape <= 0) {
 				tablet->antiSmoothing.isEnabled = false;
 				LOG_INFO("Anti-smoothing = off\n");
 			}
 			else {
 				tablet->antiSmoothing.shape = shape;
 				tablet->antiSmoothing.compensation = compensation;
-				tablet->antiSmoothing.ignoreWhenDragging = ignoreWhenDragging;
+				tablet->antiSmoothing.onlyWhenHover = onlyWhenHover;
+
 				tablet->antiSmoothing.isEnabled = true;
-				LOG_INFO("Anti-smoothing = Shape:%0.2f Compensation:%0.2f DragIgnore:%s\n",
+				LOG_INFO("Anti-smoothing = Shape:%0.2f Compensation:%0.2f OnlyOnHover:%s\n",
 					tablet->antiSmoothing.shape,
 					tablet->antiSmoothing.compensation,
-					tablet->antiSmoothing.ignoreWhenDragging ? "true" : "false"
+					tablet->antiSmoothing.onlyWhenHover ? "true" : "false"
+
 				);
 			}
 		}
@@ -221,10 +236,12 @@ void CommandHandler::CreateFilterCommands() {
 
 
 	//
-	// Command: FilterTimerInterval
+	// Command: FilterTimerInterval, TimerInterval, Interval
 	//
 	// Sets filter timer interval
 	//
+	AddAlias("Interval", "FilterTimerInterval");
+	AddAlias("TimerInterval", "FilterTimerInterval");
 	AddCommand(new Command("FilterTimerInterval", [&](CommandLine *cmd) {
 		if(tabletHandler == NULL) return true;
 		int oldInterval = (int)round(tabletHandler->timerInterval);
@@ -268,12 +285,12 @@ void CommandHandler::CreateFilterCommands() {
 			filterAntiSmoothing = new TabletFilterAntiSmoothing();
 			filterAntiSmoothing->shape = tablet->antiSmoothing.shape;
 			filterAntiSmoothing->compensation = tablet->antiSmoothing.compensation;
-			filterAntiSmoothing->ignoreWhenDragging = tablet->antiSmoothing.ignoreWhenDragging;
+			filterAntiSmoothing->onlyWhenHover = tablet->antiSmoothing.onlyWhenHover;
 			settingsStringIndex += sprintf_s((settingsString + settingsStringIndex), settingsStringSize - settingsStringIndex,
 				"settings AntiSmoothing shape=%0.3f compensation=%0.3f dragignore=%s\r\n",
 				tablet->antiSmoothing.shape,
 				tablet->antiSmoothing.compensation,
-				tablet->antiSmoothing.ignoreWhenDragging ? "true" : "false"
+				tablet->antiSmoothing.onlyWhenHover ? "true" : "false"
 			);
 		}
 

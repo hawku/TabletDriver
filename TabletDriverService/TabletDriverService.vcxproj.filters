@@ -117,6 +117,12 @@
     <ClInclude Include="CommandHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DataFormatter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InputEmulator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -233,6 +239,15 @@
     <ClCompile Include="CommandHandler.Tablet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DataFormatter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InputEmulator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandler.Auxiliary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="config\init.cfg">
@@ -245,6 +260,18 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="config\wacom.cfg">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="config\serviceonly.cfg">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="tools\DisableWacomDrivers.bat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="tools\EnableWacomDrivers.bat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="tools\RunServiceOnly.bat">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

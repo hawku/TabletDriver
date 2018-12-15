@@ -10,6 +10,7 @@
 TabletHandler::TabletHandler() {
 	tablet = NULL;
 	tabletInputThread = NULL;
+	auxInputThread = NULL;
 	isRunning = false;
 	timerInterval = 10;
 }
@@ -20,6 +21,23 @@ TabletHandler::TabletHandler() {
 //
 TabletHandler::~TabletHandler() {
 	StopTimer();
+	isRunning = false;
+
+	if(tablet->hidDevice != NULL)
+		tablet->hidDevice->CloseDevice();
+
+	if(tablet->hidDeviceAux != NULL)
+		tablet->hidDeviceAux->CloseDevice();
+
+	if(tablet->usbDevice != NULL)
+		tablet->usbDevice->CloseDevice();	
+
+	if(tabletInputThread != NULL)
+		tabletInputThread->join();
+
+	if(auxInputThread != NULL)
+		auxInputThread->join();
+
 }
 
 
@@ -29,7 +47,9 @@ TabletHandler::~TabletHandler() {
 bool TabletHandler::Start() {
 	if(tablet == NULL) return false;
 	ChangeTimerInterval((int)round(timerInterval));
+	isRunning = true;
 	tabletInputThread = new thread(&TabletHandler::RunTabletInputThread, this);
+	auxInputThread = new thread(&TabletHandler::RunAuxInputThread, this);
 	return true;
 }
 
@@ -104,10 +124,12 @@ void TabletHandler::RunTabletInputThread() {
 	TabletFilter *filter;
 	TabletState filterState;
 	bool filterTimedEnabled;
+	UCHAR buttons = 0;
+	UCHAR outButtons = 0;
+	UCHAR lastButtons = 0;
+	Vector2D lastScrollPosition;
 
 	timeBegin = chrono::high_resolution_clock::now();
-
-	isRunning = true;
 
 	//
 	// Tablet input main loop
@@ -117,7 +139,7 @@ void TabletHandler::RunTabletInputThread() {
 		//
 		// Read tablet position
 		//
-		status = tablet->ReadPosition();
+		status = tablet->ReadState();
 
 		// Position OK
 		if(status == Tablet::ReportValid) {
@@ -182,6 +204,111 @@ void TabletHandler::RunTabletInputThread() {
 		}
 
 		//
+		// Button map
+		//
+		buttons = tablet->state.buttons;
+		outButtons = 0;
+
+		if(buttons > 0 || lastButtons > 0) {
+			for(int buttonIndex = 0; buttonIndex < tablet->settings.buttonCount; buttonIndex++) {
+
+				// Button is not down, pressed or released?
+				if((buttons & (1 << buttonIndex)) == 0 && (lastButtons & (1 << buttonIndex)) == 0) {
+					continue;
+				}
+
+				bool isDown = buttons & (1 << buttonIndex);
+				bool isPressed = ((buttons & (1 << buttonIndex)) > 0 && (lastButtons & (1 << buttonIndex)) == 0);
+				bool isReleased = ((buttons & (1 << buttonIndex)) == 0 && (lastButtons & (1 << buttonIndex)) > 0);
+
+				// Button is set
+				if(tablet->settings.buttonMap[buttonIndex].size() > 0) {
+
+					string key = tablet->settings.buttonMap[buttonIndex];
+
+					if(inputEmulator.keyMap.count(key) > 0) {
+						InputEmulator::KeyMapValue *keyMapValue = inputEmulator.keyMap[key];
+
+						// Mouse buttons
+						if(keyMapValue->mouseButton > 0 && keyMapValue->mouseButton < 8) {
+							if(isDown) {
+								outButtons |= (1 << (keyMapValue->mouseButton - 1));
+							}
+						}
+
+						//
+						// Mouse scroll
+						//
+						else if(keyMapValue->mouseButton > 0x100) {
+
+							if(isDown) {
+
+								// Reset last scroll position when scroll button is pressed
+								if(isPressed) {
+									lastScrollPosition.Set(tablet->state.position);
+								}
+
+								// Delta from the last scroll position
+								Vector2D delta(
+									(tablet->state.position.x - lastScrollPosition.x) * tablet->settings.scrollSensitivity,
+									(tablet->state.position.y - lastScrollPosition.y) * tablet->settings.scrollSensitivity
+								);
+
+								if(delta.x > 0)
+									delta.x = round(pow(delta.x, tablet->settings.scrollAcceleration));
+								else
+									delta.x = -round(pow(-delta.x, tablet->settings.scrollAcceleration));
+
+								if(delta.y > 0)
+									delta.y = round(pow(delta.y, tablet->settings.scrollAcceleration));
+								else
+									delta.y = -round(pow(-delta.y, tablet->settings.scrollAcceleration));
+
+
+								// Vertical Scroll
+								if(delta.y != 0 && (keyMapValue->mouseButton & 0x101) > 0) {
+									inputEmulator.MouseScroll((int)delta.y, true);
+									lastScrollPosition.Set(tablet->state.position);
+								}
+
+								// Horizontal scroll
+								if(delta.x != 0 && (keyMapValue->mouseButton & 0x102) > 0) {
+									inputEmulator.MouseScroll((int)-delta.x, false);
+									lastScrollPosition.Set(tablet->state.position);
+								}
+
+							}
+						}
+
+						// Keyboard key
+						if(keyMapValue->virtualKey > 0) {
+							if(isPressed) {
+								inputEmulator.SetKeyState(keyMapValue->virtualKey, true);
+							}
+							else if(isReleased) {
+								inputEmulator.SetKeyState(keyMapValue->virtualKey, false);
+							}
+						}
+
+					}
+
+					// Keyboard keys
+					else {
+						if(isPressed) {
+							inputEmulator.SetInputStates(key, true);
+						}
+						else if(isReleased) {
+							inputEmulator.SetInputStates(key, false);
+						}
+					}
+				}
+
+			}
+		}
+		tablet->state.buttons = outButtons;
+		lastButtons = buttons;
+
+		//
 		// Report filters
 		//
 		// Is there any filters?
@@ -242,6 +369,93 @@ void TabletHandler::RunTabletInputThread() {
 	}
 
 	isRunning = false;
+
+}
+
+//
+// Auxiliary input thread (tablet buttons, etc.)
+//
+void TabletHandler::RunAuxInputThread()
+{
+	int reportStatus;
+	USHORT buttons = 0;
+	USHORT lastButtons = 0;
+	Tablet::TabletAuxState auxState;
+
+	// No aux device
+	if(tablet->hidDeviceAux == NULL && tablet->usbDevice == NULL) {
+		return;
+	}
+
+	//
+	// Auxiliary input main loop
+	//
+	while(isRunning) {
+
+		// Read
+		reportStatus = tablet->ReadAuxReport();
+
+		// Read error
+		if(reportStatus == Tablet::AuxReportReadError) {
+			LOG_ERROR("Auxiliary device read error!\n");
+			break;
+		}
+
+		// Aux state invalid or ignored
+		if(reportStatus == Tablet::AuxReportInvalid || reportStatus == Tablet::AuxReportIgnore) {
+			continue;
+		}
+
+		// Skip invalid state
+		if(!tablet->auxState.isValid) continue;
+		memcpy(&auxState, &tablet->auxState, sizeof(Tablet::TabletAuxState));
+		tablet->auxState.isValid = false;
+
+		// Buttons
+		buttons = auxState.buttons;
+
+		if(logger.debugEnabled) {
+			LOG_DEBUG("Aux buttons: 0x%04X\n", buttons);
+		}
+
+		// Loop through buttons
+		for(int button = 1; button <= tablet->settings.auxButtonCount; button++) {
+
+			int buttonMask = 1 << (button - 1);
+
+			//
+			// Button pressed
+			//
+			if((buttons & buttonMask) == buttonMask && (lastButtons & buttonMask) != buttonMask) {
+
+				// Button mapped?
+				if(tablet->settings.auxButtonMap[button - 1].size() > 0) {
+
+					// Set key down
+					inputEmulator.SetInputStates(tablet->settings.auxButtonMap[button - 1], true);
+				}
+
+			}
+
+			//
+			// Button released
+			//
+			else if((buttons & buttonMask) != buttonMask && (lastButtons & buttonMask) == buttonMask) {
+
+				// Button mapped?
+				if(tablet->settings.auxButtonMap[button - 1].size() > 0) {
+
+					// Set key up
+					inputEmulator.SetInputStates(tablet->settings.auxButtonMap[button - 1], false);
+				}
+
+			}
+
+		}
+
+		lastButtons = buttons;
+
+	}
 
 }
 

@@ -13,7 +13,7 @@
       <Setter Property="HeaderTemplate">
         <Setter.Value>
           <DataTemplate>
-            <TextBlock Text="{Binding}" FontWeight="DemiBold"/>
+            <TextBlock Text="{Binding}" FontWeight="Bold"/>
           </DataTemplate>
         </Setter.Value>
       </Setter>
@@ -24,7 +24,7 @@
 
     <DockPanel Background="White">
       <Menu DockPanel.Dock="Top"  Background="White">
-        <MenuItem Header="_File">
+        <MenuItem Header="Fil_e">
           <MenuItem Name="mainMenuImport" Header="_Import Settings" Click="MainMenuClick" />
           <MenuItem Name="mainMenuExport" Header="_Export Settings" Click="MainMenuClick" />
           <Separator />
@@ -34,19 +34,29 @@
       <TextBox AcceptsReturn="True" />
     </DockPanel>
 
-    <TabControl Name="tabControl" Margin="0,20,0,59"  Selector.IsSelected="True" Background="White">
+    <TabControl Name="tabControl"
+                Margin="0,20,0,59"
+                Selector.IsSelected="True"
+                Background="White"
+                >
 
       <!-- General settings -->
       <TabItem>
         <TabItem.Header>
-          <TextBlock Foreground="#006600" FontWeight="Bold">Settings</TextBlock>
+          <TextBlock FontSize="14" Foreground="#006600" FontWeight="Bold">
+            <AccessText Text="_Settings"/>
+          </TextBlock>
         </TabItem.Header>
 
         <ScrollViewer VerticalScrollBarVisibility="Auto">
-          <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="5,0">
+          <StackPanel Orientation="Vertical"
+                      HorizontalAlignment="Left"
+                      Margin="5,0">
 
             <!-- Screen Mapping -->
-            <GroupBox Header="Screen Map" VerticalAlignment="Top" HorizontalAlignment="Left" Width="650">
+            <GroupBox Header="Screen Map"
+                      HorizontalAlignment="Center"
+                      Width="650">
 
               <GroupBox.ToolTip>
                 <StackPanel>
@@ -56,9 +66,11 @@
                   <TextBlock>
                     - You can drag the screen area with a mouse.
                     <LineBreak/>
-                    - Drag + Control = Move area in X direction.
+                    - Control + Drag = Move area in X direction.
                     <LineBreak/>
-                    - Drag + Shift = Move area Y direction.          
+                    - Shift + Drag = Move area Y direction.          
+                    <LineBreak/>
+                    - Alt + Drag = Move area 80 pixels at a time.
                     <LineBreak/>
                     - Use the "Set Area" to set the screen area to single monitor or full desktop.
                   </TextBlock>
@@ -135,7 +147,10 @@
 
 
             <!-- Tablet area -->
-            <GroupBox Header="Tablet Area" VerticalAlignment="Top" HorizontalAlignment="Left" Width="650" Margin="0,5,0,5">
+            <GroupBox Header="Tablet Area"
+                      HorizontalAlignment="Center"
+                      Margin="0,5,0,5"
+                      Width="650">
               <GroupBox.ToolTip>
                 <StackPanel>
                   <TextBlock FontWeight="Bold" FontSize="16">
@@ -144,10 +159,12 @@
                   <TextBlock>
                     - You can drag the tablet area with a mouse.
                     <LineBreak/>
-                    - Drag + Control = Move area in X direction.
+                    - Control + Drag = Move area in X direction.
                     <LineBreak/>
-                    - Drag + Shift = Move area Y direction.
+                    - Shift + Drag = Move area Y direction.
                     <LineBreak/>
+                    - Alt + Drag = Move area 5 mm at a time.
+                    <LineBreak/>                   
                     - For left handed mode, enable the "Left handed (Inverted)" checkbox or use a rotation value of 180 degrees.
                     <LineBreak/>
                     - Click Wacom Area button to type in the Wacom driver area settings.
@@ -329,101 +346,6 @@
             </GroupBox>
 
 
-            <!-- Button Mapping and Smoothing Filter -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-
-              <!-- Button Map -->
-              <GroupBox Header="Button Mapping" VerticalAlignment="Top" HorizontalAlignment="Left" Height="73">
-                <GroupBox.ToolTip>
-                  <StackPanel>
-                    <TextBlock FontWeight="Bold" FontSize="16">
-                    Button Mapping
-                    </TextBlock>
-                    <TextBlock>
-                      - You can disable a single button by selecting "Disable" from the list.
-                      <LineBreak/>
-                      - The "Disable buttons" checkbox will disable all tablet buttons.
-                    </TextBlock>
-                  </StackPanel>
-                </GroupBox.ToolTip>
-
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
-
-                  <!-- Tip -->
-                  <GroupBox Header="Tip" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90">
-                    <ComboBox Name="comboBoxButton1" SelectionChanged="ItemSelectionChanged">
-                    </ComboBox>
-                  </GroupBox>
-
-                  <!-- Bottom -->
-                  <GroupBox Header="Bottom" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90">
-                    <ComboBox Name="comboBoxButton2" SelectionChanged="ItemSelectionChanged">
-                    </ComboBox>
-                  </GroupBox>
-
-                  <!-- Top -->
-                  <GroupBox Header="Top" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90">
-                    <ComboBox Name="comboBoxButton3" SelectionChanged="ItemSelectionChanged">
-                    </ComboBox>
-                  </GroupBox>
-
-                  <!-- Disable buttons -->
-                  <CheckBox Name="checkBoxDisableButtons"
-                            Margin="5"
-                            VerticalAlignment="Center"
-                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">Disable buttons</CheckBox>
-                </StackPanel>
-              </GroupBox>
-
-
-
-
-              <!-- Desktop size -->
-              <GroupBox Name="groupDesktopSize" Header="Desktop Size" VerticalAlignment="Bottom" Margin="5,0,0,0" HorizontalAlignment="Left"
-                        >
-                <GroupBox.ToolTip>
-                  <StackPanel>
-                    <TextBlock FontWeight="Bold" FontSize="16">
-                    Desktop Size
-                    </TextBlock>
-                    <TextBlock>
-                      - In some cases you may have to disable the auto size and manually type in the main monitor resolution.
-                      <LineBreak/>
-                      - If you don't have problems with screen mapping, leave the automatic desktop size enabled.
-                    </TextBlock>
-                  </StackPanel>
-                </GroupBox.ToolTip>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
-
-                  <!-- Desktop Width -->
-                  <GroupBox Header="Width" Height="50" Width="80" Margin="0,0,0,0">
-                    <Grid>
-                      <TextBox Name="textDesktopWidth" Padding="4,0,0,0"
-                               HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
-                               TextChanged="TextChanged">1920</TextBox>
-                      <Label Width="30" HorizontalAlignment="Right">px</Label>
-                    </Grid>
-                  </GroupBox>
-
-                  <!-- Desktop Height -->
-                  <GroupBox Header="Height" Height="50" Width="80" Margin="5,0,0,0">
-                    <Grid>
-                      <TextBox Name="textDesktopHeight" Padding="4,0,0,0"
-                               HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
-                               TextChanged="TextChanged">1080</TextBox>
-                      <Label Width="30" HorizontalAlignment="Right">px</Label>
-                    </Grid>
-                  </GroupBox>
-
-                  <CheckBox Name="checkBoxAutomaticDesktopSize"
-                            VerticalAlignment="Center" Margin="5"
-                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">Auto</CheckBox>
-                </StackPanel>
-              </GroupBox>
-
-
-
-            </StackPanel>
 
           </StackPanel>
         </ScrollViewer>
@@ -431,27 +353,328 @@
 
       <TabItem>
         <TabItem.Header>
-          <TextBlock Foreground="#000099" FontWeight="Bold">Filters</TextBlock>
+          <TextBlock FontSize="14" Foreground="#006699" FontWeight="Bold">
+            <AccessText Text="_Buttons"/>
+          </TextBlock>
         </TabItem.Header>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="Black">
-          <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="5,0">
+        <StackPanel Orientation="Vertical"
+                    Margin="5,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Width="650">
 
-            <!-- Smoothing filter -->
-            <GroupBox Name="groupSmoothingFilter" Header="Smoothing Filter"
-                      VerticalAlignment="Bottom"
-                      HorizontalAlignment="Left"
-                      Margin="0"
-                      Width="300"
-            >
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Pen Button Mapping -->
+            <GroupBox Grid.Column="0" Header="Pen Buttons">
               <GroupBox.ToolTip>
                 <StackPanel>
                   <TextBlock FontWeight="Bold" FontSize="16">
-                    Smoothing Filter
+                    Pen Buttons
                   </TextBlock>
                   <TextBlock>
+                      - You can disable a single button by clicking "Clear" in the mapping dialog.
+                      <LineBreak/>
+                      - The "Disable buttons" checkbox will disable all pen buttons.
+                      <LineBreak/>
+                      - Use negative number in scroll sensitivity to invert the direction.
+                      <LineBreak/>
+                      - Scroll acceleration 1.0 = No acceleration.
+                  </TextBlock>
+                </StackPanel>
+              </GroupBox.ToolTip>
+
+              <StackPanel Orientation="Vertical">
+
+
+                <!-- Top -->
+                <GroupBox Header="Top" Width="90">
+                  <!--
+                    <ComboBox Name="comboBoxButton3" SelectionChanged="ItemSelectionChanged">
+                    </ComboBox>
+                    -->
+                  <Button Name="buttonPenButton3" Height="22"
+                            ToolTip=""
+                            ToolTipOpening="ButtonMap_ToolTipOpening"
+                            Padding="2,0,2,0"
+                            Background="White"
+                            Click="ButtonMap_Click"
+                            >MOUSE1</Button>
+                </GroupBox>
+
+
+                <!-- Bottom -->
+                <GroupBox Header="Bottom" Width="90">
+                  <!--
+                    <ComboBox Name="comboBoxButton2" SelectionChanged="ItemSelectionChanged">
+                    </ComboBox>
+                    -->
+                  <Button Name="buttonPenButton2" Height="22"
+                            ToolTip=""
+                            ToolTipOpening="ButtonMap_ToolTipOpening"
+                            Padding="2,0,2,0"
+                            Background="White"
+                            Click="ButtonMap_Click"
+                            >MOUSE1</Button>
+                </GroupBox>
+
+
+                <!-- Tip -->
+                <GroupBox Header="Tip" Width="90" Margin="2,0,0,0">
+                  <!--
+                    <ComboBox Name="comboBoxButton1" SelectionChanged="ItemSelectionChanged">
+                    </ComboBox>
+                    -->
+                  <Button Name="buttonPenButton1" Height="22"
+                            ToolTip=""
+                            ToolTipOpening="ButtonMap_ToolTipOpening"
+                            Padding="2,0,2,0"
+                            Background="White"
+                            Click="ButtonMap_Click"
+                            >MOUSE1</Button>
+                </GroupBox>
+
+
+                <!-- Disable buttons -->
+                <CheckBox Name="checkBoxDisableButtons"
+                          HorizontalAlignment="Center"
+                          Margin="0,5,0,5"
+                          VerticalContentAlignment="Center"
+                          Checked="CheckboxChanged"
+                          Unchecked="CheckboxChanged">
+                  <TextBlock>
+                  Disable
+                    <LineBreak/>
+                    buttons
+                  </TextBlock>
+                </CheckBox>
+
+
+                <!-- Scroll sensitivity -->
+                <GroupBox Header="Scroll Sens.." Height="50" Width="90" Margin="5,0,0,0">
+                  <Grid>
+                    <TextBox Name="textScrollSensitivity" Padding="4,0,0,0"
+                             HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                             TextChanged="TextChanged">1.0</TextBox>
+                    <Label HorizontalAlignment="Right">s/mm</Label>
+                  </Grid>
+                </GroupBox>
+
+
+                <!-- Scroll acceleration -->
+                <GroupBox Header="Scroll Accel.." Height="50" Width="90" Margin="5,0,0,0">
+                  <Grid>
+                    <TextBox Name="textScrollAcceleration" Padding="4,0,0,0"
+                             HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                             TextChanged="TextChanged">1.0</TextBox>
+                  </Grid>
+                </GroupBox>
+
+              </StackPanel>
+            </GroupBox>
+
+            <!-- Windows Ink Pressure -->
+            <GroupBox Grid.Column="1" Name="groupBoxWindowsInkSettings" Header="Windows Ink Settings">
+              <StackPanel Orientation="Vertical">
+
+                <!-- Tip Firmness -->
+                <GroupBox Header="Tip Firmness">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="auto"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" FontWeight="DemiBold">Soft</Label>
+
+                    <!-- Pressure slider -->
+                    <Slider Grid.Column="1" Name="sliderPressureSensitivity"
+                            IsSnapToTickEnabled="True"
+                            TickFrequency="0.2"
+                            TickPlacement="Both"
+                            SmallChange="0.2"
+                            LargeChange="0.2"
+                            Value="0.0"
+                            Minimum="-2"
+                            Maximum="2"
+                            IsDirectionReversed="True"
+                            ValueChanged="SliderPressure_ValueChanged"
+                            >
+                    </Slider>
+                    <Label Grid.Column="2" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" FontWeight="DemiBold">Hard</Label>
+                  </Grid>
+                </GroupBox>
+
+                <!-- Pressure Deadzone -->
+                <GroupBox Header="Pressure Deadzone">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="auto"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" FontWeight="DemiBold">0%</Label>
+
+                    <!-- Deadzone slider -->
+                    <Slider Grid.Column="1" Name="sliderPressureDeadzone"
+                            IsSnapToTickEnabled="True"
+                            TickFrequency="0.01"
+                            TickPlacement="Both"
+                            SmallChange="0.01"
+                            LargeChange="0.01"
+                            Value="0.0"
+                            Minimum="0"
+                            Maximum="0.25"
+                            ToolTip="0%"
+                            ValueChanged="SliderPressure_ValueChanged"
+                            >
+                    </Slider>
+                    <Label Grid.Column="2" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" FontWeight="DemiBold">25%</Label>
+                  </Grid>
+                </GroupBox>
+
+
+
+                <!-- Pressure Tester  -->
+                <GroupBox Header="Test" Padding="2">
+                  <StackPanel Orientation="Vertical">
+                    <Border BorderThickness="2"
+                          BorderBrush="#335"
+                          >
+
+                      <!-- Ink Canvas -->
+                      <InkCanvas Width="500"
+                             Height="250"
+                             Name="inkCanvas"
+                             Background="#f6f6f6"
+                             StylusUp="InkCanvas_StylusUp"
+                             StylusMove="InkCanvas_StylusMove"
+                             KeyDown="InkCanvas_KeyDown"
+                             >
+                      </InkCanvas>
+                    </Border>
+
+                    <!-- Pressure Bar -->
+                    <ProgressBar Name="progressPressure"
+                             Minimum="0"
+                             Value="0.0"
+                             Maximum="1.0"
+                             Height="10"
+                             Background="#f6f6f6"
+                             Foreground="#555"
+                             />
+                  </StackPanel>
+                </GroupBox>
+
+                <!-- Ink canvas buttons -->
+                <Grid Margin="2,4,2,0">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+
+                  <!-- Clear Ink -->
+                  <Button Name="buttonInkClear" Content="Clear"
+                          Grid.Column="0"
+                          HorizontalAlignment="Left"
+                          Padding="5"
+                          Width="150"
+                          FontWeight="Bold"
+                          Click="ButtonInkClear_Click" />
+
+
+                  <!-- Undo -->
+                  <Button Name="buttonInkUndo" Content="Undo"
+                          Grid.Column="1"
+                          Width="80"
+                          Padding="5"
+                          Margin="0,0,3,0"
+                          FontWeight="Bold"
+                          Click="ButtonInkUndo_Click" />
+
+                  <!-- Redo -->
+                  <Button Name="buttonInkRedo" Content="Redo"
+                          Grid.Column="2"
+                          Width="80"
+                          Margin="3,0,0,0"
+                          Padding="5"
+                          FontWeight="Bold"
+                          Click="ButtonInkRedo_Click" />
+
+
+                  <!-- Save as PNG -->
+                  <Button Name="buttonInkSave" Content="Save as PNG"
+                          Grid.Column="3"
+                          HorizontalAlignment="Right"
+                          Width="150"
+                          Padding="5"
+                          FontWeight="Bold"
+                          Click="ButtonInkSave_Click" />
+
+
+                </Grid>
+
+
+              </StackPanel>
+            </GroupBox>
+
+          </Grid>
+
+
+
+          <!-- Tablet buttons -->
+          <GroupBox Name="groupBoxTabletButtons" Header="Tablet Buttons"
+                      Margin="0,5,0,5" Width="650">
+            <GroupBox.ToolTip>
+              <StackPanel>
+                <TextBlock FontWeight="Bold" FontSize="16">
+                    Tablet Buttons
+                </TextBlock>
+                <TextBlock>
+                      - You can disable a single button by clicking "Clear" in the mapping dialog.
+                      <LineBreak/>
+                      - The "Disable buttons" checkbox will disable all tablet buttons.
+                </TextBlock>
+              </StackPanel>
+            </GroupBox.ToolTip>
+            <WrapPanel Name="wrapPanelTabletButtons"></WrapPanel>
+
+          </GroupBox>
+
+
+
+        </StackPanel>
+      </TabItem>
+
+      <TabItem>
+        <TabItem.Header>
+          <TextBlock FontSize="14" Foreground="#003399" FontWeight="Bold">
+            <AccessText Text="_Filters"/>
+          </TextBlock>
+        </TabItem.Header>
+        <StackPanel Orientation="Vertical" Margin="5,0,5,0"  Width="650" HorizontalAlignment="Left">
+
+          <!-- Smoothing filter -->
+          <GroupBox Name="groupSmoothingFilter" Header="Smoothing Filter">
+            <GroupBox.ToolTip>
+              <StackPanel>
+                <TextBlock FontWeight="Bold" FontSize="16">
+                    Smoothing Filter
+                </TextBlock>
+                <TextBlock>
                     Smoothing filter adds latency to the input, so don't enable it if you want to have the lowest possible input latency.
                     <LineBreak/>
                     Check the checkbox to enable the filter.
+                    <LineBreak/>
+                    "Only when buttons down" enables the filter only when pen buttons or tip are pressed down.
                     <LineBreak/>
                     <LineBreak/>
                     <TextBlock FontWeight="Bold">
@@ -466,58 +689,70 @@
                     <LineBreak/>
                     You don't have to change the filter rate, but you can use the highest rate your computer can run without performance problems.
                   </TextBlock>
-                </StackPanel>
-              </GroupBox.ToolTip>
+              </StackPanel>
+            </GroupBox.ToolTip>
 
-              <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
 
-                <!-- Filter enabled -->
-                <CheckBox Name="checkBoxSmoothing"
+              <!-- Filter enabled -->
+              <CheckBox Name="checkBoxSmoothing"
                             VerticalAlignment="Center"
                             Margin="5,10,5,0"
                             Checked="CheckboxChanged" Unchecked="CheckboxChanged">
-                </CheckBox>
+              </CheckBox>
 
 
-                <!-- Filter Latency -->
-                <GroupBox Header="Latency" Height="50" Width="80" Margin="0,0,0,0">
-                  <Grid>
-                    <TextBox Name="textSmoothingLatency" Padding="4,0,0,0"
+              <!-- Filter Latency -->
+              <GroupBox Header="Latency" Height="50" Width="80" Margin="0,0,0,0">
+                <Grid>
+                  <TextBox Name="textSmoothingLatency" Padding="4,0,0,0"
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">0</TextBox>
-                    <Label Width="30" HorizontalAlignment="Right">ms</Label>
-                  </Grid>
-                </GroupBox>
+                  <Label Width="30" HorizontalAlignment="Right">ms</Label>
+                </Grid>
+              </GroupBox>
 
-                <!-- Filter Rate -->
-                <GroupBox Header="Rate" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" Height="50">
-                  <ComboBox Name="comboBoxSmoothingRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
-                    <ComboBoxItem>1000 Hz</ComboBoxItem>
-                    <ComboBoxItem>500 Hz</ComboBoxItem>
-                    <ComboBoxItem>333 Hz</ComboBoxItem>
-                    <ComboBoxItem Selector.IsSelected="True">250 Hz</ComboBoxItem>
-                    <ComboBoxItem>125 Hz</ComboBoxItem>
-                  </ComboBox>
-                </GroupBox>
+              <!-- Filter Rate -->
+              <GroupBox Header="Rate" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" Height="50">
+                <ComboBox Name="comboBoxSmoothingRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
+                  <ComboBoxItem>1000 Hz</ComboBoxItem>
+                  <ComboBoxItem>500 Hz</ComboBoxItem>
+                  <ComboBoxItem>333 Hz</ComboBoxItem>
+                  <ComboBoxItem Selector.IsSelected="True">250 Hz</ComboBoxItem>
+                  <ComboBoxItem>125 Hz</ComboBoxItem>
+                </ComboBox>
+              </GroupBox>
 
-              </StackPanel>
-            </GroupBox>
 
-            <!-- Noise filter -->
-            <GroupBox Name="groupNoiseFilter" Header="Noise Reduction Filter"
-                      VerticalAlignment="Bottom"
-                      HorizontalAlignment="Left"
-                      Margin="0,5,0,0" 
-                      Width="300"
-                        >
-              <GroupBox.ToolTip>
-                <StackPanel>
-                  <TextBlock FontWeight="Bold" FontSize="16">
+              <!-- Only when buttons are down -->
+              <CheckBox Name="checkBoxSmoothingOnlyWhenButtons"
+                            VerticalAlignment="Center"
+                          VerticalContentAlignment="Center"
+                            Margin="5,10,5,0"
+                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">
+                <TextBlock>
+                    Only when buttons down
+                </TextBlock>
+              </CheckBox>
+
+            </StackPanel>
+          </GroupBox>
+
+          <!-- Noise filter -->
+          <GroupBox Name="groupNoiseFilter" Header="Noise Reduction Filter"
+                      Margin="0,5,0,0" >
+            <GroupBox.ToolTip>
+              <StackPanel>
+                <TextBlock FontWeight="Bold" FontSize="16">
                     Noise Reduction Filter
-                  </TextBlock>
-                  <TextBlock>
+                </TextBlock>
+                <TextBlock>
                     It is recommend to use this filter only with older Wacom tablets.
+                    <LineBreak/>
+                    <TextBlock Foreground="#AA0000">
+                    WARNING! This filter will cause more latency on smaller tablet areas (&lt;20 mm), so consider using a larger area to increase the performance.
+                    </TextBlock>
                     <LineBreak/>
                     Check the checkbox to enable the filter.
                     <LineBreak/>
@@ -556,58 +791,75 @@
                     <LineBreak/>
                     Tablet benchmark will give you a recommended threshold value, but you can use larger value if you hover.
                   </TextBlock>
-                </StackPanel>
-              </GroupBox.ToolTip>
+              </StackPanel>
+            </GroupBox.ToolTip>
 
 
-              <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
-                <!-- Noise filter enabled -->
-                <CheckBox Name="checkBoxNoiseFilter"
+              <!-- Noise filter enabled -->
+              <CheckBox Name="checkBoxNoiseFilter"
                             VerticalAlignment="Center"
                             Margin="5,10,5,0"
                             Checked="CheckboxChanged" Unchecked="CheckboxChanged">
-                </CheckBox>
+              </CheckBox>
 
-                <!-- Noise filter buffer size -->
-                <GroupBox Header="Buffer" Height="50" Margin="0,0,0,0">
-                  <TextBox Name="textNoiseBuffer" Padding="4,0,0,0"
+              <!-- Noise filter buffer size -->
+              <GroupBox Header="Buffer" Height="50" Margin="0,0,0,0">
+                <TextBox Name="textNoiseBuffer" Padding="4,0,0,0"
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">10</TextBox>
-                </GroupBox>
+              </GroupBox>
 
-                <!-- Noise filter threshold -->
-                <GroupBox Header="Threshold" Height="50" Width="80" Margin="0,0,0,0">
-                  <Grid>
-                    <TextBox Name="textNoiseThreshold" Padding="4,0,0,0"
+              <!-- Noise filter threshold -->
+              <GroupBox Header="Threshold" Height="50" Width="80" Margin="0,0,0,0">
+                <Grid>
+                  <TextBox Name="textNoiseThreshold" Padding="4,0,0,0"
                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                TextChanged="TextChanged">1.0</TextBox>
-                    <Label Width="30" HorizontalAlignment="Right">mm</Label>
-                  </Grid>
+                  <Label Width="30" HorizontalAlignment="Right">mm</Label>
+                </Grid>
+              </GroupBox>
+
+              <!-- Noise filter presets -->
+              <!--
+                <GroupBox Header="Presets"
+                          VerticalAlignment="Top" HorizontalAlignment="Left"
+                          Height="50" Width="150">
+                  <ComboBox Name="comboBoxNoisePreset" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center"
+                            Text="">
+                    <ComboBoxItem IsSelected="True">-</ComboBoxItem>
+                    <ComboBoxItem>Wacom CTL-470</ComboBoxItem>
+                    <ComboBoxItem>Wacom CTL-471</ComboBoxItem>
+                    <ComboBoxItem>Wacom CTL-472</ComboBoxItem>
+                    <ComboBoxItem>Wacom CTL-480</ComboBoxItem>
+                  </ComboBox>
                 </GroupBox>
+                -->
 
-              </StackPanel>
+            </StackPanel>
 
 
-            </GroupBox>
+          </GroupBox>
 
-            <!-- Anti-smoothing filter -->
-            <GroupBox Name="groupAntiSmoothingFilter" Header="Anti-smoothing Filter"
-                      VerticalAlignment="Bottom"
-                      HorizontalAlignment="Left"
+          <!-- Anti-smoothing filter -->
+          <GroupBox Name="groupAntiSmoothingFilter" Header="Anti-smoothing Filter"
                       Margin="0,5,0,0"
-                      Width="340"
             >
-              <GroupBox.ToolTip>
-                <StackPanel>
-                  <TextBlock FontWeight="Bold" FontSize="16">
+            <GroupBox.ToolTip>
+              <StackPanel>
+                <TextBlock FontWeight="Bold" FontSize="16">
                     Anti-smoothing Filter
-                  </TextBlock>
-                  <TextBlock>
+                </TextBlock>
+                <TextBlock>
                     It is recommend to use this filter only with tablets that do the pen position smoothing in hardware/firmware.
                     <LineBreak/>
-                    <TextBlock Foreground="#990000">
+                    <TextBlock Foreground="#AA0000">
                       WARNING! Some tablets will send broken position data when the pen buttons are pressed, so don't press buttons...
+                    </TextBlock>
+                    <LineBreak/>
+                    <TextBlock Foreground="#AA0000">
+                      WARNING! Do not use this filter with small tablet areas (&lt;20 mm). Most tablets will send invalid data at low speeds.
                     </TextBlock>
                     <LineBreak/>
                     Check the checkbox to enable the filter.
@@ -638,7 +890,7 @@
                     <LineBreak/>
                     <LineBreak/>
                     <TextBlock FontWeight="Bold">
-                    Ignore when dragging
+                    Only when hovering
                     </TextBlock>
                     <LineBreak/>
                     This feature is mainly meant for Wacom CTL-490, but might be useful with other tablets too.
@@ -650,7 +902,7 @@
                     <LineBreak/>
                     Shape: 0.1 - 0.9
                     <LineBreak/>
-                    Compensation: 2.0 - 8.0
+                    Compensation: 10 - 30 ms
                     <LineBreak/>
                     <LineBreak/>                    
                     <TextBlock FontWeight="Bold">
@@ -659,108 +911,182 @@
                     <LineBreak/>
                     <TextBlock Margin="5,0,0,0">
                       <TextBlock FontWeight="Bold">Gaomon S56K:</TextBlock>
-                      Shape 0.7, Compensation = 5.0
+                      Shape 0.7, Compensation = 15 - 20 ms
                       <LineBreak/>                     
                       <TextBlock FontWeight="Bold">Huion 420 &amp; H420:</TextBlock>
-                      Shape = 0.5, Compensation = 3.5
+                      Shape = 0.5, Compensation = 15 - 20 ms
                       <LineBreak/>
                       <TextBlock FontWeight="Bold">Huion H430P &amp; H640P:</TextBlock>
-                      Shape = 0.7, Compensation = 6.0 - 8.0
+                      Shape = 0.7, Compensation = 20 - 30 ms
                       <LineBreak/>
                       <TextBlock FontWeight="Bold">XP-PEN G430 &amp; G640:</TextBlock>
-                      Shape = 0.5, Compensation = 3.5, Invalid low speed data, use noise reduction 10/0.5 mm
+                      Shape = 0.5, Compensation = 15 - 20 ms, Invalid low speed data, use noise reduction 10/0.5 mm
                       <LineBreak/>                   
                       <TextBlock FontWeight="Bold">Wacom CTL-490 Hover:</TextBlock>
-                      Shape = 0.5, Compensation = 3.5, Enable "Ignore when dragging"
+                      Shape = 0.5, Compensation = 25 - 30 ms, Enable "Only when hovering"
                       </TextBlock>
                   </TextBlock>
                 </StackPanel>
-              </GroupBox.ToolTip>
+            </GroupBox.ToolTip>
 
-              <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
-                <!-- Anti-smoothing filter enabled -->
-                <CheckBox Name="checkBoxAntiSmoothing"
+              <!-- Anti-smoothing filter enabled -->
+              <CheckBox Name="checkBoxAntiSmoothing"
                             VerticalAlignment="Center"
                             Margin="5,10,5,0"
                             Checked="CheckboxChanged" Unchecked="CheckboxChanged">
-                </CheckBox>
+              </CheckBox>
 
-                <!-- Anti-smoothing power -->
-                <GroupBox Header="Shape" Height="50" Margin="0,0,0,0">
-                  <TextBox Name="textAntiSmoothingShape" Padding="4,0,0,0"
+              <!-- Anti-smoothing power -->
+              <GroupBox Header="Shape" Height="50" Margin="0,0,0,0">
+                <TextBox Name="textAntiSmoothingShape" Padding="4,0,0,0"
                       HorizontalContentAlignment="Left"
                       VerticalContentAlignment="Center"
                       TextChanged="TextChanged"
                   >0.3</TextBox>
-                </GroupBox>
+              </GroupBox>
 
-                <!-- Anti-smoothing compensation -->
-                <GroupBox Header="Compensation" Height="50" Margin="0,0,0,0">
-                  <TextBox Name="textAntiSmoothingCompensation" Padding="4,0,0,0"
-                               HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
-                               TextChanged="TextChanged">20</TextBox>
-                </GroupBox>
+              <!-- Anti-smoothing compensation -->
+              <GroupBox Header="Compensation" Height="50" Margin="0,0,0,0">
+                <Grid>
+                  <TextBox Name="textAntiSmoothingCompensation"
+                         Padding="4,0,0,0"
+                         HorizontalContentAlignment="Left"
+                         VerticalContentAlignment="Center"
+                         TextChanged="TextChanged">20</TextBox>
+                  <Label HorizontalAlignment="Right">ms</Label>
 
-                <!-- Anti-smoothing filter enabled -->
-                <CheckBox Name="checkBoxAntiSmoothingIgnoreWhenDragging"
-                            VerticalAlignment="Center"
-                            Margin="5,10,5,0"
-                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">
-                  Ignore when dragging
-                </CheckBox>
+                </Grid>
+              </GroupBox>
 
-              </StackPanel>
+              <!-- Anti-smoothing only when hovering -->
+              <CheckBox Name="checkBoxAntiSmoothingOnlyWhenHover"
+                          VerticalAlignment="Center"
+                          VerticalContentAlignment="Center"
+                          Margin="5,10,5,0"
+                          Checked="CheckboxChanged" Unchecked="CheckboxChanged">
+                <TextBlock>
+                    Only when hovering
+                </TextBlock>
+              </CheckBox>
 
-
-            </GroupBox>
-
-
-          </StackPanel>
-        </ScrollViewer>
-      </TabItem>
+            </StackPanel>
 
 
-
-      <TabItem Name="tabCommands" Header="Commands">
-        <Grid Margin="5,0">
-          <!-- Define Columns -->
-          <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-          </Grid.RowDefinitions>
-          <GroupBox Grid.Row="0" Header="Commands Before Settings">
-            <TextBox Name="textCommandsBefore"
-                    FontFamily="Courier New" FontSize="12"
-                    AcceptsReturn="True"
-                    TextWrapping="NoWrap"
-                    VerticalScrollBarVisibility="Auto"
-                    Keyboard.PreviewKeyDown="TextCommands_PreviewKeyDown"
-                    TextChanged="TextChanged" />
-            <GroupBox.ToolTip>
-              <TextBlock>
-                 These commands are sent when the driver is started and the settings haven't yet been applied.
-              </TextBlock>
-            </GroupBox.ToolTip>
           </GroupBox>
 
-          <GroupBox Grid.Row="1" Header="Commands After Settings">
-            <TextBox Name="textCommandsAfter"
-                    FontFamily="Courier New" FontSize="12"
-                    AcceptsReturn="True"
-                    TextWrapping="NoWrap"
-                    VerticalScrollBarVisibility="Auto"
-                    Keyboard.PreviewKeyDown="TextCommands_PreviewKeyDown"
-                    TextChanged="TextChanged" />
+
+        </StackPanel>
+      </TabItem>
+
+      <!-- Misc tab -->
+      <TabItem>
+        <TabItem.Header>
+          <TextBlock FontSize="14" Foreground="#000066" FontWeight="Bold">
+            <AccessText Text="Misc"/>
+          </TextBlock>
+        </TabItem.Header>
+
+        <StackPanel Orientation="Vertical" Margin="5,0,5,0" Width="650" HorizontalAlignment="Left">
+
+
+          <!-- Desktop size -->
+          <GroupBox Grid.Column="1" Name="groupDesktopSize" Header="Desktop Size">
+            <GroupBox.ToolTip>
+              <StackPanel>
+                <TextBlock FontWeight="Bold" FontSize="16">
+                    Desktop Size
+                </TextBlock>
+                <TextBlock>
+                      - In some cases you may have to disable the auto size and manually type in the main monitor resolution.
+                      <LineBreak/>
+                      - If you don't have problems with screen mapping, leave the automatic desktop size enabled.
+                </TextBlock>
+              </StackPanel>
+            </GroupBox.ToolTip>
+            <StackPanel Orientation="Horizontal">
+
+              <!-- Desktop Width -->
+              <GroupBox Header="Width" Width="80" Margin="2,0,0,0">
+                <Grid>
+                  <TextBox Name="textDesktopWidth" Padding="4,0,0,0"
+                               HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                               TextChanged="TextChanged">1920</TextBox>
+                  <Label Width="30" HorizontalAlignment="Right">px</Label>
+                </Grid>
+              </GroupBox>
+
+              <!-- Desktop Height -->
+              <GroupBox Header="Height" Width="80" Margin="5,0,0,0">
+                <Grid>
+                  <TextBox Name="textDesktopHeight" Padding="4,0,0,0"
+                               HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                               TextChanged="TextChanged">1080</TextBox>
+                  <Label Width="30" HorizontalAlignment="Right">px</Label>
+                </Grid>
+              </GroupBox>
+
+              <CheckBox Name="checkBoxAutomaticDesktopSize"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Margin="5,10,5,0"
+                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">Auto</CheckBox>
+            </StackPanel>
+          </GroupBox>
+
+        </StackPanel>
+      </TabItem>
+
+      <TabItem Name="tabCommands">
+        <TabItem.Header>
+          <TextBlock FontSize="14">
+            <AccessText Text="C_ommands"/>
+          </TextBlock>
+        </TabItem.Header>
+        <Grid Margin="5,0">
+          <GroupBox Grid.Row="1" Header="Custom commands">
             <GroupBox.ToolTip>
               <TextBlock>
-                 These commands are sent when the driver is started and settings have been applied to the driver.
+              <TextBlock FontSize="16" FontWeight="Bold">
+                Custom commands
               </TextBlock>
+              <LineBreak/>
+              <TextBlock>
+                These commands/settings are applied to the driver after the GUI settings.
+                <LineBreak/>
+                You can autocomplete a command by pressing control+space.
+              </TextBlock>
+                </TextBlock>
             </GroupBox.ToolTip>
+            <TextBox Name="textCustomCommands"
+                     FontFamily="Courier New" FontSize="12"
+                     AcceptsReturn="True"
+                     TextWrapping="NoWrap"
+                     Padding="2,5,2,5"
+                     VerticalScrollBarVisibility="Auto"
+                     Keyboard.PreviewKeyDown="TextCommands_PreviewKeyDown"
+                     TextChanged="TextChanged">
+              <TextBox.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Command="ApplicationCommands.Cut" />
+                  <MenuItem Command="ApplicationCommands.Copy" />
+                  <MenuItem Command="ApplicationCommands.Paste" />
+                  <MenuItem Command="ApplicationCommands.SelectAll" />
+                  <!-- <MenuItem Name="menuCommandsTest" Header="Test" /> -->
+                </ContextMenu>
+              </TextBox.ContextMenu>
+            </TextBox>
+
           </GroupBox>
         </Grid>
       </TabItem>
-      <TabItem Name="tabConsole" Header="Console">
+      <TabItem Name="tabConsole">
+        <TabItem.Header>
+          <TextBlock FontSize="14">
+            <AccessText Text="_Console"/>
+          </TextBlock>
+        </TabItem.Header>
         <Grid Margin="0,2,0,0">
           <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -787,9 +1113,8 @@
                   <MenuItem Name="menuStartDebug" Header="Start debugging" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuStopDebug" Header="Stop debugging" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuFindLatestDebugLog" Header="Find latest debug log" Click="ConsoleMenuClick"></MenuItem>
-                  <Separator/>
                   <MenuItem Name="menuFindStartupLog" Header="Find startuplog.txt" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuOpenFolder" Header="Open TabletDriver folder" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuSettingsToUserConfig" Header="Write settings to user.cfg" Click="ConsoleMenuClick"></MenuItem>
                   <Separator/>
                   <MenuItem Name="menuRunBenchmark" Header="Run benchmark" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuCopyBenchmark" Header="Copy benchmark result" Click="ConsoleMenuClick"></MenuItem>
@@ -798,6 +1123,8 @@
                   <MenuItem Name="menuOpenGithub" Header="Open GitHub page" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuOpenLatestURL" Header="Open latest URL" Click="ConsoleMenuClick"></MenuItem>
                   <MenuItem Name="menuReportProblem" Header="Report a problem" Click="ConsoleMenuClick"></MenuItem>
+                  <Separator/>
+                  <MenuItem Name="menuOpenFolder" Header="Open TabletDriver folder" Click="ConsoleMenuClick"></MenuItem>
                 </ContextMenu>
               </TextBlock.ContextMenu>
             </TextBlock>
@@ -835,13 +1162,9 @@
 
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
 
-        <!-- Apply -->
-        <Button Name="buttonApplySettings" Margin="0,5,5,5" Padding="10,0,10,0" Click="ApplySettings"
-                ToolTip="Applies driver settings.">Apply</Button>
-
         <!-- Save -->
         <Button Name="buttonSaveSettings" Margin="0,5,5,5" Padding="10,0,10,0" Click="SaveSettings"
-                ToolTip="Saves settings to Config.xml">Save</Button>
+                ToolTip="Saves settings to config.xml and send setting commands to driver">Save settings</Button>
 
       </StackPanel>
 

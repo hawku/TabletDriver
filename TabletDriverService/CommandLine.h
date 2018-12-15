@@ -24,6 +24,8 @@ public:
 	string GetParameterString();
 	int Parse(string text);
 	string ParseHex(string str);
+	string ParseBits(string str);
+	string ParseHexBits(string str);
 	string GetString(int index, string defaultValue);
 	string GetStringLower(int index, string defaultValue);
 	int GetInt(int index, int defaultValue);

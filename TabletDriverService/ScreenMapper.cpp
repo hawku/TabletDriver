@@ -20,15 +20,14 @@ ScreenMapper::ScreenMapper(Tablet *t) {
 	areaVirtualScreen.y = 0;
 
 	// Default Tablet Area
-	areaTablet.width = 80;
-	areaTablet.height = 45;
-	areaTablet.x = 10;
-	areaTablet.y = 10;
-
+	areaTablet.width = 100;
+	areaTablet.height = 50;
+	areaTablet.x = 50;
+	areaTablet.y = 25;
 
 	// Default Screen Area
-	areaScreen.width = 1920;
-	areaScreen.height = 1080;
+	areaScreen.width = areaVirtualScreen.width;
+	areaScreen.height = areaVirtualScreen.height;
 	areaScreen.x = 0;
 	areaScreen.y = 0;
 

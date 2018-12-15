@@ -12,7 +12,7 @@
 TabletFilterAntiSmoothing::TabletFilterAntiSmoothing() {
 	shape = 1.0;
 	compensation = 1;
-	ignoreWhenDragging = false;
+	onlyWhenHover = false;
 
 	reportRate = 100;
 	reportRateAverage = 100;
@@ -67,7 +67,7 @@ void TabletFilterAntiSmoothing::Update() {
 			reportRate = reportRateAverage;
 		}
 		else {
-			reportRate -= reportRate * (timeDelta / 1000.0) * 0.1;
+			reportRate -= reportRate * (timeDelta / 1000.0) * 0.2;
 		}
 	}
 	else {
@@ -122,32 +122,40 @@ void TabletFilterAntiSmoothing::Update() {
 		ignoreInvalidReports--;
 
 
-		// Velocity validation
+
 	}
+
+	// Velocity validation
 	else if(
-	 velocity > 0.1 && predictedVelocity > 0.1
-	 &&
-	 velocity < 2000 && predictedVelocity < 2000
- ) {
+		velocity > 0.1 && predictedVelocity > 0.1
+		&&
+		velocity < 2000 && predictedVelocity < 2000
+	) {
 		//
 		// Extrapolate a position by using the difference between predicted velocity and current velocity.
 		// LerpAdd (linear interpolation) method will move the position beyond the target position when the second parameter is larger than 1
 		//
 		predictedPosition.Set(oldTarget);
-		predictedPosition.LerpAdd(latestTarget, pow(predictedVelocity / velocity, shape) * compensation);
+		predictedPosition.LerpAdd(latestTarget,
+			pow(predictedVelocity / velocity, shape)
+			*
+			compensation
+			*
+		(reportRate / 1000.0)
+		);
 		outputPosition->Set(predictedPosition);
-
-		// Invalid velocity -> set the position to the latest target
 	}
+
+	// Invalid velocity -> set the position to the latest target
 	else {
 		outputPosition->Set(latestTarget);
 	}
 
 
 	//
-	// Ignore filter when dragging
+	// Enabled only when hovering
 	//
-	if(ignoreWhenDragging) {
+	if(onlyWhenHover) {
 
 		// Ignore anti-smoothing pen pressure is detected
 		if(tabletState.pressure > 0) {

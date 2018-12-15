@@ -8,9 +8,9 @@ public:
 	double latency;
 	double weight;
 	double threshold;
-	Vector2D target;
-	Vector2D outputPosition;
+	TabletState target;
 	chrono::high_resolution_clock::time_point lastTargetTime;
+	bool onlyWhenButtonsDown;
 
 	TabletFilterSmoothing();
 	~TabletFilterSmoothing();
@@ -18,8 +18,6 @@ public:
 	void SetTarget(TabletState *tabletState);
 	void OnTimerIntervalChange(double oldInterval, double newInterval) override;
 	void Update();
-
-
 
 	double GetLatency(double filterWeight, double interval, double threshold);
 	double GetLatency(double filterWeight);

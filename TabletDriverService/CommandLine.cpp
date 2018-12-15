@@ -66,7 +66,7 @@ int CommandLine::Parse(string line) {
 
 	char currentChar;
 	char previousChar = 0;
-	char splitChars[] = " ,:(){}[]";
+	char splitChars[] = " ,:(){}[]=";
 	char endChars[] = { '\r', '\n', ';', 0 };
 	char commentChar = '#';
 	char escapeChar = '\\';
@@ -215,6 +215,35 @@ string CommandLine::ParseHex(string str) {
 	return str;
 }
 
+//
+// Parse bit string (e.g. 0b10100101)
+//
+string CommandLine::ParseBits(string str) {
+	if(str.size() >= 3 && str[0] == '0' && str[1] == 'b') {
+		int length = str.size();
+		unsigned int output = 0;
+		try {
+			for(int i = 2; i < length; i++) {
+				char c = str.at(i);
+				if(c == '1') {
+					output |= 1 << (length - (i + 1));
+				}
+			}
+			return to_string(output);
+		} catch(exception) {
+		}
+	}
+	return str;
+}
+
+//
+// Parse hex and bits strings
+//
+string CommandLine::ParseHexBits(string str)
+{
+	return ParseBits(ParseHex(str));
+}
+
 
 //
 // Get string value
@@ -243,7 +272,7 @@ string CommandLine::GetStringLower(int index, string defaultValue) {
 int CommandLine::GetInt(int index, int defaultValue) {
 	if(index < valueCount) {
 		try {
-			auto value = stoi(ParseHex(values[index]));
+			auto value = stoi(ParseHexBits(values[index]));
 			return value;
 		} catch(exception) {}
 	}
@@ -257,7 +286,7 @@ int CommandLine::GetInt(int index, int defaultValue) {
 long CommandLine::GetLong(int index, long defaultValue) {
 	if(index < valueCount) {
 		try {
-			auto value = stol(ParseHex(values[index]));
+			auto value = stol(ParseHexBits(values[index]));
 			return value;
 		} catch(exception) {}
 	}
@@ -271,7 +300,7 @@ long CommandLine::GetLong(int index, long defaultValue) {
 double CommandLine::GetDouble(int index, double defaultValue) {
 	if(index < valueCount) {
 		try {
-			auto value = stod(ParseHex(values[index]));
+			auto value = stod(ParseHexBits(values[index]));
 			return value;
 		} catch(exception) {}
 	}
@@ -285,7 +314,7 @@ double CommandLine::GetDouble(int index, double defaultValue) {
 float CommandLine::GetFloat(int index, float defaultValue) {
 	if(index < valueCount) {
 		try {
-			auto value = stof(ParseHex(values[index]));
+			auto value = stof(ParseHexBits(values[index]));
 			return value;
 		} catch(exception) {}
 	}

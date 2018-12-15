@@ -75,7 +75,7 @@ void CommandHandler::CreateTabletCommands() {
 	AddCommand(new Command("DetectMask", [&](CommandLine *cmd) {
 		if(tablet == NULL) return false;
 		tablet->settings.detectMask = cmd->GetInt(0, tablet->settings.detectMask);
-		LOG_INFO("Tablet detect mask = %02X\n", tablet->settings.detectMask);
+		LOG_INFO("Tablet detect mask = 0x%02X\n", tablet->settings.detectMask);
 		return true;
 	}));
 
@@ -86,7 +86,7 @@ void CommandHandler::CreateTabletCommands() {
 	AddCommand(new Command("IgnoreMask", [&](CommandLine *cmd) {
 		if(tablet == NULL) return false;
 		tablet->settings.ignoreMask = cmd->GetInt(0, tablet->settings.ignoreMask);
-		LOG_INFO("Tablet ignore mask = %02X\n", tablet->settings.ignoreMask);
+		LOG_INFO("Tablet ignore mask = 0x%02X\n", tablet->settings.ignoreMask);
 		return true;
 	}));
 
@@ -97,7 +97,7 @@ void CommandHandler::CreateTabletCommands() {
 	AddCommand(new Command("MaxX", [&](CommandLine *cmd) {
 		if(tablet == NULL) return false;
 		tablet->settings.maxX = cmd->GetInt(0, tablet->settings.maxX);
-		LOG_INFO("Tablet max X = %d\n", tablet->settings.maxX);
+		LOG_INFO("Tablet maximum X value = %d\n", tablet->settings.maxX);
 		return true;
 	}));
 
@@ -108,7 +108,7 @@ void CommandHandler::CreateTabletCommands() {
 	AddCommand(new Command("MaxY", [&](CommandLine *cmd) {
 		if(tablet == NULL) return false;
 		tablet->settings.maxY = cmd->GetInt(0, tablet->settings.maxY);
-		LOG_INFO("Tablet max Y = %d\n", tablet->settings.maxY);
+		LOG_INFO("Tablet maximum Y value = %d\n", tablet->settings.maxY);
 		return true;
 	}));
 
@@ -119,9 +119,10 @@ void CommandHandler::CreateTabletCommands() {
 	AddCommand(new Command("MaxPressure", [&](CommandLine *cmd) {
 		if(tablet == NULL) return false;
 		tablet->settings.maxPressure = cmd->GetInt(0, tablet->settings.maxPressure);
-		LOG_INFO("Tablet max pressure = %d\n", tablet->settings.maxPressure);
+		LOG_INFO("Tablet maximum pressure value = %d\n", tablet->settings.maxPressure);
 		return true;
 	}));
+
 
 	//
 	// Command: ClickPressure
@@ -168,6 +169,52 @@ void CommandHandler::CreateTabletCommands() {
 
 
 	//
+	// Command: PressureSensitivity
+	//
+	AddCommand(new Command("PressureSensitivity", [&](CommandLine *cmd) {
+		if(tablet == NULL) return false;
+		tablet->settings.pressureSensitivity = cmd->GetDouble(0, tablet->settings.pressureSensitivity);
+		LOG_INFO("Tablet pressure sensitivity = %0.5f\n", tablet->settings.pressureSensitivity);
+		return true;
+	}));
+
+
+	//
+	// Command: PressureDeadzone
+	//
+	AddCommand(new Command("PressureDeadzone", [&](CommandLine *cmd) {
+		if(tablet == NULL) return false;
+		tablet->settings.pressureDeadzone = cmd->GetDouble(0, tablet->settings.pressureDeadzone);
+		LOG_INFO("Tablet pressure deadzone = %0.2f\n", tablet->settings.pressureDeadzone);
+		return true;
+	}));
+
+
+	//
+	// Command: ScrollSensitivity
+	//
+	AddCommand(new Command("ScrollSensitivity", [&](CommandLine *cmd) {
+		if(tablet == NULL) return false;
+		tablet->settings.scrollSensitivity = cmd->GetDouble(0, tablet->settings.scrollSensitivity);
+		LOG_INFO("Tablet scroll sensitivity = %0.2f scrolls per millimeter\n", tablet->settings.scrollSensitivity);
+		return true;
+	}));
+
+
+	//
+	// Command: ScrollAcceleration, ScrollAcc
+	//
+	AddAlias("ScrollAcc", "ScrollAcceleration");
+	AddCommand(new Command("ScrollAcceleration", [&](CommandLine *cmd) {
+		if(tablet == NULL) return false;
+		tablet->settings.scrollAcceleration = cmd->GetDouble(0, tablet->settings.scrollAcceleration);
+		if(tablet->settings.scrollAcceleration < 0.1) tablet->settings.scrollAcceleration = 0.1;
+		LOG_INFO("Tablet scroll acceleration = %0.2f\n", tablet->settings.scrollAcceleration);
+		return true;
+	}));
+
+
+	//
 	// Command: Skew
 	//
 	AddCommand(new Command("Skew", [&](CommandLine *cmd) {
@@ -209,6 +256,11 @@ void CommandHandler::CreateTabletCommands() {
 			tablet->settings.dataFormat = TabletSettings::TabletFormatSkipFirstDataByte;
 		}
 
+		// Custom data format
+		else if(format == "custom") {
+			tablet->settings.dataFormat = TabletSettings::TabletFormatCustom;
+		}
+
 		// Unknown type
 		else {
 			LOG_ERROR("Unknown tablet data format: %s\n", format.c_str());
@@ -216,6 +268,115 @@ void CommandHandler::CreateTabletCommands() {
 
 		LOG_INFO("Tablet format = %d\n", tablet->settings.dataFormat);
 
+		return true;
+	}));
+
+
+	//
+	// Command: CustomDataInstruction, CustomData
+	//
+	// Sets tablet data format
+	//
+	// CustomData <target byte> [TargetMask=<target mask(&)>] [Source=<source byte>] [SourceMask=<source mask(&)>] [SourceShift=<bit shift (<<)>]
+	//
+	AddAlias("CustomData", "CustomDataInstruction");
+	AddAlias("AuxCustomData", "CustomDataInstruction");
+	AddCommand(new Command("CustomDataInstruction", [&](CommandLine *cmd) {
+		if(tablet == NULL) return false;
+
+		string commandName = cmd->GetCommandLowerCase();
+
+		if(cmd->valueCount >= 3) {
+
+			DataFormatter::DataInstruction instruction;
+
+			int targetByte = cmd->GetInt(0, 0);
+			string targetByteName = cmd->GetStringLower(0, "");
+			/*
+			int targetBitMask = cmd->GetInt(1, 0xFF);
+			int sourceByte = cmd->GetInt(2, 0);
+			int sourceBitMask = cmd->GetInt(3, 0xFF);
+			int sourceBitShift = cmd->GetInt(4, 0);
+			*/
+
+
+			// Auxiliary byte names
+			if(commandName.compare(0, 3, "aux") == 0) {
+				if(targetByteName == "reportid") targetByte = 0;
+				if(targetByteName == "buttonslow") targetByte = 1;
+				if(targetByteName == "buttonshigh") targetByte = 2;
+				if(targetByteName == "detect") targetByte = 3;
+
+			}
+
+			// Tablet byte names
+			else {
+				if(targetByteName == "reportid") targetByte = 0;
+				if(targetByteName == "buttons") targetByte = 1;
+				if(targetByteName == "xlow") targetByte = 2;
+				if(targetByteName == "xhigh") targetByte = 3;
+				if(targetByteName == "ylow") targetByte = 4;
+				if(targetByteName == "yhigh") targetByte = 5;
+				if(targetByteName == "pressurelow") targetByte = 6;
+				if(targetByteName == "pressurehigh") targetByte = 7;
+			}
+
+
+			instruction.targetByte = targetByte;
+
+			// Loop through parameters
+			for(int i = 1; i < cmd->valueCount; i += 2) {
+				string parameter = cmd->GetStringLower(i, "");
+				int value = cmd->GetInt(i + 1, -1);
+
+				// Set instruction parameters
+				if(parameter == "targetmask" || parameter == "mask") instruction.targetBitMask = value;
+				if(parameter == "source") instruction.sourceByte = value;
+				if(parameter == "sourcemask") instruction.sourceBitMask = value;
+				if(parameter == "sourceshift" || parameter == "shift") instruction.sourceBitShift = value;
+
+			}
+
+
+			// Add aux data format instruction
+			if(commandName.compare(0, 3, "aux") == 0) {
+				tablet->auxDataFormatter.AddInstruction(&instruction);
+			}
+			// Add tablet data format instruction
+			else {
+				tablet->dataFormatter.AddInstruction(&instruction);
+			}
+
+
+			//
+			LOG_INFO("Custom data format: Target=%d, TargetMask=0x%02X, Source=%d, SourceMask=0x%02X, SourceShift=%d\n",
+				instruction.targetByte,
+				instruction.targetBitMask,
+				instruction.sourceByte,
+				instruction.sourceBitMask,
+				instruction.sourceBitShift
+			);
+
+		}
+		else {
+			LOG_INFO("Usage: %s <target byte> [TargetMask=<target mask(&)>] [Source=<source byte>] [SourceMask=<source mask(&)>] [SourceShift=<bit shift (<<)>]\n",
+				cmd->command.c_str()
+			);
+		}
+
+		return true;
+	}));
+
+
+	//
+	// Command: ClearCustomData
+	//
+	// Clears custom data formatter instructions
+	//
+	AddCommand(new Command("ClearCustomData", [&](CommandLine *cmd) {
+		if(tablet == NULL) return false;
+		tablet->dataFormatter.instructionCount = 0;
+		LOG_INFO("Custom data format instructions cleared!\n");
 		return true;
 	}));
 
@@ -299,21 +460,79 @@ void CommandHandler::CreateTabletCommands() {
 
 
 	//
-	// Command: ButtonMap, Buttons
+	// Command: ClearButtonMap
+	//
+	AddCommand(new Command("ClearButtonMap", [&](CommandLine *cmd) {
+		if(!ExecuteCommand("TabletValid")) return false;
+		for(int i = 0; i < 16; i++) {
+			tablet->settings.buttonMap[i] = "";
+		}
+		LOG_INFO("Pen button map cleared!\n");
+		return true;
+	}));
+	
+
+	//
+	// Command: ClearAuxButtonMap
+	//
+	AddCommand(new Command("ClearAuxButtonMap", [&](CommandLine *cmd) {
+		if(!ExecuteCommand("TabletValid")) return false;
+		for(int i = 0; i < 16; i++) {
+			tablet->settings.auxButtonMap[i] = "";
+		}
+		LOG_INFO("Aux button map cleared!\n");
+		return true;
+	}));
+
+
+	//
+	// Command: ButtonMap, Buttons, AuxButtonMap, AuxButtons
 	//
 	// Maps input buttons to output buttons
 	//
 	AddAlias("Buttons", "ButtonMap");
+	AddAlias("AuxButtonMap", "ButtonMap");
+	AddAlias("AuxButtons", "ButtonMap");
 	AddCommand(new Command("ButtonMap", [&](CommandLine *cmd) {
-
 		if(!ExecuteCommand("TabletValid")) return false;
-		char buttonMapBuffer[32];
-		int index = 0;
-		for(int i = 0; i < 8; i++) {
-			tablet->buttonMap[i] = cmd->GetInt(i, tablet->buttonMap[i]);
-			index += sprintf_s(buttonMapBuffer + index, 32 - index, "%d ", tablet->buttonMap[i]);
+
+		string commandName = cmd->GetCommandLowerCase();
+		int button = cmd->GetInt(0, 0);
+		string keys = "";
+		if(cmd->valueCount == 2) {
+			keys = cmd->GetString(1, "");
+			transform(keys.begin(), keys.end(), keys.begin(), ::toupper);
 		}
-		LOG_INFO("Button Map = %s\n", buttonMapBuffer);
+		else {
+			for(int i = 1; i < cmd->valueCount; i++) {
+				string key = cmd->GetString(i, "");
+				key.erase(remove(key.begin(), key.end(), '+'), key.end());
+				if(key.size() > 0) {
+					std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+					if(i != 1) keys += "+";
+					keys += key;
+				}
+			}
+		}
+
+		if(button >= 1) {
+			if(commandName.compare(0, 3, "aux") == 0) {
+				if(button <= tablet->settings.auxButtonCount) {
+					tablet->settings.auxButtonMap[button - 1] = keys;
+					LOG_INFO("Aux button %d mapped to '%s'\n", button, keys.c_str());
+				}
+			}
+			else {
+				if(button <= tablet->settings.buttonCount) {
+					tablet->settings.buttonMap[button - 1] = keys;
+					LOG_INFO("Pen button %d mapped to '%s'\n", button, keys.c_str());
+				}
+			}
+		}
+		else {
+			LOG_INFO("Usage: %s <button> <key>\n", cmd->command.c_str());
+		}
+
 		return true;
 	}));
 
@@ -421,6 +640,5 @@ void CommandHandler::CreateTabletCommands() {
 		LOG_INFO("Relative mode reset time = %0.2f milliseconds\n", outputManager->settings->relativeResetTime);
 		return true;
 	}));
-
 
 }

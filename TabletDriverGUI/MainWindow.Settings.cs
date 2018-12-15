@@ -2,26 +2,20 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using System.Windows.Threading;
 
 namespace TabletDriverGUI
 {
     public partial class MainWindow : Window
     {
 
-
-        #region Driver configuration stuff
+        #region Configuration Load / Update
 
         //
         // Load settings from configuration
@@ -51,6 +45,20 @@ namespace TabletDriverGUI
                     radioModeDigitizer.IsChecked = true;
                     break;
             }
+
+
+            //
+            // Windows Ink pressure
+            //
+            if (config.OutputMode == Configuration.OutputModes.Digitizer)
+                groupBoxWindowsInkSettings.IsEnabled = true;
+            else
+                groupBoxWindowsInkSettings.IsEnabled = false;
+
+
+            //
+            // Rotation
+            //
             textTabletAreaRotation.Text = Utils.GetNumberString(config.TabletArea.Rotation);
             checkBoxInvert.IsChecked = config.Invert;
 
@@ -103,7 +111,9 @@ namespace TabletDriverGUI
             checkBoxAutomaticDesktopSize.IsChecked = config.AutomaticDesktopSize;
 
 
+            //
             // Force aspect ratio
+            //
             if (config.ForceAspectRatio)
             {
                 config.TabletArea.Height = config.TabletArea.Width / (config.ScreenArea.Width / config.ScreenArea.Height);
@@ -121,19 +131,56 @@ namespace TabletDriverGUI
 
 
             //
-            // Buttons
+            // Pen buttons
             //
             if (config.ButtonMap.Count() == 3)
             {
-                comboBoxButton1.SelectedIndex = config.ButtonMap[0];
-                comboBoxButton2.SelectedIndex = config.ButtonMap[1];
-                comboBoxButton3.SelectedIndex = config.ButtonMap[2];
+                buttonPenButton1.Content = config.ButtonMap[0];
+                buttonPenButton2.Content = config.ButtonMap[1];
+                buttonPenButton3.Content = config.ButtonMap[2];
             }
             else
             {
-                config.ButtonMap = new int[] { 1, 2, 3 };
+                config.ButtonMap = new string[] { "MOUSE1", "MOUSE2", "MOUSE3" };
             }
             checkBoxDisableButtons.IsChecked = config.DisableButtons;
+
+
+            //
+            // Tablet buttons
+            //
+            if (config.TabletButtonMap.Count() == 16)
+            {
+                for (int i = 0; i < 16; i++)
+                {
+                    GroupBox box = (GroupBox)wrapPanelTabletButtons.Children[i];
+                    Button button = (Button)(box.Content);
+                    button.Content = config.TabletButtonMap[i];
+                }
+            }
+            else
+            {
+                config.TabletButtonMap = new string[16];
+                for (int i = 0; i < 16; i++) config.TabletButtonMap[i] = "";
+            }
+            if (wrapPanelTabletButtons.Children.Count == 17)
+            {
+                ((CheckBox)wrapPanelTabletButtons.Children[16]).IsChecked = config.DisableTabletButtons;
+            }
+
+
+            //
+            // Pressure
+            //
+            sliderPressureSensitivity.Value = config.PressureSensitivity;
+            sliderPressureDeadzone.Value = config.PressureDeadzone;
+
+
+            //
+            // Scroll
+            //
+            textScrollSensitivity.Text = Utils.GetNumberString(config.ScrollSensitivity);
+            textScrollAcceleration.Text = Utils.GetNumberString(config.ScrollAcceleration);
 
 
             //
@@ -142,15 +189,18 @@ namespace TabletDriverGUI
             checkBoxSmoothing.IsChecked = config.SmoothingEnabled;
             textSmoothingLatency.Text = Utils.GetNumberString(config.SmoothingLatency);
             comboBoxSmoothingRate.SelectedIndex = config.SmoothingInterval - 1;
+            checkBoxSmoothingOnlyWhenButtons.IsChecked = config.SmoothingOnlyWhenButtons;
             if (config.SmoothingEnabled)
             {
                 textSmoothingLatency.IsEnabled = true;
                 comboBoxSmoothingRate.IsEnabled = true;
+                checkBoxSmoothingOnlyWhenButtons.IsEnabled = true;
             }
             else
             {
                 textSmoothingLatency.IsEnabled = false;
                 comboBoxSmoothingRate.IsEnabled = false;
+                checkBoxSmoothingOnlyWhenButtons.IsEnabled = false;
             }
 
 
@@ -176,20 +226,20 @@ namespace TabletDriverGUI
             // Anti-smoothing filter
             //
             checkBoxAntiSmoothing.IsChecked = config.AntiSmoothingEnabled;
-            textAntiSmoothingShape.Text = Utils.GetNumberString(config.AntiSmoothingShape, "0.00");
-            textAntiSmoothingCompensation.Text = Utils.GetNumberString(config.AntiSmoothingCompensation, "0.00");
-            checkBoxAntiSmoothingIgnoreWhenDragging.IsChecked = config.AntiSmoothingIgnoreWhenDragging;
+            textAntiSmoothingShape.Text = Utils.GetNumberString(config.AntiSmoothingShape);
+            textAntiSmoothingCompensation.Text = Utils.GetNumberString(config.AntiSmoothingCompensation);
+            checkBoxAntiSmoothingOnlyWhenHover.IsChecked = config.AntiSmoothingOnlyWhenHover;
             if (config.AntiSmoothingEnabled)
             {
                 textAntiSmoothingShape.IsEnabled = true;
                 textAntiSmoothingCompensation.IsEnabled = true;
-                checkBoxAntiSmoothingIgnoreWhenDragging.IsEnabled = true;
+                checkBoxAntiSmoothingOnlyWhenHover.IsEnabled = true;
             }
             else
             {
                 textAntiSmoothingShape.IsEnabled = false;
                 textAntiSmoothingCompensation.IsEnabled = false;
-                checkBoxAntiSmoothingIgnoreWhenDragging.IsEnabled = false;
+                checkBoxAntiSmoothingOnlyWhenHover.IsEnabled = false;
             }
 
             //
@@ -206,20 +256,12 @@ namespace TabletDriverGUI
             // Custom commands
             //
             string tmp = "";
-            foreach (string command in config.CommandsBefore)
+            foreach (string command in config.CustomCommands)
             {
                 if (command.Trim().Length > 0)
                     tmp += command.Trim() + "\n";
             }
-            textCommandsBefore.Text = tmp;
-
-            tmp = "";
-            foreach (string command in config.CommandsAfter)
-            {
-                if (command.Trim().Length > 0)
-                    tmp += command.Trim() + "\n";
-            }
-            textCommandsAfter.Text = tmp;
+            textCustomCommands.Text = tmp;
 
             //
             // Debugging
@@ -245,7 +287,10 @@ namespace TabletDriverGUI
 
             bool oldValue;
 
+
+            //
             // Tablet area
+            //
             if (Utils.ParseNumber(textTabletAreaWidth.Text, out double val))
                 config.TabletArea.Width = val;
             if (Utils.ParseNumber(textTabletAreaHeight.Text, out val))
@@ -261,13 +306,18 @@ namespace TabletDriverGUI
             config.ForceAspectRatio = (bool)checkBoxForceAspect.IsChecked;
             config.ForceFullArea = (bool)checkBoxForceFullArea.IsChecked;
 
+
+            //
             // Output Mode
+            //
             if (radioModeAbsolute.IsChecked == true) config.OutputMode = Configuration.OutputModes.Absolute;
             if (radioModeRelative.IsChecked == true) config.OutputMode = Configuration.OutputModes.Relative;
             if (radioModeDigitizer.IsChecked == true) config.OutputMode = Configuration.OutputModes.Digitizer;
 
 
+            //
             // Force full area
+            //
             if (config.ForceFullArea)
             {
                 // Set tablet area size to full area
@@ -286,10 +336,16 @@ namespace TabletDriverGUI
 
             }
 
+
+            //
             // Force the tablet area to be inside of the full area
+            //
             config.TabletArea.MoveInside(config.TabletFullArea);
 
+
+            //
             // Screen area
+            //
             if (Utils.ParseNumber(textScreenAreaWidth.Text, out val))
                 config.ScreenArea.Width = val;
             if (Utils.ParseNumber(textScreenAreaHeight.Text, out val))
@@ -300,7 +356,9 @@ namespace TabletDriverGUI
                 config.ScreenArea.Y = val;
 
 
+            //
             // Desktop size
+            //
             if (Utils.ParseNumber(textDesktopWidth.Text, out val))
                 config.DesktopSize.Width = val;
             if (Utils.ParseNumber(textDesktopHeight.Text, out val))
@@ -315,7 +373,9 @@ namespace TabletDriverGUI
             }
 
 
+            //
             // Force aspect ratio
+            //
             if (config.ForceAspectRatio)
             {
                 config.TabletArea.Height = config.TabletArea.Width / (config.ScreenArea.Width / config.ScreenArea.Height);
@@ -323,32 +383,72 @@ namespace TabletDriverGUI
             }
 
 
+            //
             // Button map 
-            config.ButtonMap[0] = comboBoxButton1.SelectedIndex;
-            config.ButtonMap[1] = comboBoxButton2.SelectedIndex;
-            config.ButtonMap[2] = comboBoxButton3.SelectedIndex;
+            //
+            config.ButtonMap[0] = buttonPenButton1.Content.ToString();
+            config.ButtonMap[1] = buttonPenButton2.Content.ToString();
+            config.ButtonMap[2] = buttonPenButton3.Content.ToString();
             config.DisableButtons = (bool)checkBoxDisableButtons.IsChecked;
 
 
+            //
+            // Tablet button map
+            //
+            for (int i = 0; i < 16; i++)
+            {
+                GroupBox box = (GroupBox)wrapPanelTabletButtons.Children[i];
+                Button button = (Button)(box.Content);
+                config.TabletButtonMap[i] = button.Content.ToString();
+            }
+            if (wrapPanelTabletButtons.Children.Count == 17)
+            {
+                config.DisableTabletButtons = (bool)(((CheckBox)wrapPanelTabletButtons.Children[16]).IsChecked);
+            }
 
+
+            //
+            // Pressure sensitivity
+            //
+            config.PressureSensitivity = sliderPressureSensitivity.Value;
+            config.PressureDeadzone = sliderPressureDeadzone.Value;
+
+
+            //
+            // Scroll
+            //
+            if (Utils.ParseNumber(textScrollSensitivity.Text, out val))
+                config.ScrollSensitivity = val;
+            if (Utils.ParseNumber(textScrollAcceleration.Text, out val))
+                config.ScrollAcceleration = val;
+
+
+            //
             // Smoothing filter
+            //
             config.SmoothingEnabled = (bool)checkBoxSmoothing.IsChecked;
             config.SmoothingInterval = comboBoxSmoothingRate.SelectedIndex + 1;
             if (Utils.ParseNumber(textSmoothingLatency.Text, out val))
                 config.SmoothingLatency = val;
+            config.SmoothingOnlyWhenButtons = (bool)checkBoxSmoothingOnlyWhenButtons.IsChecked;
 
             if (config.SmoothingEnabled)
             {
                 textSmoothingLatency.IsEnabled = true;
                 comboBoxSmoothingRate.IsEnabled = true;
+                checkBoxSmoothingOnlyWhenButtons.IsEnabled = true;
             }
             else
             {
                 textSmoothingLatency.IsEnabled = false;
                 comboBoxSmoothingRate.IsEnabled = false;
+                checkBoxSmoothingOnlyWhenButtons.IsEnabled = false;
             }
 
+
+            //
             // Noise filter
+            //
             config.NoiseFilterEnabled = (bool)checkBoxNoiseFilter.IsChecked;
             if (Utils.ParseNumber(textNoiseBuffer.Text, out val))
                 config.NoiseFilterBuffer = (int)val;
@@ -365,25 +465,29 @@ namespace TabletDriverGUI
                 textNoiseThreshold.IsEnabled = false;
             }
 
+
+            //
             // Anti-smoothing filter
+            //
             config.AntiSmoothingEnabled = (bool)checkBoxAntiSmoothing.IsChecked;
             if (Utils.ParseNumber(textAntiSmoothingShape.Text, out val))
                 config.AntiSmoothingShape = val;
             if (Utils.ParseNumber(textAntiSmoothingCompensation.Text, out val))
                 config.AntiSmoothingCompensation = val;
-            config.AntiSmoothingIgnoreWhenDragging = (bool)checkBoxAntiSmoothingIgnoreWhenDragging.IsChecked;
+            config.AntiSmoothingOnlyWhenHover = (bool)checkBoxAntiSmoothingOnlyWhenHover.IsChecked;
             if (config.AntiSmoothingEnabled)
             {
                 textAntiSmoothingShape.IsEnabled = true;
                 textAntiSmoothingCompensation.IsEnabled = true;
-                checkBoxAntiSmoothingIgnoreWhenDragging.IsEnabled = true;
+                checkBoxAntiSmoothingOnlyWhenHover.IsEnabled = true;
             }
             else
             {
                 textAntiSmoothingShape.IsEnabled = false;
                 textAntiSmoothingCompensation.IsEnabled = false;
-                checkBoxAntiSmoothingIgnoreWhenDragging.IsEnabled = false;
+                checkBoxAntiSmoothingOnlyWhenHover.IsEnabled = false;
             }
+
 
             //
             // Automatic restart
@@ -400,18 +504,14 @@ namespace TabletDriverGUI
                 SetRunAtStartup(config.RunAtStartup);
 
 
+            //
             // Custom commands
+            //
             List<string> commandList = new List<string>();
-            foreach (string command in textCommandsBefore.Text.Split('\n'))
+            foreach (string command in textCustomCommands.Text.Split('\n'))
                 if (command.Trim().Length > 0)
                     commandList.Add(command.Trim());
-            config.CommandsBefore = commandList.ToArray();
-
-            commandList.Clear();
-            foreach (string command in textCommandsAfter.Text.Split('\n'))
-                if (command.Trim().Length > 0)
-                    commandList.Add(command.Trim());
-            config.CommandsAfter = commandList.ToArray();
+            config.CustomCommands = commandList.ToArray();
 
 
             //
@@ -420,6 +520,7 @@ namespace TabletDriverGUI
             config.DebuggingEnabled = (bool)checkBoxDebugging.IsChecked;
 
 
+            // Update canvases
             UpdateCanvasElements();
 
         }
@@ -437,6 +538,15 @@ namespace TabletDriverGUI
             {
                 config.Write(configFilename);
                 SendSettingsToDriver();
+
+                //
+                // Enable/Disable Windows Ink pressure settings
+                //
+                if (config.OutputMode == Configuration.OutputModes.Digitizer)
+                    groupBoxWindowsInkSettings.IsEnabled = true;
+                else
+                    groupBoxWindowsInkSettings.IsEnabled = false;
+
                 SetStatus("Settings saved!");
             }
             catch (Exception)
@@ -447,16 +557,6 @@ namespace TabletDriverGUI
                     "ERROR!", MessageBoxButton.OK, MessageBoxImage.Error
                 );
             }
-        }
-
-
-        //
-        // Apply settings
-        //
-        private void ApplySettings(object sender, RoutedEventArgs e)
-        {
-            SendSettingsToDriver();
-            SetStatus("Settings applied!");
         }
 
 
@@ -661,9 +761,6 @@ namespace TabletDriverGUI
                 FontWeight = FontWeights.Bold
             };
             canvasTabletArea.Children.Add(textTabletAspectRatio);
-
-
-
 
             //
             // Canvas mouse drag
@@ -908,6 +1005,7 @@ namespace TabletDriverGUI
                     dx = 0;
                 if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
                     dy = 0;
+ 
 
                 // Screen map canvas
                 if (mouseDrag.Source == canvasScreenMap)
@@ -917,6 +1015,12 @@ namespace TabletDriverGUI
                     scale = scaleY;
                     if (scaleX > scaleY)
                         scale = scaleX;
+
+                    if (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt))
+                    {
+                        dx = Math.Round(dx * scale / 80.0) * 80.0 / scale;
+                        dy = Math.Round(dy * scale / 80.0) * 80.0 / scale;
+                    }
 
                     config.ScreenArea.X = mouseDrag.OriginDraggable.X + dx * scale;
                     config.ScreenArea.Y = mouseDrag.OriginDraggable.Y + dy * scale;
@@ -931,6 +1035,12 @@ namespace TabletDriverGUI
                     scale = scaleY;
                     if (scaleX > scaleY)
                         scale = scaleX;
+
+                    if (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt))
+                    {
+                        dx = Math.Round(dx * scale / 5.0) * 5.0 / scale;
+                        dy = Math.Round(dy * scale / 5.0) * 5.0 / scale;
+                    }
 
                     config.TabletArea.X = mouseDrag.OriginDraggable.X + dx * scale;
                     config.TabletArea.Y = mouseDrag.OriginDraggable.Y + dy * scale;
@@ -983,20 +1093,6 @@ namespace TabletDriverGUI
                     textTabletAreaHeight.IsEnabled = true;
 
 
-            }
-
-            // Disable button map selection when buttons are disabled
-            if (checkBoxDisableButtons.IsChecked == true)
-            {
-                comboBoxButton1.IsEnabled = false;
-                comboBoxButton2.IsEnabled = false;
-                comboBoxButton3.IsEnabled = false;
-            }
-            else
-            {
-                comboBoxButton1.IsEnabled = true;
-                comboBoxButton2.IsEnabled = true;
-                comboBoxButton3.IsEnabled = true;
             }
 
             // Disable desktop size settings when automatic is checked
@@ -1130,7 +1226,7 @@ namespace TabletDriverGUI
                 index--;
 
                 // Monitors
-                if (index >= 0 && index < screens.Length)
+                if (index >= 0 && index <= screens.Length && screens.Length > 1)
                 {
                     textScreenAreaX.Text = Utils.GetNumberString(screens[index].Bounds.X - minX);
                     textScreenAreaY.Text = Utils.GetNumberString(screens[index].Bounds.Y - minY);
@@ -1173,6 +1269,49 @@ namespace TabletDriverGUI
                 }
             }
             UpdateSettingsToConfiguration();
+        }
+
+
+        //
+        // Button mapping click
+        //
+        private void ButtonMap_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = (Button)sender;
+            //MessageBox.Show(button.Content.ToString());
+
+            bool isPenButton = false;
+
+            if (sender == buttonPenButton1) isPenButton = true;
+            else if (sender == buttonPenButton2) isPenButton = true;
+            else if (sender == buttonPenButton3) isPenButton = true;
+
+
+            ButtonMapping buttonMapping = new ButtonMapping(button, isPenButton);
+            buttonMapping.ShowDialog();
+            if (buttonMapping.DialogResult == true)
+            {
+                button.Content = buttonMapping.Result.ToUpper();
+                UpdateSettingsToConfiguration();
+            }
+
+        }
+
+
+        //
+        // Button map tooltip opening
+        //
+        private void ButtonMap_ToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            Button button = (Button)sender;
+            if (button.Content.ToString() == "")
+            {
+                button.ToolTip = "Empty";
+            }
+            else
+            {
+                button.ToolTip = button.Content;
+            }
         }
 
 
@@ -1242,7 +1381,6 @@ namespace TabletDriverGUI
             }
 
         }
-
 
     }
 }

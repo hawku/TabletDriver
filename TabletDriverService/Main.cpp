@@ -8,6 +8,7 @@
 #include "Tablet.h"
 #include "ScreenMapper.h"
 #include "CommandLine.h"
+#include "DataFormatter.h"
 
 #define LOG_MODULE ""
 #include "Logger.h"
@@ -35,7 +36,6 @@ int main(int argc, char**argv) {
 	string line;
 	string filename;
 	CommandLine *cmd;
-	bool running = false;
 
 	// Init global variables
 	vmulti = NULL;
@@ -66,7 +66,7 @@ int main(int argc, char**argv) {
 	//
 	commandHandler->AddCommand(new Command("Start", [&](CommandLine *cmd) {
 
-		if(running) {
+		if(tabletHandler->isRunning) {
 			LOG_INFO("Driver is already started!\n");
 			return true;
 		}
@@ -93,9 +93,6 @@ int main(int argc, char**argv) {
 		tabletHandler->tablet = tablet;
 		tabletHandler->Start();
 
-		// Set running state
-		running = true;
-
 		LOG_INFO("TabletDriver started!\n");
 		commandHandler->ExecuteCommand("Status");
 
@@ -103,8 +100,9 @@ int main(int argc, char**argv) {
 	}));
 
 	//
-	// Command: Exit
+	// Command: Exit, Quit
 	//
+	commandHandler->AddAlias("Quit", "Exit");
 	commandHandler->AddCommand(new Command("Exit", [&](CommandLine *cmd) {
 		LOG_INFO("Bye!\n");
 		CleanupAndExit(0);
@@ -112,8 +110,7 @@ int main(int argc, char**argv) {
 	}));
 
 
-	// Logger
-	//LOGGER_DIRECT = true;
+	// Start logger
 	LOGGER_START();
 
 	// VMulti Device
@@ -138,7 +135,7 @@ int main(int argc, char**argv) {
 	}
 
 	//
-	// Main loop that reads input from the console.
+	// Main loop
 	//
 	while(true) {
 
@@ -154,14 +151,21 @@ int main(int argc, char**argv) {
 
 		// Process valid lines
 		if(line.length() > 0) {
+
+			// Line to command line
 			cmd = new CommandLine(line);
 
-			//
-			// Hide echo input 
-			//
+			// Process echo command directly
 			if(cmd->is("Echo")) {
 				commandHandler->ExecuteCommand(cmd);
 			}
+
+			// Hide console (for the service only mode)
+			else if(cmd->is("Hide")) {
+				::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+			}
+
+			// Process all other commands
 			else {
 				ProcessCommand(cmd);
 			}
@@ -181,23 +185,26 @@ int main(int argc, char**argv) {
 // Cleanup and exit
 //
 void CleanupAndExit(int code) {
-	/*
-	if(tablet != NULL)
-		delete tablet;
+
+	// TabletHandler
+	if(tabletHandler != NULL) {
+		delete tabletHandler;
+	}
+
+	// OutputManager
+	if(outputManager != NULL) {
+		delete outputManager;
+	}
+
+	// VMulti
 	if(vmulti != NULL)
 		delete vmulti;
-		*/
+	
+	// Tablet
+	if(tablet != NULL)
+		delete tablet;
 
-		// Stop filter timer
-	if(tabletHandler != NULL) {
-		tabletHandler->StopTimer();
-	}
-
-	// Reset output
-	if(outputManager != NULL) {
-		outputManager->Reset();
-	}
-
+	// Logger
 	LOGGER_STOP();
 	Sleep(500);
 

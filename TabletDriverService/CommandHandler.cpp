@@ -73,6 +73,7 @@ void CommandHandler::CreateCommands() {
 
 	CreateDeviceCommands();
 	CreateTabletCommands();
+	CreateAuxCommands();
 	CreateFilterCommands();
 	CreateOtherCommands();
 

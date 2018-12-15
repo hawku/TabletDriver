@@ -24,8 +24,8 @@ Tablet::Tablet(string usbGUID) : Tablet() {
 //
 // HID Device Constructor
 //
-Tablet::Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage) : Tablet() {
-	hidDevice = new HIDDevice(vendorId, productId, usagePage, usage);
+Tablet::Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage, bool isExclusive) : Tablet() {
+	hidDevice = new HIDDevice(vendorId, productId, usagePage, usage, isExclusive);
 	if(hidDevice->isOpen) {
 		this->isOpen = true;
 	}
@@ -33,6 +33,9 @@ Tablet::Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage
 		delete hidDevice;
 		hidDevice = NULL;
 	}
+}
+Tablet::Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage) :
+	Tablet(vendorId, productId, usagePage, usage, false) {
 }
 
 //
@@ -63,13 +66,6 @@ Tablet::Tablet() {
 	filterReport[1] = &noiseFilter;
 	filterReportCount = 2;
 
-	// Button map
-	memset(&buttonMap, 0, sizeof(buttonMap));
-	buttonMap[0] = 1;
-	buttonMap[1] = 2;
-	buttonMap[2] = 3;
-
-
 	// Tablet connection open
 	isOpen = false;
 
@@ -85,17 +81,20 @@ Tablet::Tablet() {
 // Destructor
 //
 Tablet::~Tablet() {
-	CloseDevice();
+	//CloseDevice();
 	if(usbDevice != NULL)
 		delete usbDevice;
 	if(hidDevice != NULL)
 		delete hidDevice;
+	/*
 	if(hidDeviceAux != NULL)
 		delete hidDeviceAux;
+
 	if(initReport != NULL)
 		delete initReport;
 	if(initFeature != NULL)
 		delete initFeature;
+		*/
 }
 
 
@@ -151,48 +150,89 @@ bool Tablet::IsConfigured() {
 //
 string Tablet::GetDeviceString(UCHAR stringId)
 {
-	string resultString = "";
-	UCHAR buffer[256];
-	int bytesRead = 0;
-
 	// USB device
 	if(usbDevice != NULL) {
-		bytesRead = usbDevice->StringRequest(stringId, buffer, 256);
+		return usbDevice->GetString(stringId);
 	}
 
 	// HID device
 	else if(hidDevice != NULL) {
-		if(hidDevice->isReading) {
-			throw runtime_error("HID string request can't be sent when the device is in use!");
-		}
-		else {
-			bytesRead = hidDevice->StringRequest(stringId, buffer, 256);
-		}
+		return hidDevice->GetString(stringId);
 	}
 
-	// Reply received?
-	if(bytesRead > 0) {
-		for(int i = 0; i < bytesRead; i += 2) {
-			resultString.push_back(buffer[i]);
-		}
+	return "";
+}
+
+//
+// Get HID or WinUSB device manufacturer name
+//
+string Tablet::GetDeviceManufacturerName()
+{
+	// USB device
+	if(usbDevice != NULL) {
+		return usbDevice->GetManufacturerName();
 	}
 
-	return resultString;
+	// HID device
+	else if(hidDevice != NULL) {
+		return hidDevice->GetManufacturerName();
+	}
+
+	return "";
+}
+
+//
+// Get HID or WinUSB device product name
+//
+string Tablet::GetDeviceProductName()
+{
+	// USB device
+	if(usbDevice != NULL) {
+		return usbDevice->GetProductName();
+	}
+
+	// HID device
+	else if(hidDevice != NULL) {
+		return hidDevice->GetProductName();
+	}
+
+	return "";
+}
+
+//
+// Get HID or WinUSB device serial number
+//
+string Tablet::GetDeviceSerialNumber()
+{
+	// USB device
+	if(usbDevice != NULL) {
+		return usbDevice->GetSerialNumber();
+	}
+
+	// HID device
+	else if(hidDevice != NULL) {
+		return hidDevice->GetSerialNumber();
+	}
+
+	return "";
 }
 
 
 //
 // Read Position
 //
-int Tablet::ReadPosition() {
+int Tablet::ReadState() {
 	UCHAR buffer[1024];
 	UCHAR *data;
-	int buttonIndex;
-
 
 	// Read report
 	if(!this->Read(buffer, settings.reportLength)) {
 		return -1;
+	}
+
+	// Process auxiliary data
+	if(settings.auxReportId > 0) {
+		ProcessAuxData(buffer, settings.reportLength);
 	}
 
 	// Skip reports
@@ -201,7 +241,6 @@ int Tablet::ReadPosition() {
 		return Tablet::ReportInvalid;
 	}
 
-
 	// Set data pointer
 	if(settings.dataFormat == TabletSettings::TabletFormatWacomDrivers) {
 		data = buffer + 1;
@@ -209,7 +248,6 @@ int Tablet::ReadPosition() {
 	else {
 		data = buffer;
 	}
-
 
 	//
 	// Wacom Intuos data format V2
@@ -267,6 +305,27 @@ int Tablet::ReadPosition() {
 	}
 
 	//
+	// Custom data format
+	//
+	else if(settings.dataFormat == TabletSettings::TabletFormatCustom) {
+
+		// Data formatter target length valid?
+		if(dataFormatter.targetLength <= sizeof(reportData)) {
+
+			// Clear report data
+			memset(&reportData, 0, sizeof(reportData));
+
+			// Format data
+			dataFormatter.Format(&reportData, buffer);
+
+			//LOG_DEBUGBUFFER(buffer, dataFormatter.sourceLength, "Custom data source: ");
+			//LOG_DEBUGBUFFER(&reportData, dataFormatter.targetLength, "Custom data target: ");
+		}
+
+
+	}
+
+	//
 	// Copy buffer to struct
 	//
 	else {
@@ -278,8 +337,6 @@ int Tablet::ReadPosition() {
 	if(settings.reportId > 0 && reportData.reportId != settings.reportId) {
 		return Tablet::ReportInvalid;
 	}
-
-
 
 	// Detect mask
 	if(settings.detectMask > 0 && (reportData.buttons & settings.detectMask) != settings.detectMask) {
@@ -325,20 +382,9 @@ int Tablet::ReadPosition() {
 	state.time = chrono::high_resolution_clock::now();
 
 
-	// Button map
+	// Buttons
 	reportData.buttons = reportData.buttons & 0x0F;
-	state.buttons = 0;
-	for(buttonIndex = 0; buttonIndex < sizeof(buttonMap); buttonIndex++) {
-
-		// Button is set
-		if(buttonMap[buttonIndex] > 0) {
-
-			// Button is pressed
-			if((reportData.buttons & (1 << buttonIndex)) > 0) {
-				state.buttons |= (1 << (buttonMap[buttonIndex] - 1));
-			}
-		}
-	}
+	state.buttons = reportData.buttons;
 
 	// Convert report data to state
 	state.position.x = ((double)reportData.x / (double)settings.maxX) * settings.width;
@@ -347,6 +393,44 @@ int Tablet::ReadPosition() {
 		state.position.x += state.position.y * settings.skew;
 	}
 	state.pressure = ((double)reportData.pressure / (double)settings.maxPressure);
+
+
+	//
+	// Pressure deadzone
+	//
+	if(settings.pressureDeadzone > 0.0) {
+
+		// Minimum
+		if(state.pressure < settings.pressureDeadzone) {
+			state.pressure = 0.0;
+		}
+
+		// Maximum
+		else if(state.pressure > 1 - settings.pressureDeadzone) {
+			state.pressure = 1.0;
+		}
+
+		// Between
+		else {
+			double pressure;
+			pressure = state.pressure - settings.pressureDeadzone;
+			pressure /= (1 - settings.pressureDeadzone);
+			//LOG_DEBUG("Pressure: %0.2f -> %0.2f\n", state.pressure, pressure);
+			state.pressure = pressure;
+		}
+
+	}
+
+	//
+	// Pressure sensitivity 
+	//
+	if(settings.pressureSensitivity > 0.0) {
+		state.pressure = 1 - pow(1 - state.pressure, (1 + settings.pressureSensitivity));
+	}
+	else if(settings.pressureSensitivity < 0.0) {
+		state.pressure = pow(state.pressure, 1 - settings.pressureSensitivity);
+	}
+
 
 	// Tablet measurement update
 	if(measurement.isRunning) {
@@ -376,6 +460,76 @@ bool Tablet::Read(void *buffer, int length) {
 		LOG_DEBUGBUFFER(buffer, length, "Read: ");
 	}
 	return status;
+}
+
+//
+// Process auxiliary device data
+//
+int Tablet::ProcessAuxData(void * buffer, int length)
+{
+
+	// Clear report data
+	memset(&auxReportData, 0, sizeof(auxReportData));
+
+	// Format data
+	auxDataFormatter.Format(&auxReportData, buffer);
+
+	// Report id valid?
+	if(auxReportData.reportId == settings.auxReportId) {
+
+		// Detect mask
+		if(settings.auxDetectMask > 0 && (auxReportData.detect & settings.auxDetectMask) != settings.auxDetectMask) {
+			return TabletAuxReportStatus::AuxReportInvalid;
+		}
+
+		// Ignore mask
+		if(settings.auxIgnoreMask > 0 && (auxReportData.detect & settings.auxIgnoreMask) == settings.auxIgnoreMask) {
+			return TabletAuxReportStatus::AuxReportIgnore;
+		}
+
+		// Update aux state
+		auxState.buttons = auxReportData.buttons;
+		auxState.isValid = true;
+
+		return TabletAuxReportStatus::AuxReportValid;
+	}
+
+	return TabletAuxReportStatus::AuxReportInvalid;
+}
+
+//
+// Read report from auxiliary device
+//
+int Tablet::ReadAuxReport()
+{
+	UCHAR buffer[1024];
+	int length = settings.auxReportLength;
+
+	// Read aux device
+	bool status = false;
+	if(hidDeviceAux != NULL) {
+		status = hidDeviceAux->Read(buffer, length);
+
+		// Debug message
+		if(logger.debugEnabled) {
+			LOG_DEBUGBUFFER(buffer, length, "Aux read: ");
+		}
+
+		return ProcessAuxData(buffer, length);
+
+	}
+	else if(usbDevice != NULL) {
+		if(auxState.isValid) {
+			Sleep(10);
+			return TabletAuxReportStatus::AuxReportValid;
+		}
+		else {
+			Sleep(10);
+			return TabletAuxReportStatus::AuxReportInvalid;
+		}
+	}
+	return TabletAuxReportStatus::AuxReportReadError;
+
 }
 
 //

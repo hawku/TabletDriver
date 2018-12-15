@@ -319,6 +319,7 @@ void HIDDevice::CloseDevice() {
 	if(isOpen && _deviceHandle != NULL && _deviceHandle != INVALID_HANDLE_VALUE) {
 		try {
 			CloseHandle(_deviceHandle);
+			_deviceHandle = NULL;
 		} catch(exception) {}
 	}
 	isOpen = false;

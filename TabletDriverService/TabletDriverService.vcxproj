@@ -131,20 +131,25 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <CustomBuildStep>
-      <Command>xcopy /C /Y "$(TargetPath)" "$(SolutionDir)TabletDriverGUI\bin\Debug\bin\"
-xcopy /C /Y "$(TargetPath)" "$(SolutionDir)TabletDriverGUI\bin\Release\bin\"
+      <Command>xcopy /C /Y "$(TargetPath)" "$(SolutionDir)TabletDriverGUI\bin\Release\bin\"
 
 xcopy /C /Y "$(ProjectDir)config\tablet.cfg" "$(SolutionDir)TabletDriverGUI\bin\Release\config\"
-xcopy /C /Y "$(ProjectDir)config\tablet.cfg" "$(SolutionDir)TabletDriverGUI\bin\Debug\config\"
 
 xcopy /C /Y "$(ProjectDir)config\wacom.cfg" "$(SolutionDir)TabletDriverGUI\bin\Release\config\"
-xcopy /C /Y "$(ProjectDir)config\wacom.cfg" "$(SolutionDir)TabletDriverGUI\bin\Debug\config\"
 
 xcopy /C /Y "$(ProjectDir)config\user.cfg" "$(SolutionDir)TabletDriverGUI\bin\Release\config\"
-xcopy /C /Y "$(ProjectDir)config\user.cfg" "$(SolutionDir)TabletDriverGUI\bin\Debug\config\"
 
 xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\Release\config\"
-xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\Debug\config\"
+
+xcopy /C /Y "$(ProjectDir)config\serviceonly.cfg" "$(SolutionDir)TabletDriverGUI\bin\Release\config\"
+
+xcopy /C /Y "$(ProjectDir)tools\EnableWacomDrivers.bat" "$(SolutionDir)TabletDriverGUI\bin\Release\tools\"
+
+xcopy /C /Y "$(ProjectDir)tools\DisableWacomDrivers.bat" "$(SolutionDir)TabletDriverGUI\bin\Release\tools\"
+
+xcopy /C /Y "$(ProjectDir)tools\RunServiceOnly.bat" "$(SolutionDir)TabletDriverGUI\bin\Release\tools\"
+
+
 </Command>
       <Message>Copy files</Message>
       <Outputs>copyfiles.txt</Outputs>
@@ -172,7 +177,9 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
     <ClInclude Include="Command.h" />
     <ClInclude Include="CommandHandler.h" />
     <ClInclude Include="CommandLine.h" />
+    <ClInclude Include="DataFormatter.h" />
     <ClInclude Include="HIDDevice.h" />
+    <ClInclude Include="InputEmulator.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Output.h" />
     <ClInclude Include="OutputDummy.h" />
@@ -206,13 +213,16 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Command.cpp" />
+    <ClCompile Include="CommandHandler.Auxiliary.cpp" />
     <ClCompile Include="CommandHandler.cpp" />
     <ClCompile Include="CommandHandler.Device.cpp" />
     <ClCompile Include="CommandHandler.Filters.cpp" />
     <ClCompile Include="CommandHandler.Other.cpp" />
     <ClCompile Include="CommandHandler.Tablet.cpp" />
     <ClCompile Include="CommandLine.cpp" />
+    <ClCompile Include="DataFormatter.cpp" />
     <ClCompile Include="HIDDevice.cpp" />
+    <ClCompile Include="InputEmulator.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Output.cpp" />
     <ClCompile Include="OutputDummy.cpp" />
@@ -251,9 +261,13 @@ xcopy /C /Y "$(ProjectDir)config\init.cfg" "$(SolutionDir)TabletDriverGUI\bin\De
   </ItemGroup>
   <ItemGroup>
     <None Include="config\init.cfg" />
+    <None Include="config\serviceonly.cfg" />
     <None Include="config\tablet.cfg" />
     <None Include="config\user.cfg" />
     <None Include="config\wacom.cfg" />
+    <None Include="tools\DisableWacomDrivers.bat" />
+    <None Include="tools\EnableWacomDrivers.bat" />
+    <None Include="tools\RunServiceOnly.bat" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="docs\VMulti_Report_Descriptor.txt" />

@@ -407,11 +407,22 @@ void CommandHandler::CreateOtherCommands() {
 		LOG_INFO("  Report Length = %d bytes\n", tablet->settings.reportLength);
 		LOG_INFO("  Detect Mask = 0x%02X\n", tablet->settings.detectMask);
 		LOG_INFO("  Ignore Mask = 0x%02X\n", tablet->settings.ignoreMask);
+		LOG_INFO("  Aux button count = %d\n", tablet->settings.auxButtonCount);
 
-		for(int i = 0; i < 8; i++) {
-			stringIndex += sprintf_s(stringBuffer + stringIndex, maxLength - stringIndex, "%d ", tablet->buttonMap[i]);
+		for(int i = 0; i < tablet->settings.buttonCount; i++) {
+			stringIndex += sprintf_s(stringBuffer + stringIndex, maxLength - stringIndex, "'%s' ", tablet->settings.buttonMap[i].c_str());
 		}
-		LOG_INFO("  Button Map = %s\n", stringBuffer);
+		LOG_INFO("  Pen button map = %s\n", stringBuffer);
+
+
+		if(tablet->settings.auxButtonCount > 0) {
+			stringIndex = 0;
+			for(int i = 0; i < tablet->settings.auxButtonCount; i++) {
+				stringIndex += sprintf_s(stringBuffer + stringIndex, maxLength - stringIndex, "'%s' ", tablet->settings.auxButtonMap[i].c_str());
+			}
+			LOG_INFO("  Aux button map = %s\n", stringBuffer);
+		}
+
 
 
 		if(tablet->initFeatureLength > 0) {
@@ -472,6 +483,7 @@ void CommandHandler::CreateOtherCommands() {
 		LOG_STATUS("MAX_X %d\n", tablet->settings.maxX);
 		LOG_STATUS("MAX_Y %d\n", tablet->settings.maxY);
 		LOG_STATUS("MAX_PRESSURE %d\n", tablet->settings.maxPressure);
+		LOG_STATUS("AUX_BUTTONS %d\n", tablet->settings.auxButtonCount);
 
 		return true;
 	}));
@@ -526,6 +538,7 @@ void CommandHandler::CreateOtherCommands() {
 		return true;
 	}));
 
+
 	//
 	// Command: GetCommands
 	//
@@ -556,6 +569,24 @@ void CommandHandler::CreateOtherCommands() {
 		}
 		if(commandsString.size() > 0) {
 			LOG_STATUS("COMMANDS %s\n", commandsString.c_str());
+		}
+
+		return true;
+	}));
+
+	//
+	// Command: ListKeys
+	//
+	// List all keys
+	//
+	AddCommand(new Command("ListKeys", [&](CommandLine *cmd) {
+
+		LOG_INFO("Keys:\n");
+		for(string key : tabletHandler->inputEmulator.keys) {
+			if(tabletHandler->inputEmulator.keyMap.count(key) > 0) {
+				string name = tabletHandler->inputEmulator.keyMap[key]->name;
+				LOG_INFO("  % -20s %s\n", key.c_str(), name.c_str());
+			}
 		}
 
 		return true;

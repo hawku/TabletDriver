@@ -16,6 +16,9 @@
 #include "OutputManager.h"
 #include "CommandHandler.h"
 
+// IntelliSense "fix"...
+//#define memcpy memcpy
+
 // Global variables...
 extern VMulti *vmulti;
 extern CommandHandler *commandHandler;

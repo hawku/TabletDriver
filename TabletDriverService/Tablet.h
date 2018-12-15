@@ -13,7 +13,7 @@
 #include "TabletFilterPeak.h"
 #include "TabletFilterGravity.h"
 #include "TabletMeasurement.h"
-#include "Vector2D.h"
+#include "DataFormatter.h"
 
 using namespace std;
 
@@ -32,13 +32,22 @@ public:
 		Button5, Button6, Button7, Button8
 	};
 
-	// Tablet report state
-	enum TabletReportState {
+	// Tablet report status
+	enum TabletReportStatus {
 		ReportPositionInvalid = 0,
 		ReportValid = 1,
 		ReportInvalid = 2,
 		ReportIgnore = 3
 	};
+
+	// Tablet auxiliary report status
+	enum TabletAuxReportStatus {
+		AuxReportValid = 0,
+		AuxReportInvalid = 1,
+		AuxReportIgnore = 2,
+		AuxReportReadError = 3
+	};
+
 
 	//
 	// Position report data
@@ -51,6 +60,30 @@ public:
 		USHORT y;
 		USHORT pressure;
 	} reportData;
+
+	//
+	// Auxiliary report data
+	//
+#pragma pack(1)
+	struct {
+		BYTE reportId;
+		USHORT buttons;
+		UCHAR detect;
+	} auxReportData;
+
+	class TabletAuxState {
+	public:
+		bool isValid;
+		bool isHandled;
+		USHORT buttons;
+	};
+	TabletAuxState auxState;
+
+	//
+	// Data formatters
+	//
+	DataFormatter dataFormatter;
+	DataFormatter auxDataFormatter;
 
 	//
 	// Tablet State
@@ -83,9 +116,6 @@ public:
 	// Measurement
 	TabletMeasurement measurement;
 
-	// Button map
-	BYTE buttonMap[16];
-
 	//
 	string name = "Unknown";
 	bool isOpen;
@@ -104,6 +134,7 @@ public:
 
 
 	Tablet(string usbGUID);
+	Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage, bool isExclusive);
 	Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage);
 	Tablet();
 	~Tablet();
@@ -112,9 +143,14 @@ public:
 	bool IsConfigured();
 
 	string GetDeviceString(UCHAR stringId);
-	int ReadPosition();
+	string GetDeviceManufacturerName();
+	string GetDeviceProductName();
+	string GetDeviceSerialNumber();
+	int ReadState();
 	bool Write(void *buffer, int length);
 	bool Read(void *buffer, int length);
+	int ProcessAuxData(void *buffer, int length);
+	int ReadAuxReport();
 	void CloseDevice();
 
 };

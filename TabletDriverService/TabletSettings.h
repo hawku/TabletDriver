@@ -32,6 +32,7 @@ public:
 	double pressureDeadzone;
 	double scrollSensitivity;
 	double scrollAcceleration;
+	bool scrollStopCursor;
 	double skew;
 	TabletDataFormat dataFormat;
 	string buttonMap[16];

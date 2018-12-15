@@ -369,8 +369,13 @@
               <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Pen Button Mapping -->
-            <GroupBox Grid.Column="0" Header="Pen Buttons">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="auto" />
+              <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Pen Buttons -->
+            <GroupBox Grid.Column="0" Grid.Row="0" Header="Pen Buttons">
               <GroupBox.ToolTip>
                 <StackPanel>
                   <TextBlock FontWeight="Bold" FontSize="16">
@@ -388,74 +393,74 @@
                 </StackPanel>
               </GroupBox.ToolTip>
 
-              <StackPanel Orientation="Vertical">
-
+              <StackPanel Orientation="Vertical" HorizontalAlignment="Center" >
 
                 <!-- Top -->
-                <GroupBox Header="Top" Width="90">
-                  <!--
+                  <GroupBox Header="Top" Width="120" HorizontalAlignment="Left">
+                    <!--
                     <ComboBox Name="comboBoxButton3" SelectionChanged="ItemSelectionChanged">
                     </ComboBox>
                     -->
-                  <Button Name="buttonPenButton3" Height="22"
+                    <Button Name="buttonPenButton3" Height="22"
                             ToolTip=""
                             ToolTipOpening="ButtonMap_ToolTipOpening"
                             Padding="2,0,2,0"
                             Background="White"
                             Click="ButtonMap_Click"
                             >MOUSE1</Button>
-                </GroupBox>
+                  </GroupBox>
 
 
-                <!-- Bottom -->
-                <GroupBox Header="Bottom" Width="90">
-                  <!--
+                  <!-- Bottom -->
+                <GroupBox Header="Bottom" Width="120" HorizontalAlignment="Left">
+                    <!--
                     <ComboBox Name="comboBoxButton2" SelectionChanged="ItemSelectionChanged">
                     </ComboBox>
                     -->
-                  <Button Name="buttonPenButton2" Height="22"
+                    <Button Name="buttonPenButton2" Height="22"
                             ToolTip=""
                             ToolTipOpening="ButtonMap_ToolTipOpening"
                             Padding="2,0,2,0"
                             Background="White"
                             Click="ButtonMap_Click"
                             >MOUSE1</Button>
-                </GroupBox>
+                  </GroupBox>
 
 
-                <!-- Tip -->
-                <GroupBox Header="Tip" Width="90" Margin="2,0,0,0">
-                  <!--
+                  <!-- Tip -->
+                <GroupBox Header="Tip" Width="120"  HorizontalAlignment="Left">
+                    <!--
                     <ComboBox Name="comboBoxButton1" SelectionChanged="ItemSelectionChanged">
                     </ComboBox>
                     -->
-                  <Button Name="buttonPenButton1" Height="22"
+                    <Button Name="buttonPenButton1" Height="22"
                             ToolTip=""
                             ToolTipOpening="ButtonMap_ToolTipOpening"
                             Padding="2,0,2,0"
                             Background="White"
                             Click="ButtonMap_Click"
                             >MOUSE1</Button>
-                </GroupBox>
+                  </GroupBox>
+
+                  <!-- Disable buttons -->
+                  <CheckBox Name="checkBoxDisableButtons"
+                            HorizontalAlignment="Left"
+                            Margin="7,5,0,0"
+                            Checked="CheckboxChanged"
+                            Unchecked="CheckboxChanged">
+                    <TextBlock>Disable buttons</TextBlock>
+                  </CheckBox>
+
+              </StackPanel>
+            </GroupBox>
 
 
-                <!-- Disable buttons -->
-                <CheckBox Name="checkBoxDisableButtons"
-                          HorizontalAlignment="Center"
-                          Margin="0,5,0,5"
-                          VerticalContentAlignment="Center"
-                          Checked="CheckboxChanged"
-                          Unchecked="CheckboxChanged">
-                  <TextBlock>
-                  Disable
-                    <LineBreak/>
-                    buttons
-                  </TextBlock>
-                </CheckBox>
-
+            <!-- Scroll -->
+            <GroupBox Grid.Row="1" Header="Scroll">
+              <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 
                 <!-- Scroll sensitivity -->
-                <GroupBox Header="Scroll Sens.." Height="50" Width="90" Margin="5,0,0,0">
+                <GroupBox Header="Sensitivity" Height="50" Width="120" HorizontalAlignment="Left">
                   <Grid>
                     <TextBox Name="textScrollSensitivity" Padding="4,0,0,0"
                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
@@ -463,10 +468,9 @@
                     <Label HorizontalAlignment="Right">s/mm</Label>
                   </Grid>
                 </GroupBox>
-
-
+                
                 <!-- Scroll acceleration -->
-                <GroupBox Header="Scroll Accel.." Height="50" Width="90" Margin="5,0,0,0">
+                <GroupBox Header="Acceleration" Height="50" Width="120" HorizontalAlignment="Left">
                   <Grid>
                     <TextBox Name="textScrollAcceleration" Padding="4,0,0,0"
                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
@@ -474,11 +478,21 @@
                   </Grid>
                 </GroupBox>
 
+                <!-- Scroll stop cursor -->
+                <CheckBox Name="checkBoxScrollStopCursor"
+                          Margin="7,5,0,0"
+                          HorizontalAlignment="Left"
+                          Checked="CheckboxChanged"
+                          Unchecked="CheckboxChanged">
+                  <TextBlock>Stop cursor</TextBlock>
+                </CheckBox>
+
               </StackPanel>
             </GroupBox>
 
+            
             <!-- Windows Ink Pressure -->
-            <GroupBox Grid.Column="1" Name="groupBoxWindowsInkSettings" Header="Windows Ink Settings">
+            <GroupBox Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" Name="groupBoxWindowsInkSettings" Header="Windows Ink Settings">
               <StackPanel Orientation="Vertical">
 
                 <!-- Tip Firmness -->
@@ -549,7 +563,7 @@
                           >
 
                       <!-- Ink Canvas -->
-                      <InkCanvas Width="500"
+                      <InkCanvas Width="470"
                              Height="250"
                              Name="inkCanvas"
                              Background="#f6f6f6"
@@ -586,7 +600,7 @@
                           Grid.Column="0"
                           HorizontalAlignment="Left"
                           Padding="5"
-                          Width="150"
+                          Width="100"
                           FontWeight="Bold"
                           Click="ButtonInkClear_Click" />
 
@@ -614,7 +628,7 @@
                   <Button Name="buttonInkSave" Content="Save as PNG"
                           Grid.Column="3"
                           HorizontalAlignment="Right"
-                          Width="150"
+                          Width="100"
                           Padding="5"
                           FontWeight="Bold"
                           Click="ButtonInkSave_Click" />
@@ -852,81 +866,89 @@
                     Anti-smoothing Filter
                 </TextBlock>
                 <TextBlock>
-                    It is recommend to use this filter only with tablets that do the pen position smoothing in hardware/firmware.
-                    <LineBreak/>
-                    <TextBlock Foreground="#AA0000">
-                      WARNING! Some tablets will send broken position data when the pen buttons are pressed, so don't press buttons...
-                    </TextBlock>
-                    <LineBreak/>
-                    <TextBlock Foreground="#AA0000">
-                      WARNING! Do not use this filter with small tablet areas (&lt;20 mm). Most tablets will send invalid data at low speeds.
-                    </TextBlock>
-                    <LineBreak/>
-                    Check the checkbox to enable the filter.
-                    <LineBreak/>
-                    <LineBreak/>
-                    <TextBlock FontWeight="Bold">
-                    Shape
-                    </TextBlock>
-                    <LineBreak/>
-                    Shape value is the how the filter handles pen acceleration. Start with a neutral 0.5 shape value and try to keep it around that.
-                    <LineBreak/>
-                    Use a lower value when there are are too much artifacts in sharp corners and increase the value if corners are too smooth.
-                    <LineBreak/>
-                    <LineBreak/>
-                    <TextBlock FontWeight="Bold">
-                    Compensation
-                    </TextBlock>
-                    <LineBreak/>                    
-                    Compensation value is the amount of latency compensation.
-                    <LineBreak/>
-                    You can test out the compensation value by spinning the pen in circles with different speeds.
-                    <LineBreak/>
-                    Circle size shouldn't change too much with different spinning speeds.
-                    <LineBreak/>
-                    Use lower compensation value if there are too much artifacting at high speeds.
-                    <LineBreak/>
-                    Try to find a balance between response time and artifacting.
-                    <LineBreak/>
-                    <LineBreak/>
-                    <TextBlock FontWeight="Bold">
-                    Only when hovering
-                    </TextBlock>
-                    <LineBreak/>
-                    This feature is mainly meant for Wacom CTL-490, but might be useful with other tablets too.
-                    <LineBreak/>
-                    <LineBreak/>
-                    <TextBlock FontWeight="Bold">
-                      Recommended value ranges
-                    </TextBlock>
-                    <LineBreak/>
-                    Shape: 0.1 - 0.9
-                    <LineBreak/>
-                    Compensation: 10 - 30 ms
-                    <LineBreak/>
-                    <LineBreak/>                    
-                    <TextBlock FontWeight="Bold">
-                    Example values:
-                    </TextBlock>
-                    <LineBreak/>
-                    <TextBlock Margin="5,0,0,0">
-                      <TextBlock FontWeight="Bold">Gaomon S56K:</TextBlock>
-                      Shape 0.7, Compensation = 15 - 20 ms
-                      <LineBreak/>                     
-                      <TextBlock FontWeight="Bold">Huion 420 &amp; H420:</TextBlock>
-                      Shape = 0.5, Compensation = 15 - 20 ms
-                      <LineBreak/>
-                      <TextBlock FontWeight="Bold">Huion H430P &amp; H640P:</TextBlock>
-                      Shape = 0.7, Compensation = 20 - 30 ms
-                      <LineBreak/>
-                      <TextBlock FontWeight="Bold">XP-PEN G430 &amp; G640:</TextBlock>
-                      Shape = 0.5, Compensation = 15 - 20 ms, Invalid low speed data, use noise reduction 10/0.5 mm
-                      <LineBreak/>                   
-                      <TextBlock FontWeight="Bold">Wacom CTL-490 Hover:</TextBlock>
-                      Shape = 0.5, Compensation = 25 - 30 ms, Enable "Only when hovering"
-                      </TextBlock>
+                  It is recommend to use this filter only with tablets that do the pen position smoothing in hardware/firmware.
+                  <LineBreak/>
+                  <TextBlock Foreground="#AA0000">
+                    WARNING! Some tablets will send broken position data when the pen buttons are pressed, so don't press buttons...
                   </TextBlock>
-                </StackPanel>
+                  <LineBreak/>
+                  <TextBlock Foreground="#AA0000">
+                    WARNING! Do not use this filter with small tablet areas (&lt;20 mm). Most tablets will send invalid data at low speeds.
+                  </TextBlock>
+                  <LineBreak/>
+                  Check the checkbox to enable the filter.
+                  <LineBreak/>
+                  <LineBreak/>
+                  <TextBlock FontWeight="Bold">
+                  Shape
+                  </TextBlock>
+                  <LineBreak/>
+                  Shape value is the how the filter handles pen acceleration. Start with a neutral 0.5 shape value and try to keep it around that.
+                  <LineBreak/>
+                  Use a lower value when there are are too much artifacts in sharp corners and increase the value if corners are too smooth.
+                  <LineBreak/>
+                  <LineBreak/>
+                  <TextBlock FontWeight="Bold">
+                  Compensation
+                  </TextBlock>
+                  <LineBreak/>                    
+                  Compensation value is the amount of latency compensation.
+                  <LineBreak/>
+                  You can test out the compensation value by spinning the pen in circles with different speeds.
+                  <LineBreak/>
+                  Circle size shouldn't change too much with different spinning speeds.
+                  <LineBreak/>
+                  Use lower compensation value if there are too much artifacting at high speeds.
+                  <LineBreak/>
+                  Try to find a balance between response time and artifacting.
+                  <LineBreak/>
+                  <LineBreak/>
+                  <TextBlock FontWeight="Bold">
+                    Only when hovering
+                  </TextBlock>
+                  <LineBreak/>
+                  This feature is mainly meant for Wacom CTL-490, but might be useful with other tablets too.
+                  <LineBreak/>
+                  <LineBreak/>
+                  <TextBlock FontWeight="Bold">
+                    Recommended value ranges
+                  </TextBlock>
+                  <LineBreak/>
+                  Shape: 0.1 - 0.9
+                  <LineBreak/>
+                  Compensation: 10 - 30 ms
+                  <LineBreak/>
+                  <LineBreak/>                    
+                  <TextBlock FontWeight="Bold">
+                  Example values:
+                  </TextBlock>
+                  <LineBreak/>
+                  <TextBlock Margin="5,0,0,0">
+                    <TextBlock FontWeight="Bold">Gaomon S56K:</TextBlock>
+                    Shape 0.7, Compensation = 15 - 20 ms
+                    <LineBreak/>                     
+                    <TextBlock FontWeight="Bold">Huion 420 &amp; H420:</TextBlock>
+                    Shape = 0.5, Compensation = 15 - 20 ms
+                    <LineBreak/>
+                    <TextBlock FontWeight="Bold">Huion H430P &amp; H640P:</TextBlock>
+                    Shape = 0.7, Compensation = 20 - 30 ms
+                    <LineBreak/>
+                    <TextBlock FontWeight="Bold">XP-PEN G430 &amp; G640:</TextBlock>
+                    Shape = 0.5, Compensation = 10 - 20 ms, Invalid low speed data, use noise reduction 10/0.5 mm
+                    <LineBreak/>                   
+                    <TextBlock FontWeight="Bold">Wacom CTL-490 Hover:</TextBlock>
+                    Shape = 0.5, Compensation = 10 - 20 ms, Enable "Only when hovering"
+                    <LineBreak/>
+                    <TextBlock FontWeight="Bold">VEIKK S640:</TextBlock>
+                    <LineBreak/>
+                    <TextBlock Margin="10,0,0,0">
+                      Shape = 0.5, Compensation = 10 - 20 ms, Filter will automatically adjust the compensation level.
+                      <LineBreak/>
+                      The tablet does have a 166 RPS mode with higher smoothing latency.
+                    </TextBlock>
+                  </TextBlock>
+                </TextBlock>
+              </StackPanel>
             </GroupBox.ToolTip>
 
             <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
@@ -939,7 +961,7 @@
               </CheckBox>
 
               <!-- Anti-smoothing power -->
-              <GroupBox Header="Shape" Height="50" Margin="0,0,0,0">
+              <GroupBox Header="Shape" Height="50" Margin="0,0,0,0" Width="60">
                 <TextBox Name="textAntiSmoothingShape" Padding="4,0,0,0"
                       HorizontalContentAlignment="Left"
                       VerticalContentAlignment="Center"
@@ -1040,7 +1062,7 @@
 
       <TabItem Name="tabCommands">
         <TabItem.Header>
-          <TextBlock FontSize="14">
+          <TextBlock FontSize="14" Foreground="#000" FontWeight="Bold">
             <AccessText Text="C_ommands"/>
           </TextBlock>
         </TabItem.Header>
@@ -1083,7 +1105,7 @@
       </TabItem>
       <TabItem Name="tabConsole">
         <TabItem.Header>
-          <TextBlock FontSize="14">
+          <TextBlock FontSize="14" Foreground="#000" FontWeight="Bold">
             <AccessText Text="_Console"/>
           </TextBlock>
         </TabItem.Header>

@@ -169,6 +169,7 @@ namespace TabletDriverGUI
             //
             settingCommands.Add("ScrollSensitivity " + Utils.GetNumberString(config.ScrollSensitivity));
             settingCommands.Add("ScrollAcceleration " + Utils.GetNumberString(config.ScrollAcceleration));
+            settingCommands.Add("ScrollStopCursor " + (config.ScrollStopCursor ? "true" : "false"));
 
 
             // Smoothing filter
@@ -200,7 +201,7 @@ namespace TabletDriverGUI
             // Anti-smoothing filter
             if (config.AntiSmoothingEnabled)
             {
-                settingCommands.Add("AntiSmoothing " + Utils.GetNumberString(config.AntiSmoothingShape) + " " +
+                settingCommands.Add("AntiSmoothing " + Utils.GetNumberString(config.AntiSmoothingShape, "0.000") + " " +
                     Utils.GetNumberString(config.AntiSmoothingCompensation) + " " +
                     (config.AntiSmoothingOnlyWhenHover ? "true" : "false"));
             }

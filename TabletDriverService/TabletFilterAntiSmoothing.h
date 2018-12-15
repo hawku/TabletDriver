@@ -31,6 +31,7 @@ public:
 	double shape;
 	double compensation;
 	bool onlyWhenHover;
+	double targetReportRate;
 
 	void SetTarget(TabletState *tabletState);
 	void Update();

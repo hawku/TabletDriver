@@ -128,6 +128,7 @@ void TabletHandler::RunTabletInputThread() {
 	UCHAR outButtons = 0;
 	UCHAR lastButtons = 0;
 	Vector2D lastScrollPosition;
+	Vector2D scrollStartPosition;
 
 	timeBegin = chrono::high_resolution_clock::now();
 
@@ -210,6 +211,8 @@ void TabletHandler::RunTabletInputThread() {
 		outButtons = 0;
 
 		if(buttons > 0 || lastButtons > 0) {
+
+			// Loop through buttons
 			for(int buttonIndex = 0; buttonIndex < tablet->settings.buttonCount; buttonIndex++) {
 
 				// Button is not down, pressed or released?
@@ -217,6 +220,7 @@ void TabletHandler::RunTabletInputThread() {
 					continue;
 				}
 
+				// Button state
 				bool isDown = buttons & (1 << buttonIndex);
 				bool isPressed = ((buttons & (1 << buttonIndex)) > 0 && (lastButtons & (1 << buttonIndex)) == 0);
 				bool isReleased = ((buttons & (1 << buttonIndex)) == 0 && (lastButtons & (1 << buttonIndex)) > 0);
@@ -239,26 +243,35 @@ void TabletHandler::RunTabletInputThread() {
 						//
 						// Mouse scroll
 						//
-						else if(keyMapValue->mouseButton > 0x100) {
+						else if((keyMapValue->mouseButton & 0x103) > 0) {
 
+							// Scroll pen button down?
 							if(isDown) {
 
-								// Reset last scroll position when scroll button is pressed
+								// Get rotated pen position
+								Vector2D scrollPosition;
+								scrollPosition.Set(tablet->state.position);
+								mapper->GetRotatedTabletPosition(&scrollPosition.x, &scrollPosition.y);
+
+								// Reset last scroll position and set the scroll start position
 								if(isPressed) {
-									lastScrollPosition.Set(tablet->state.position);
+									lastScrollPosition.Set(scrollPosition);
+									scrollStartPosition.Set(tablet->state.position);
 								}
 
 								// Delta from the last scroll position
 								Vector2D delta(
-									(tablet->state.position.x - lastScrollPosition.x) * tablet->settings.scrollSensitivity,
-									(tablet->state.position.y - lastScrollPosition.y) * tablet->settings.scrollSensitivity
+									(scrollPosition.x - lastScrollPosition.x) * tablet->settings.scrollSensitivity,
+									(scrollPosition.y - lastScrollPosition.y) * tablet->settings.scrollSensitivity
 								);
 
+								// X Acceleration
 								if(delta.x > 0)
 									delta.x = round(pow(delta.x, tablet->settings.scrollAcceleration));
 								else
 									delta.x = -round(pow(-delta.x, tablet->settings.scrollAcceleration));
 
+								// Y Acceleration
 								if(delta.y > 0)
 									delta.y = round(pow(delta.y, tablet->settings.scrollAcceleration));
 								else
@@ -266,15 +279,20 @@ void TabletHandler::RunTabletInputThread() {
 
 
 								// Vertical Scroll
-								if(delta.y != 0 && (keyMapValue->mouseButton & 0x101) > 0) {
+								if(delta.y != 0 && (keyMapValue->mouseButton & 0x101) == 0x101) {
 									inputEmulator.MouseScroll((int)delta.y, true);
-									lastScrollPosition.Set(tablet->state.position);
+									lastScrollPosition.Set(scrollPosition);
 								}
 
 								// Horizontal scroll
-								if(delta.x != 0 && (keyMapValue->mouseButton & 0x102) > 0) {
+								if(delta.x != 0 && (keyMapValue->mouseButton & 0x102) == 0x102) {
 									inputEmulator.MouseScroll((int)-delta.x, false);
-									lastScrollPosition.Set(tablet->state.position);
+									lastScrollPosition.Set(scrollPosition);
+								}
+
+								// Stop cursor
+								if(tablet->settings.scrollStopCursor) {
+									tablet->state.position.Set(scrollStartPosition);
 								}
 
 							}
@@ -305,13 +323,16 @@ void TabletHandler::RunTabletInputThread() {
 
 			}
 		}
+
+		// Set button values
 		tablet->state.buttons = outButtons;
 		lastButtons = buttons;
+
 
 		//
 		// Report filters
 		//
-		// Is there any filters?
+		// Are there any filters?
 		if(tablet->filterReportCount > 0) {
 
 			// Copy input state values to filter state

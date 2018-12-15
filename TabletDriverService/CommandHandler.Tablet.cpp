@@ -215,6 +215,18 @@ void CommandHandler::CreateTabletCommands() {
 
 
 	//
+	// Command: ScrollStopCursor
+	//
+	AddCommand(new Command("ScrollStopCursor", [&](CommandLine *cmd) {
+		if(tablet == NULL) return false;
+		tablet->settings.scrollStopCursor = cmd->GetBoolean(0, tablet->settings.scrollStopCursor);
+		LOG_INFO("Tablet scroll stop cursor = %s\n", tablet->settings.scrollStopCursor ? "true" : "false");
+		return true;
+	}));
+
+
+
+	//
 	// Command: Skew
 	//
 	AddCommand(new Command("Skew", [&](CommandLine *cmd) {

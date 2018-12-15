@@ -181,6 +181,7 @@ namespace TabletDriverGUI
             //
             textScrollSensitivity.Text = Utils.GetNumberString(config.ScrollSensitivity);
             textScrollAcceleration.Text = Utils.GetNumberString(config.ScrollAcceleration);
+            checkBoxScrollStopCursor.IsChecked = config.ScrollStopCursor;
 
 
             //
@@ -226,7 +227,7 @@ namespace TabletDriverGUI
             // Anti-smoothing filter
             //
             checkBoxAntiSmoothing.IsChecked = config.AntiSmoothingEnabled;
-            textAntiSmoothingShape.Text = Utils.GetNumberString(config.AntiSmoothingShape);
+            textAntiSmoothingShape.Text = Utils.GetNumberString(config.AntiSmoothingShape, "0.000");
             textAntiSmoothingCompensation.Text = Utils.GetNumberString(config.AntiSmoothingCompensation);
             checkBoxAntiSmoothingOnlyWhenHover.IsChecked = config.AntiSmoothingOnlyWhenHover;
             if (config.AntiSmoothingEnabled)
@@ -421,6 +422,7 @@ namespace TabletDriverGUI
                 config.ScrollSensitivity = val;
             if (Utils.ParseNumber(textScrollAcceleration.Text, out val))
                 config.ScrollAcceleration = val;
+            config.ScrollStopCursor = (bool)checkBoxScrollStopCursor.IsChecked;
 
 
             //

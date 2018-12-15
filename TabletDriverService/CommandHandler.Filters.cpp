@@ -210,6 +210,18 @@ void CommandHandler::CreateFilterCommands() {
 			double compensation = cmd->GetDouble(1, tablet->antiSmoothing.compensation);
 			bool onlyWhenHover = cmd->GetBoolean(2, tablet->antiSmoothing.onlyWhenHover);
 
+			// Workaround for VEIKK S640
+			double defaultTargetReportRate = 0;
+			if(
+				tablet != NULL &&
+				tablet->hidDevice != NULL &&
+				tablet->hidDevice->vendorId == 0x2FEB
+			) {
+				defaultTargetReportRate = 250;
+			}
+			double targetReportRate = cmd->GetDouble(3, defaultTargetReportRate);
+			
+
 			if(cmd->valueCount == 0) {
 				LOG_INFO("Usage: %s <shape> <compensation> <only on hover> <target report rate>\n", cmd->command.c_str());
 			}
@@ -221,12 +233,14 @@ void CommandHandler::CreateFilterCommands() {
 				tablet->antiSmoothing.shape = shape;
 				tablet->antiSmoothing.compensation = compensation;
 				tablet->antiSmoothing.onlyWhenHover = onlyWhenHover;
+				tablet->antiSmoothing.targetReportRate = targetReportRate;
 
 				tablet->antiSmoothing.isEnabled = true;
-				LOG_INFO("Anti-smoothing = Shape:%0.2f Compensation:%0.2f OnlyOnHover:%s\n",
+				LOG_INFO("Anti-smoothing = Shape:%0.3f Compensation:%0.2f OnlyOnHover:%s TargetRPS:%0.2f\n",
 					tablet->antiSmoothing.shape,
 					tablet->antiSmoothing.compensation,
-					tablet->antiSmoothing.onlyWhenHover ? "true" : "false"
+					tablet->antiSmoothing.onlyWhenHover ? "true" : "false",
+					tablet->antiSmoothing.targetReportRate
 
 				);
 			}

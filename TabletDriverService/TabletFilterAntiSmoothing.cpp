@@ -13,6 +13,7 @@ TabletFilterAntiSmoothing::TabletFilterAntiSmoothing() {
 	shape = 1.0;
 	compensation = 1;
 	onlyWhenHover = false;
+	targetReportRate = 0;
 
 	reportRate = 100;
 	reportRateAverage = 100;
@@ -136,13 +137,29 @@ void TabletFilterAntiSmoothing::Update() {
 		// LerpAdd (linear interpolation) method will move the position beyond the target position when the second parameter is larger than 1
 		//
 		predictedPosition.Set(oldTarget);
-		predictedPosition.LerpAdd(latestTarget,
-			pow(predictedVelocity / velocity, shape)
-			*
-			compensation
-			*
-		(reportRate / 1000.0)
-		);
+
+		// Workaround for VEIKK S640 and other tablets with variable report rate and smoothing
+		if(targetReportRate > 0) {
+			predictedPosition.LerpAdd(latestTarget,
+				1 + pow(predictedVelocity / velocity, shape)
+				*
+				compensation
+				*
+				(targetReportRate / 1000.0)
+			);
+		}
+
+		// Other tablets
+		else {
+
+			predictedPosition.LerpAdd(latestTarget,
+				1 + pow(predictedVelocity / velocity, shape)
+				*
+				compensation
+				*
+				(reportRate / 1000.0)
+			);
+		}
 		outputPosition->Set(predictedPosition);
 	}
 
@@ -179,18 +196,22 @@ void TabletFilterAntiSmoothing::Update() {
 	// Debug message
 	if(logger.debugEnabled) {
 		double delta = outputPosition->Distance(latestTarget);
-		LOG_DEBUG("T=%0.2f T=[%0.2f,%0.2f] P=[%0.2f,%0.2f] D=%0.3f R=%0.2f RA=%0.2f V=%0.2f PV=%0.2f A=%0.0f J=%0.0f L=%0.2f\n",
+		double pixelDensity = (mapper->areaScreen.width / mapper->areaTablet.width);
+		LOG_DEBUG(
+			//"T=%0.2f T=[%0.2f,%0.2f] P=[%0.2f,%0.2f] D1=%0.3f D2=%0.3f R=%0.2f RA=%0.2f V=%0.2f PV=%0.2f A=%0.0f J=%0.0f L=%0.2f\n",
+			"T=%0.2f D=%0.2f R=%0.0f V=%0.0f PV=%0.0f L=%0.2f ms LP=%0.0f pixels\n",
 			(timeNow - timeBegin).count() / 1000000.0,
-			latestTarget.x, latestTarget.y,
-			outputPosition->x, outputPosition->y,
+			//latestTarget.x, latestTarget.y,
+			//outputPosition->x, outputPosition->y,
 			delta,
 			reportRate,
-			reportRateAverage,
+			//reportRateAverage,
 			velocity,
 			predictedVelocity,
-			acceleration,
-			jerk,
-			(velocity > 0) ? (delta / velocity * 1000) : 0
+			//acceleration,
+			//jerk,
+			(velocity > 0) ? (delta / velocity * 1000) : 0,
+			pixelDensity * delta
 		);
 	}
 

@@ -62,6 +62,7 @@ namespace TabletDriverGUI
 
         public double ScrollSensitivity;
         public double ScrollAcceleration;
+        public bool ScrollStopCursor;
 
         [XmlArray("CustomCommands")]
         [XmlArrayItem("Command")]
@@ -106,8 +107,9 @@ namespace TabletDriverGUI
             DisableTabletButtons = false;
 
             PressureSensitivity = 0;
-            ScrollSensitivity = 1.0;
+            ScrollSensitivity = 0.5;
             ScrollAcceleration = 1.0;
+            ScrollStopCursor = false;
 
             SmoothingEnabled = false;
             SmoothingLatency = 0;

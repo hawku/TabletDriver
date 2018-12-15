@@ -22,6 +22,7 @@ TabletSettings::TabletSettings() {
 	pressureDeadzone = 0;
 	scrollSensitivity = 1;
 	scrollAcceleration = 1;
+	scrollStopCursor = false;
 	skew = 0;
 	dataFormat = TabletFormatNormal;
 	buttonMap[0] = "MOUSE1";

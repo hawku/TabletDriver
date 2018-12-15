@@ -12,15 +12,15 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-### http://hwk.fi/TabletDriver/TabletDriverV0.2.1.zip
+### http://hwk.fi/TabletDriver/TabletDriverV0.2.2.zip
 
 #
 
 ### Supported operating systems:
-  - Windows 7 64-bit
-  - Windows 8 64-bit
-  - Windows 8.1 64-bit
   - Windows 10 64-bit
+  - Windows 8.1 64-bit
+  - Windows 8 64-bit
+  - Windows 7 64-bit (No multi-monitor support)
 
 #
 
@@ -40,25 +40,30 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   - Wacom CTL-672
   - Wacom CTL-680
   - Wacom CTH-680
+  - Wacom CTL-690
+  - Wacom CTH-690
   - Wacom PTH-660
   - Wacom PTH-451
   - Wacom PTH-850
-  - XP-Pen G430 (New 2017+ "Model B". Old G430 or G430S is not supported)
+  - XP-Pen G430 (New 2017+ "Model B". Old G430 is not supported)
+  - XP-Pen G430S
   - XP-Pen G540 Pro (G540 is not supported)
   - XP-Pen G640
+  - XP-Pen G640S
   - XP-Pen Deco 01
   - XP-Pen Deco 01 v2
   - Huion 420
   - Huion H420
   - Huion H430P
   - Huion H640P
+  - Huion osu!tablet
   - Gaomon S56K
+  - VEIKK S640
   
 ### Configured, but not properly tested:
-  - Huion osu!tablet
-  - XP-Pen G640S
-  - VEIKK S640
-  - https://github.com/hawku/TabletDriver/blob/master/TabletDriverService/config/wacom.cfg
+> - Huion New 1060 Plus
+> - Huion Inspiroy Q11K
+  - Other Wacom tablets that might work: https://github.com/hawku/TabletDriver/blob/master/TabletDriverService/config/wacom.cfg
 
 #
 
@@ -100,8 +105,24 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ## Changelog
+>**v0.2.2:**
+> - XP-Pen G430S configuration by [frodriguez96](https://github.com/frodriguez96) and [riley-badour](https://github.com/riley-badour)
+> - Huion New 1060 Plus configuration by [riley-badour](https://github.com/riley-badour)
+> - Huion Inspiroy Q11K configuration by [octoberU](https://github.com/octoberU)
+> - Wacom CTL-690 and CTH-690 configurations moved to tablet.cfg and DetectMask fixed.
+> - Few more Wacom tablets can now be used while the official drivers are installed (check tablet.cfg)
+> - Tablet button support for Wacom CTH-480, CTL-490, CTL-4100, Huion H430P and H640P.
+> - Custom tablet data format configuration (check tablet.cfg for examples)
+> - Pen and tablet button mapping to a mouse buttons and keyboard keys.
+> - Pen button mapping to scroll.
+> - Windows Ink pressure settings and test canvas.
+> - Smoothing filter now also smooths out pen pressure.
+> - Smoothing can be set to only smooth out when pen buttons are down.
+> - Anti-smoothing compensation value is now in milliseconds (check tooltip for example values)
+> - Ability start the TabletDriverService.exe without GUI (`tools\RunServiceOnly.bat`)
+
 >**v0.2.1:**
-> - XP-Pen G640S and VEIKK S640 configurations by [FRodriguez96](https://github.com/frodriguez96)
+> - XP-Pen G640S and VEIKK S640 configurations by [frodriguez96](https://github.com/frodriguez96)
 > - Original XP-Pen, Huion and VEIKK driver processes will now be killed when the TabletDriverGUI starts.
 > - Fixed cursor jumping to the corner when driver restarts or tablet disconnects.
 > - Removed device list from driver startup. Might help with the problems that the driver restart is causing other USB devices to glitch out.

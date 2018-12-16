@@ -5,16 +5,29 @@
 #include "Logger.h"
 
 // Constructor
-VMulti::VMulti() {
+VMulti::VMulti(int type) {
+
 	isOpen = false;
 	debugEnabled = false;
+	this->type = type;
 	lastButtons = 0;
+	
 
 	// Report buffers
 	memset(reportBuffer, 0, 65);
 	memset(lastReportBuffer, 0, 65);
 
-	hidDevice = new HIDDevice(0x00FF, 0xBACC, 0xFF00, 0x0001);
+	// XP-Pen VMulti
+	if(type == VMultiType::TypeXPPen) {
+		hidDevice = new HIDDevice(0x00FF, 0xBACC, 0xFF00, 0x0001);
+	}
+
+	// VEIKK VMulti
+	else if(type == VMultiType::TypeVEIKK) {
+		hidDevice = new HIDDevice(0x2FEB, 0xFFFF, 0xFF00, 0x0001);
+	}
+
+
 	if(hidDevice->isOpen) {
 		isOpen = true;
 		outputEnabled = true;

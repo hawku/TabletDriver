@@ -11,7 +11,6 @@ OutputManager::OutputManager() {
 
 	// Set outputs array
 	outputs[ModeVMultiAbsolute] = &vmultiAbsolute;
-	outputs[ModeVMultiAbsoluteV2] = &vmultiAbsoluteV2;
 	outputs[ModeVMultiRelative] = &vmultiRelative;
 	outputs[ModeVMultiDigitizer] = &vmultiDigitizer;
 	outputs[ModeSendInputAbsolute] = &sendInputAbsolute;

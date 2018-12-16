@@ -44,6 +44,9 @@ namespace TabletDriverGUI
                 case Configuration.OutputModes.Digitizer:
                     radioModeDigitizer.IsChecked = true;
                     break;
+                case Configuration.OutputModes.SendInput:
+                    radioModeSendInput.IsChecked = true;
+                    break;
             }
 
 
@@ -312,8 +315,9 @@ namespace TabletDriverGUI
             // Output Mode
             //
             if (radioModeAbsolute.IsChecked == true) config.OutputMode = Configuration.OutputModes.Absolute;
-            if (radioModeRelative.IsChecked == true) config.OutputMode = Configuration.OutputModes.Relative;
-            if (radioModeDigitizer.IsChecked == true) config.OutputMode = Configuration.OutputModes.Digitizer;
+            else if (radioModeRelative.IsChecked == true) config.OutputMode = Configuration.OutputModes.Relative;
+            else if (radioModeDigitizer.IsChecked == true) config.OutputMode = Configuration.OutputModes.Digitizer;
+            else if (radioModeSendInput.IsChecked == true) config.OutputMode = Configuration.OutputModes.SendInput;
 
 
             //
@@ -527,6 +531,42 @@ namespace TabletDriverGUI
 
         }
 
+
+
+        //
+        // Initialize configuration
+        //
+        private void InitializeConfiguration()
+        {
+            isLoadingSettings = true;
+            Width = config.WindowWidth;
+            Height = config.WindowHeight;
+            isLoadingSettings = false;
+
+            // Invalid config -> Set defaults
+            if (config.ScreenArea.Width == 0 || config.ScreenArea.Height == 0)
+            {
+                config.DesktopSize.Width = GetVirtualDesktopSize().Width;
+                config.DesktopSize.Height = GetVirtualDesktopSize().Height;
+                config.ScreenArea.Width = config.DesktopSize.Width;
+                config.ScreenArea.Height = config.DesktopSize.Height;
+                config.ScreenArea.X = 0;
+                config.ScreenArea.Y = 0;
+            }
+
+            // Create canvas elements
+            CreateCanvasElements();
+
+            // Load settings from configuration
+            LoadSettingsFromConfiguration();
+
+            // Update the settings back to the configuration
+            UpdateSettingsToConfiguration();
+
+            // Set run at startup
+            SetRunAtStartup(config.RunAtStartup);
+        }
+
         #endregion
 
 
@@ -593,7 +633,7 @@ namespace TabletDriverGUI
             System.Drawing.Rectangle rect = new System.Drawing.Rectangle();
 
             // Windows 8 or greater needed for the multiscreen absolute mode
-            if (VersionHelper.IsWindows8OrGreater() || config.OutputMode == Configuration.OutputModes.Digitizer)
+            if (VersionHelper.IsWindows8OrGreater() || config.OutputMode != Configuration.OutputModes.Absolute)
             {
                 rect.Width = System.Windows.Forms.SystemInformation.VirtualScreen.Width;
                 rect.Height = System.Windows.Forms.SystemInformation.VirtualScreen.Height;
@@ -616,7 +656,7 @@ namespace TabletDriverGUI
             System.Windows.Forms.Screen[] screens;
 
             // Windows 8 or greater needed for the multiscreen absolute mode
-            if (VersionHelper.IsWindows8OrGreater() || config.OutputMode == Configuration.OutputModes.Digitizer)
+            if (VersionHelper.IsWindows8OrGreater() || config.OutputMode != Configuration.OutputModes.Absolute)
                 screens = System.Windows.Forms.Screen.AllScreens;
             else
                 screens = new System.Windows.Forms.Screen[] { System.Windows.Forms.Screen.PrimaryScreen };
@@ -1007,7 +1047,7 @@ namespace TabletDriverGUI
                     dx = 0;
                 if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
                     dy = 0;
- 
+
 
                 // Screen map canvas
                 if (mouseDrag.Source == canvasScreenMap)
@@ -1323,7 +1363,9 @@ namespace TabletDriverGUI
         private void MainMenuClick(object sender, RoutedEventArgs e)
         {
 
-            // Import
+            //
+            // Import settings
+            //
             if (sender == mainMenuImport)
             {
                 OpenFileDialog dialog = new OpenFileDialog
@@ -1348,7 +1390,9 @@ namespace TabletDriverGUI
                 }
             }
 
-            // Export
+            //
+            // Export settings
+            //
             else if (sender == mainMenuExport)
             {
                 SaveFileDialog dialog = new SaveFileDialog
@@ -1376,7 +1420,27 @@ namespace TabletDriverGUI
 
             }
 
+            //
+            // Reset to default
+            //
+            else if (sender == mainMenuResetToDefault)
+            {
+                config = null;
+                isFirstStart = true;
+                config = new Configuration();
+
+                // Initialize configuration
+                InitializeConfiguration();
+
+                // Restart driver
+                StopDriver();
+                StartDriver();
+
+            }
+
+            //
             // Exit
+            //
             else if (sender == mainMenuExit)
             {
                 Close();

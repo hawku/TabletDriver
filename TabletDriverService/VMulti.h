@@ -10,12 +10,17 @@ private:
 	BYTE lastReportBuffer[65];
 public:
 
+	enum VMultiType {
+		TypeXPPen,
+		TypeVEIKK
+	};
 	bool isOpen;
 	bool debugEnabled;
 	bool outputEnabled;
+	int type;
 	int lastButtons;
 
-	VMulti();
+	VMulti(int type);
 	~VMulti();
 	bool HasReportChanged();
 	void SetReport(void *buffer, int length);

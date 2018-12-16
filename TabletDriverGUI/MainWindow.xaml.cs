@@ -25,7 +25,7 @@ namespace TabletDriverGUI
     {
 
         // Version
-        public string Version = "0.2.2";
+        public string Version = "0.2.3";
 
         // Console stuff
         private List<string> commandHistory;
@@ -134,8 +134,7 @@ namespace TabletDriverGUI
             notifyIcon.ContextMenu.MenuItems[0].Enabled = false;
 
             notifyIcon.Text = "";
-            notifyIcon.DoubleClick += NotifyIcon_DoubleClick;
-            notifyIcon.Click += NotifyIcon_DoubleClick;
+            notifyIcon.MouseClick += NotifyIcon_Click;
             notifyIcon.Visible = true;
             IsRealExit = false;
 
@@ -202,7 +201,7 @@ namespace TabletDriverGUI
                 {
                     Height = 22,
                     Content = "",
-                    Padding = new Thickness(2,0,2,0),
+                    Padding = new Thickness(2, 0, 2, 0),
                     ToolTip = "Empty",
                     Background = Brushes.White
                 };
@@ -238,11 +237,13 @@ namespace TabletDriverGUI
             inkCanvasUndoHistory = new StrokeCollection();
 
             // Ink canvas drawing attributes
-            inkCanvasDrawingAttributes = new DrawingAttributes();
-            inkCanvasDrawingAttributes.Width = 10;
-            inkCanvasDrawingAttributes.Height = 10;
-            inkCanvasDrawingAttributes.Color = Color.FromRgb(0x55, 0x55, 0x55);
-            inkCanvasDrawingAttributes.StylusTip = StylusTip.Ellipse;
+            inkCanvasDrawingAttributes = new DrawingAttributes
+            {
+                Width = 10,
+                Height = 10,
+                Color = Color.FromRgb(0x55, 0x55, 0x55),
+                StylusTip = StylusTip.Ellipse
+            };
             inkCanvas.DefaultDrawingAttributes = inkCanvasDrawingAttributes;
 
             // Process command line arguments
@@ -294,40 +295,10 @@ namespace TabletDriverGUI
                 isFirstStart = true;
                 config = new Configuration();
             }
-            isLoadingSettings = true;
-            Width = config.WindowWidth;
-            Height = config.WindowHeight;
-            isLoadingSettings = false;
 
+            // Initialize configuration
+            InitializeConfiguration();
 
-            if (!config.DeveloperMode)
-            {
-            }
-
-
-            // Invalid config -> Set defaults
-            if (config.ScreenArea.Width == 0 || config.ScreenArea.Height == 0)
-            {
-                config.DesktopSize.Width = GetVirtualDesktopSize().Width;
-                config.DesktopSize.Height = GetVirtualDesktopSize().Height;
-                config.ScreenArea.Width = config.DesktopSize.Width;
-                config.ScreenArea.Height = config.DesktopSize.Height;
-                config.ScreenArea.X = 0;
-                config.ScreenArea.Y = 0;
-            }
-
-            // Create canvas elements
-            CreateCanvasElements();
-
-            // Load settings from configuration
-            LoadSettingsFromConfiguration();
-
-            // Update the settings back to the configuration
-            UpdateSettingsToConfiguration();
-
-
-            // Set run at startup
-            SetRunAtStartup(config.RunAtStartup);
 
             // Hide the window if the GUI is started as minimized
             if (WindowState == WindowState.Minimized)
@@ -386,13 +357,22 @@ namespace TabletDriverGUI
 
         #region Notify icon stuff
 
-        // Notify icon double click -> show window
-        private void NotifyIcon_DoubleClick(object sender, EventArgs e)
+        //
+        // Notify icon click -> show window
+        //
+        private void NotifyIcon_Click(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            // Is not mouse left button?
+            if (e.Button != System.Windows.Forms.MouseButtons.Left)
+                return;
+
+            // Minimized -> Show window
             if (WindowState == WindowState.Minimized)
             {
                 NotifyShowWindow(sender, e);
             }
+
+            // Hide window
             else
             {
                 NotifyHideWindow(sender, e);
@@ -597,6 +577,8 @@ namespace TabletDriverGUI
 
             return IntPtr.Zero;
         }
+
+
 
 
 

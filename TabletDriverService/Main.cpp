@@ -56,9 +56,6 @@ int main(int argc, char**argv) {
 	mapper = new ScreenMapper(tablet);
 	mapper->SetRotation(0);
 
-	// Output manager
-	outputManager = new OutputManager();
-
 	//
 	// Command: Start
 	//
@@ -113,8 +110,16 @@ int main(int argc, char**argv) {
 	// Start logger
 	LOGGER_START();
 
-	// VMulti Device
-	vmulti = new VMulti();
+	// VMulti XP-Pen
+	vmulti = new VMulti(VMulti::TypeXPPen);
+
+	// VMulti VEIKK
+	if(!vmulti->isOpen) {
+		LOG_ERROR("Can't open XP-Pen's VMulti! Trying VEIKK's VMulti!\n");
+		delete vmulti;
+		vmulti = new VMulti(VMulti::TypeVEIKK);
+	}
+
 	if(!vmulti->isOpen) {
 		LOG_ERROR("Can't open VMulti device!\n\n");
 		LOG_ERROR("Possible fixes:\n");
@@ -123,6 +128,10 @@ int main(int argc, char**argv) {
 		LOG_ERROR("3) Uninstall other tablet drivers and reinstall VMulti driver\n");
 		CleanupAndExit(1);
 	}
+
+	// Output manager
+	outputManager = new OutputManager();
+
 
 	// Read init file
 	filename = "init.cfg";
@@ -203,7 +212,7 @@ void CleanupAndExit(int code) {
 	// Tablet
 	if(tablet != NULL)
 		delete tablet;
-
+	
 	// Logger
 	LOGGER_STOP();
 	Sleep(500);

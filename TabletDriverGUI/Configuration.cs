@@ -22,7 +22,8 @@ namespace TabletDriverGUI
         {
             Absolute = 0,
             Relative = 1,
-            Digitizer = 2
+            Digitizer = 2,
+            SendInput = 3
         }
 
         public Area ScreenArea;

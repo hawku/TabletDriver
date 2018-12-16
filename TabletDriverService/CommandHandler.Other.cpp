@@ -395,6 +395,19 @@ void CommandHandler::CreateOtherCommands() {
 		int stringIndex = 0;
 
 		LOG_INFO("\n");
+
+		// VMulti type
+		switch(vmulti->type) {
+		case VMulti::TypeXPPen: LOG_INFO("VMulti: XP-Pen\n"); break;
+		case VMulti::TypeVEIKK: LOG_INFO("VMulti: VEIKK\n"); break;
+		default: break;
+		}
+
+		LOG_INFO("\n");
+
+		//
+		// Tablet
+		//
 		LOG_INFO("Tablet: %s\n", tablet->name.c_str());
 		LOG_INFO("  Width = %0.2f mm\n", tablet->settings.width);
 		LOG_INFO("  Height = %0.2f mm\n", tablet->settings.height);
@@ -407,7 +420,6 @@ void CommandHandler::CreateOtherCommands() {
 		LOG_INFO("  Report Length = %d bytes\n", tablet->settings.reportLength);
 		LOG_INFO("  Detect Mask = 0x%02X\n", tablet->settings.detectMask);
 		LOG_INFO("  Ignore Mask = 0x%02X\n", tablet->settings.ignoreMask);
-		LOG_INFO("  Aux button count = %d\n", tablet->settings.auxButtonCount);
 
 		for(int i = 0; i < tablet->settings.buttonCount; i++) {
 			stringIndex += sprintf_s(stringBuffer + stringIndex, maxLength - stringIndex, "'%s' ", tablet->settings.buttonMap[i].c_str());
@@ -423,15 +435,27 @@ void CommandHandler::CreateOtherCommands() {
 			LOG_INFO("  Aux button map = %s\n", stringBuffer);
 		}
 
-
+		LOG_INFO("  Aux button count = %d\n", tablet->settings.auxButtonCount);
 
 		if(tablet->initFeatureLength > 0) {
-			LOG_INFOBUFFER(tablet->initFeature, tablet->initFeatureLength, "  Tablet init feature report: ");
+			LOG_INFOBUFFER(tablet->initFeature, tablet->initFeatureLength, "  Init feature report: ");
 		}
 		if(tablet->initReportLength > 0) {
-			LOG_INFOBUFFER(tablet->initReport, tablet->initReportLength, "  Tablet init report: ");
+			LOG_INFOBUFFER(tablet->initReport, tablet->initReportLength, "  Init report: ");
 		}
+		if(tablet->initStrings.size() > 0) {
+			string stringIds = "";
+			for(int stringId : tablet->initStrings) {
+				stringIds += to_string(stringId) + " ";
+			}
+			LOG_INFO("  Init string ids: %s\n", stringIds.c_str());
+		}
+
 		LOG_INFO("\n");
+
+		//
+		// Areas
+		//
 		LOG_INFO("Area:\n");
 		LOG_INFO("  Desktop = %0.0fpx x %0.0fpx\n",
 			mapper->areaVirtualScreen.width, mapper->areaVirtualScreen.height
@@ -561,7 +585,7 @@ void CommandHandler::CreateOtherCommands() {
 					commandsString += aliasNames[aliasPair.first] + " ";
 				}
 			}
-			
+
 			if(commandsString.size() > 80) {
 				LOG_STATUS("COMMANDS %s\n", commandsString.c_str());
 				commandsString = "";

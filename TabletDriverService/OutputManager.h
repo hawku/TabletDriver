@@ -2,7 +2,6 @@
 
 #include "Output.h"
 #include "OutputVMultiAbsolute.h"
-#include "OutputVMultiAbsoluteV2.h"
 #include "OutputVMultiRelative.h"
 #include "OutputVMultiDigitizer.h"
 #include "OutputSendInputAbsolute.h"
@@ -13,7 +12,6 @@ public:
 
 	enum OutputMode {
 		ModeVMultiAbsolute,
-		ModeVMultiAbsoluteV2,
 		ModeVMultiRelative,
 		ModeVMultiDigitizer,
 		ModeSendInputAbsolute,
@@ -22,10 +20,9 @@ public:
 	};
 
 	Output *output;
-	Output *outputs[7];
+	Output *outputs[6];
 
 	OutputVMultiAbsolute vmultiAbsolute;
-	OutputVMultiAbsoluteV2 vmultiAbsoluteV2;
 	OutputVMultiRelative vmultiRelative;
 	OutputVMultiDigitizer vmultiDigitizer;
 	OutputSendInputAbsolute sendInputAbsolute;

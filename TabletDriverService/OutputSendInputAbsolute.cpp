@@ -52,16 +52,6 @@ bool OutputSendInputAbsolute::Set(TabletState *tabletState) {
 	// Map position to virtual screen (values between 0 and 1)
 	mapper->GetScreenPosition(&x, &y);
 
-
-
-	if(logger.debugEnabled) {
-		LOG_DEBUG("%0.0f,%0.0f | %0.0f,%0.0f | %0.0f,%0.0f\n",
-			monitorInfo.primaryWidth, monitorInfo.primaryHeight,
-			monitorInfo.virtualWidth, monitorInfo.virtualHeight,
-			monitorInfo.virtualX, monitorInfo.virtualY
-		);
-	}
-
 	input.type = INPUT_MOUSE;
 	input.mi.mouseData = 0;
 	input.mi.dx = (LONG)floor(
@@ -101,6 +91,18 @@ bool OutputSendInputAbsolute::Write() {
 
 		// SendInput
 		SendInput(1, &input, sizeof(INPUT));
+
+		// Debug message
+		if(logger.debugEnabled) {
+			LOG_DEBUG("%0.0f,%0.0f | %0.0f,%0.0f | %0.0f,%0.0f | %ld, %ld -> %0.0f,%0.0f\n",
+				monitorInfo.virtualWidth, monitorInfo.virtualHeight,
+				monitorInfo.virtualX, monitorInfo.virtualY,
+				monitorInfo.primaryWidth, monitorInfo.primaryHeight,
+				input.mi.dx, input.mi.dy,
+				input.mi.dx / 65535.0 * (monitorInfo.primaryWidth) - monitorInfo.virtualX,
+				input.mi.dy / 65535.0 * (monitorInfo.primaryHeight) - monitorInfo.virtualY
+			);
+		}
 
 		// Copy last input
 		memcpy(&lastInput, &input, sizeof(INPUT));

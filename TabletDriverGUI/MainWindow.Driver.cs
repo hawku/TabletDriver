@@ -106,15 +106,24 @@ namespace TabletDriverGUI
             switch (config.OutputMode)
             {
                 case Configuration.OutputModes.Absolute:
-                    settingCommands.Add("Mode Absolute");
+                    settingCommands.Add("OutputMode Absolute");
                     break;
                 case Configuration.OutputModes.Relative:
-                    settingCommands.Add("Mode Relative");
-                    settingCommands.Add("RelativeSensitivity " + Utils.GetNumberString(config.ScreenArea.Width / config.TabletArea.Width));
+                    settingCommands.Add("OutputMode Relative");
+                    settingCommands.Add("RelativeSensitivity " +
+                        Utils.GetNumberString(config.ScreenArea.Width / config.TabletArea.Width) +
+                        " " +
+                        Utils.GetNumberString(config.ScreenArea.Height / config.TabletArea.Height)
+                    );
                     break;
                 case Configuration.OutputModes.Digitizer:
-                    settingCommands.Add("Mode Digitizer");
+                    settingCommands.Add("OutputMode Digitizer");
                     break;
+
+                case Configuration.OutputModes.SendInput:
+                    settingCommands.Add("OutputMode SendInputAbsolute");
+                    break;
+
             }
 
             //
@@ -403,12 +412,13 @@ namespace TabletDriverGUI
                 if (Utils.ParseNumber(parameters, out double test))
                 {
                     tabletButtonCount = (int)test;
-                    if(tabletButtonCount > 0)
+                    if (tabletButtonCount > 0)
                     {
                         for (int i = 0; i < 16; i++)
                         {
                             GroupBox box = (GroupBox)wrapPanelTabletButtons.Children[i];
-                            if (i >= tabletButtonCount) {
+                            if (i >= tabletButtonCount)
+                            {
                                 box.Visibility = Visibility.Collapsed;
                             }
                             else

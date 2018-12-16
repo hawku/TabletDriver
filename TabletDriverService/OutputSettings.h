@@ -18,7 +18,7 @@ public:
 		chrono::high_resolution_clock::time_point lastTime;
 	} relativeState;
 
-	double relativeSensitivity;
+	Vector2D relativeSensitivity;
 	double relativeResetDistance;
 	double relativeResetTime;
 

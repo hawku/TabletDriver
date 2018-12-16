@@ -13,6 +13,8 @@ public:
 		USHORT pressure;
 	} report;
 
+	double maxPressure;
+
 	bool Set(TabletState *tabletState);
 	bool Write();
 	bool Reset();

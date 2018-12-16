@@ -10,12 +10,24 @@
 //
 OutputVMultiAbsolute::OutputVMultiAbsolute() {
 
-	// Absolute mouse vmulti report
-	report.vmultiId = 0x40;
+	// Absolute mouse VMulti report
 	report.reportLength = 7;
-	report.reportId = 3;
 	report.buttons = 0;
+	report.x = 0;
+	report.y = 0;
 	report.wheel = 0;
+
+	// XP-Pen
+	if(vmulti->type == VMulti::TypeXPPen) {
+		report.vmultiId = 0x40;
+		report.reportId = 3;
+	}
+
+	// VEIKK
+	else if(vmulti->type == VMulti::TypeVEIKK) {
+		report.vmultiId = 0x09;
+		report.reportId = 1;
+	}
 
 }
 

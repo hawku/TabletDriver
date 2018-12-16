@@ -620,8 +620,17 @@ void CommandHandler::CreateTabletCommands() {
 	AddAlias("Sensitivity", "RelativeSensitivity");
 	AddCommand(new Command("RelativeSensitivity", [&](CommandLine *cmd) {
 		if(!ExecuteCommand("TabletValid")) return false;
-		outputManager->settings->relativeSensitivity = cmd->GetDouble(0, outputManager->settings->relativeSensitivity);
-		LOG_INFO("Relative mode sensitivity = %0.2f px/mm\n", outputManager->settings->relativeSensitivity);
+		outputManager->settings->relativeSensitivity.x = cmd->GetDouble(0, outputManager->settings->relativeSensitivity.x);
+		outputManager->settings->relativeSensitivity.y = cmd->GetDouble(1, outputManager->settings->relativeSensitivity.y);
+
+		if(cmd->valueCount == 1) {
+			outputManager->settings->relativeSensitivity.y = outputManager->settings->relativeSensitivity.x;
+		}
+
+		LOG_INFO("Relative mode sensitivity = X=%0.2f px/mm, Y=%0.2f px/mm\n",
+			outputManager->settings->relativeSensitivity.x,
+			outputManager->settings->relativeSensitivity.y
+		);
 		return true;
 	}));
 

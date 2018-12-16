@@ -90,9 +90,6 @@
     <ClInclude Include="OutputSendInputAbsolute.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OutputVMultiAbsoluteV2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TabletMeasurement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -200,9 +197,6 @@
     <ClCompile Include="OutputSendInputAbsolute.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OutputVMultiAbsoluteV2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TabletMeasurement.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -277,6 +271,9 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="docs\VMulti_Report_Descriptor.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="docs\VEIKK_VMulti_Descriptor.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>

@@ -23,20 +23,16 @@ TabletHandler::~TabletHandler() {
 	StopTimer();
 	isRunning = false;
 
-	if(tablet->hidDevice != NULL)
-		tablet->hidDevice->CloseDevice();
+	if(tablet != NULL) {
+		if(tablet->hidDevice != NULL)
+			tablet->hidDevice->CloseDevice();
 
-	if(tablet->hidDeviceAux != NULL)
-		tablet->hidDeviceAux->CloseDevice();
+		if(tablet->hidDeviceAux != NULL)
+			tablet->hidDeviceAux->CloseDevice();
 
-	if(tablet->usbDevice != NULL)
-		tablet->usbDevice->CloseDevice();	
-
-	if(tabletInputThread != NULL)
-		tabletInputThread->join();
-
-	if(auxInputThread != NULL)
-		auxInputThread->join();
+		if(tablet->usbDevice != NULL)
+			tablet->usbDevice->CloseDevice();
+	}
 
 }
 
@@ -257,6 +253,17 @@ void TabletHandler::RunTabletInputThread() {
 								if(isPressed) {
 									lastScrollPosition.Set(scrollPosition);
 									scrollStartPosition.Set(tablet->state.position);
+
+									//
+									// Move normal mouse to digitizer position
+									//
+									if(outputManager->mode == OutputManager::ModeVMultiDigitizer) {
+										TabletState tmpState;
+										tmpState.position.Set(tablet->state.position);
+										outputManager->sendInputAbsolute.Set(&tmpState);
+										outputManager->sendInputAbsolute.Write();
+									}
+
 								}
 
 								// Delta from the last scroll position

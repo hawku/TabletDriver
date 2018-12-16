@@ -10,12 +10,26 @@
 //
 OutputVMultiDigitizer::OutputVMultiDigitizer() {
 
-	// VMulti digitizer report
-	report.vmultiId = 0x40;
+	// Digitizer VMulti report
 	report.reportLength = 8;
-	report.reportId = 5;
 	report.buttons = 0;
+	report.x = 0;
+	report.y = 0;
 	report.pressure = 0;
+
+	// XP-Pen
+	if(vmulti->type == VMulti::TypeXPPen) {
+		report.vmultiId = 0x40;
+		report.reportId = 5;
+		maxPressure = 2047.0;
+	}
+
+	// VEIKK
+	else if(vmulti->type == VMulti::TypeVEIKK) {
+		report.vmultiId = 0x09;
+		report.reportId = 2;
+		maxPressure = 8191.0;
+	}
 
 }
 
@@ -45,7 +59,7 @@ bool OutputVMultiDigitizer::Set(TabletState *tabletState) {
 	report.buttons = tabletState->buttons | 0x20;
 	report.x = (USHORT)round(x * 32767.0 + offsetX);
 	report.y = (USHORT)round(y * 32767.0 + offsetY);
-	report.pressure = (USHORT)round(tabletState->pressure * 2047.0);
+	report.pressure = (USHORT)round(tabletState->pressure * maxPressure);
 	vmulti->SetReport(&report, sizeof(report));
 
 	return true;

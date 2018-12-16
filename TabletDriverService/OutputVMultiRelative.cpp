@@ -4,19 +4,30 @@
 #define LOG_MODULE "VMultiRelative"
 #include "Logger.h"
 
+
 //
 // Constructor
 //
 OutputVMultiRelative::OutputVMultiRelative() {
 
 	// Relative mouse vmulti report
-	report.vmultiId = 0x40;
 	report.reportLength = 5;
-	report.reportId = 4;
 	report.buttons = 0;
 	report.x = 0;
 	report.y = 0;
 	report.wheel = 0;
+
+	// XP-Pen
+	if(vmulti->type == VMulti::TypeXPPen) {
+		report.vmultiId = 0x40;
+		report.reportId = 4;
+	}
+
+	// VEIKK
+	else if(vmulti->type == VMulti::TypeVEIKK) {
+		report.vmultiId = 0x09;
+		report.reportId = 3;
+	}
 
 	firstReport = true;
 }
@@ -80,10 +91,9 @@ bool OutputVMultiRelative::Set(TabletState *tabletState) {
 		dy = 0;
 	}
 
-
 	// Sensitivity
-	dx *= settings->relativeSensitivity;
-	dy *= settings->relativeSensitivity;
+	dx *= settings->relativeSensitivity.x;
+	dy *= settings->relativeSensitivity.y;
 
 	// Move target position
 	settings->relativeState.targetPosition.Add(dx, dy);

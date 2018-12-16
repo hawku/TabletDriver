@@ -12,7 +12,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ## Download
 
-### http://hwk.fi/TabletDriver/TabletDriverV0.2.2.zip
+### http://hwk.fi/TabletDriver/TabletDriverV0.2.3.zip
 
 #
 
@@ -20,7 +20,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
   - Windows 10 64-bit
   - Windows 8.1 64-bit
   - Windows 8 64-bit
-  - Windows 7 64-bit (No multi-monitor support)
+  - Windows 7 64-bit (Multiple monitors do not work in absolute mode)
 
 #
 
@@ -105,6 +105,12 @@ If you want to compile the code and don't want to install anything from the Tabl
 #
 
 ## Changelog
+
+>**v0.2.3:**
+> - Fixed "TabletDriverService.exe has stopped working" error when a tablet is not connected.
+> - Relative mouse mode can now have different sensitivity on X and Y axis.
+> - Added SendInput output mode to GUI
+
 >**v0.2.2:**
 > - XP-Pen G430S configuration by [frodriguez96](https://github.com/frodriguez96) and [riley-badour](https://github.com/riley-badour)
 > - Huion New 1060 Plus configuration by [riley-badour](https://github.com/riley-badour)

@@ -1,85 +1,135 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace TabletDriverGUI
 {
     /// <summary>
     /// Interaction logic for ButtonMapping.xaml
     /// </summary>
-    public partial class ButtonMapping : Window
+    public partial class WindowButtonMapping : Window
     {
         // WPF Button
         Button button;
-
         public string Result;
 
-        public ButtonMapping()
+        public class MouseAction
+        {
+            public string Action;
+            public string Name;
+            public bool Visible;
+
+            public MouseAction(string name) : this("", name)
+            {                
+            }
+            public MouseAction(string action, string name)
+            {
+                Action = action;
+                Name = name;
+                Visible = true;
+            }
+            public override string ToString()
+            {
+                return Name;
+            }
+        }
+
+        public OrderedDictionary mouseActions;
+
+        public WindowButtonMapping()
         {
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             Owner = Application.Current.MainWindow;
 
             InitializeComponent();
             Result = "";
+
+
+            mouseActions = new OrderedDictionary()
+            {
+                { "", new MouseAction("None") },
+                { "MOUSE1", new MouseAction("Mouse 1 (Left / Tip)") },
+                { "MOUSE2", new MouseAction("Mouse 2 (Right / Barrel)") },
+                { "MOUSE3", new MouseAction("Mouse 3 (Middle / Eraser)") },
+                { "MOUSE4", new MouseAction("Mouse 4 (Back)") },
+                { "MOUSE5", new MouseAction("Mouse 5 (Forward)") },
+                { "MOUSESCROLLV", new MouseAction("Scroll Up/Down") },
+                { "MOUSESCROLLH", new MouseAction("Scroll Left/Right") },
+                { "MOUSESCROLLB", new MouseAction("Scroll Both") },
+                { "SCROLLUP", new MouseAction("Scroll One Up") },
+                { "SCROLLDOWN", new MouseAction("Scroll One Down") },
+                { "SCROLLLEFT", new MouseAction("Scroll One Left") },
+                { "SCROLLRIGHT", new MouseAction("Scroll One Right") }
+            };
+
+            UpdateMouseActions();
+
         }
 
-        public ButtonMapping(Button button, bool isPenButton) : this()
+        public WindowButtonMapping(Button button, bool isPenButton) : this()
         {
             this.button = button;
 
             // Tablet buttons don't need tip, barrel and eraser info
             if (!isPenButton)
             {
-                ((ComboBoxItem)comboBoxMouse.Items[1]).Content = "Mouse 1 (Left)";
-                ((ComboBoxItem)comboBoxMouse.Items[2]).Content = "Mouse 2 (Right)";
-                ((ComboBoxItem)comboBoxMouse.Items[3]).Content = "Mouse 3 (Middle)";
+                ((MouseAction)mouseActions["MOUSE1"]).Name = "Mouse 1 (Left)";
+                ((MouseAction)mouseActions["MOUSE2"]).Name = "Mouse 2 (Right)";
+                ((MouseAction)mouseActions["MOUSE3"]).Name = "Mouse 3 (Middle)";
 
-                // Disable scroll
-                ((ComboBoxItem)comboBoxMouse.Items[6]).Visibility = Visibility.Collapsed;
-                ((ComboBoxItem)comboBoxMouse.Items[7]).Visibility = Visibility.Collapsed;
-                ((ComboBoxItem)comboBoxMouse.Items[8]).Visibility = Visibility.Collapsed;
+                // Disable mouse scroll
+                ((MouseAction)mouseActions["MOUSESCROLLV"]).Visible = false;
+                ((MouseAction)mouseActions["MOUSESCROLLH"]).Visible = false;
+                ((MouseAction)mouseActions["MOUSESCROLLB"]).Visible = false;
             }
+            UpdateMouseActions();
 
-            // Enable scroll
-            else
-            {
-                ((ComboBoxItem)comboBoxMouse.Items[6]).Visibility = Visibility.Visible;
-                ((ComboBoxItem)comboBoxMouse.Items[7]).Visibility = Visibility.Visible;
-                ((ComboBoxItem)comboBoxMouse.Items[8]).Visibility = Visibility.Visible;
-            }
-            CheckButtonValue();
+            CheckKeyValue();
         }
 
-        public void CheckButtonValue()
+
+        //
+        // Update mouse actions and combobox
+        //
+        private void UpdateMouseActions()
+        {
+            comboBoxMouse.Items.Clear();
+            foreach (DictionaryEntry entry in mouseActions)
+            {
+                MouseAction mouseAction = (MouseAction)entry.Value;
+                mouseAction.Action = (string)entry.Key;
+                if (mouseAction.Visible)
+                {
+                    comboBoxMouse.Items.Add(mouseAction);
+                }
+            }
+
+        }
+
+
+        //
+        // Check key value
+        //
+        public void CheckKeyValue()
         {
             string keys = button.Content.ToString().ToUpper().Trim();
 
-            if (keys.StartsWith("MOUSE"))
+            if (mouseActions.Contains(keys))
             {
-                switch (keys)
+                foreach(var item in comboBoxMouse.Items)
                 {
-                    case "MOUSE1": comboBoxMouse.SelectedIndex = 1; break;
-                    case "MOUSE2": comboBoxMouse.SelectedIndex = 2; break;
-                    case "MOUSE3": comboBoxMouse.SelectedIndex = 3; break;
-                    case "MOUSE4": comboBoxMouse.SelectedIndex = 4; break;
-                    case "MOUSE5": comboBoxMouse.SelectedIndex = 5; break;
-                    case "MOUSESCROLLV": comboBoxMouse.SelectedIndex = 6; break;
-                    case "MOUSESCROLLH": comboBoxMouse.SelectedIndex = 7; break;
-                    case "MOUSESCROLLB": comboBoxMouse.SelectedIndex = 8; break;
-                    default: break;
+                    MouseAction mouseAction = (MouseAction)item;
+                    if(mouseAction.Action == keys)
+                    {
+                        comboBoxMouse.SelectedItem = item;
+                        comboBoxMouse.Focus();
+                    }
                 }
-                comboBoxMouse.Focus();
             }
             else
             {
@@ -99,18 +149,11 @@ namespace TabletDriverGUI
             if (!IsLoaded) return;
             string key = "";
 
-
-            switch (comboBoxMouse.SelectedIndex)
+            // Combobox item item to MouseAction
+            if(comboBoxMouse.SelectedIndex >= 0 && comboBoxMouse.SelectedItem != null)
             {
-                case 1: key = "MOUSE1"; break;
-                case 2: key = "MOUSE2"; break;
-                case 3: key = "MOUSE3"; break;
-                case 4: key = "MOUSE4"; break;
-                case 5: key = "MOUSE5"; break;
-                case 6: key = "MOUSESCROLLV"; break;
-                case 7: key = "MOUSESCROLLH"; break;
-                case 8: key = "MOUSESCROLLB"; break;
-                default: break;
+                MouseAction mouseAction = (MouseAction)comboBoxMouse.SelectedItem;
+                key = mouseAction.Action;
             }
             textKeyboard.Text = key;
             textCustom.Text = key;

@@ -40,8 +40,13 @@ bool DataFormatter::Format(void * targetBuffer, void * sourceBuffer)
 		// Target bit mask
 		byte &= instruction->targetBitMask;
 
-		// Set target byte
-		target[instruction->targetByte] |= byte & 0xFF;
+		// Write target byte
+		switch(instruction->writeMode) {
+		case DataInstruction::WriteModeOR: target[instruction->targetByte] |= byte & 0xFF;  break;
+		case DataInstruction::WriteModeAND: target[instruction->targetByte] &= byte & 0xFF;  break;
+		case DataInstruction::WriteModeSet: target[instruction->targetByte] = byte & 0xFF;  break;
+		default: break;
+		}
 
 		/*
 		LOG_DEBUG("  INSTR T=%d TM=0x%02X S=%d SM=0x%02X SS=%d\n",
@@ -57,7 +62,7 @@ bool DataFormatter::Format(void * targetBuffer, void * sourceBuffer)
 	return true;
 }
 
-bool DataFormatter::AddInstruction(int targetByte, int targetBitMask, int sourceByte, int sourceBitMask, int sourceBitShift)
+bool DataFormatter::AddInstruction(int targetByte, int targetBitMask, int sourceByte, int sourceBitMask, int sourceBitShift, int writeMode)
 {
 	if(instructionCount >= 128) return false;
 
@@ -70,6 +75,7 @@ bool DataFormatter::AddInstruction(int targetByte, int targetBitMask, int source
 	instructions[instructionCount].sourceByte = sourceByte;
 	instructions[instructionCount].sourceBitMask = sourceBitMask;
 	instructions[instructionCount].sourceBitShift = sourceBitShift;
+	instructions[instructionCount].writeMode = writeMode;
 	instructionCount++;
 	return true;
 }
@@ -81,7 +87,8 @@ bool DataFormatter::AddInstruction(DataInstruction * instruction)
 		instruction->targetBitMask,
 		instruction->sourceByte,
 		instruction->sourceBitMask,
-		instruction->sourceBitShift
+		instruction->sourceBitShift,
+		instruction->writeMode
 	);
 }
 

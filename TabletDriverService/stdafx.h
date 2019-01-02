@@ -9,12 +9,14 @@
 #include <stdio.h>
 #include <math.h>
 
+
 #include "VMulti.h"
 #include "Tablet.h"
 #include "TabletHandler.h"
 #include "ScreenMapper.h"
 #include "OutputManager.h"
 #include "CommandHandler.h"
+#include "PipeHandler.h"
 
 // IntelliSense "fix"...
 //#define memcpy memcpy
@@ -26,7 +28,8 @@ extern Tablet *tablet;
 extern TabletHandler *tabletHandler;
 extern OutputManager *outputManager;
 extern ScreenMapper *mapper;
+extern PipeHandler *pipeHandler;
 extern void CleanupAndExit(int code);
-
+extern bool ProcessCommand(CommandLine *cmd);
 
 // TODO: reference additional headers your program requires here

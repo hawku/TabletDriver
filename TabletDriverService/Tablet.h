@@ -8,10 +8,11 @@
 #include "TabletSettings.h"
 #include "TabletState.h"
 #include "TabletFilterSmoothing.h"
+#include "TabletFilterAdvancedSmoothing.h"
+#include "TabletFilterGravity.h"
 #include "TabletFilterNoiseReduction.h"
 #include "TabletFilterAntiSmoothing.h"
 #include "TabletFilterPeak.h"
-#include "TabletFilterGravity.h"
 #include "TabletMeasurement.h"
 #include "DataFormatter.h"
 
@@ -69,7 +70,16 @@ public:
 		BYTE reportId;
 		USHORT buttons;
 		UCHAR detect;
+		UCHAR isPressed;
 	} auxReportData;
+
+	class InitReport {
+	public:
+		BYTE *data = NULL;
+		int length = 0;
+		InitReport(int length);
+		~InitReport();
+	};
 
 	class TabletAuxState {
 	public:
@@ -83,7 +93,6 @@ public:
 	// Data formatters
 	//
 	DataFormatter dataFormatter;
-	DataFormatter auxDataFormatter;
 
 	//
 	// Tablet State
@@ -95,6 +104,9 @@ public:
 
 	// Smoothing filter
 	TabletFilterSmoothing smoothing;
+
+	// Smoothing filter
+	TabletFilterAdvancedSmoothing advancedSmoothing;
 
 	// Noise reduction filter
 	TabletFilterNoiseReduction noiseFilter;
@@ -125,10 +137,8 @@ public:
 	int tipDownCounter;
 
 	// Tablet initialize buffers
-	BYTE *initFeature;
-	int initFeatureLength;
-	BYTE *initReport;
-	int initReportLength;
+	vector<InitReport*> initFeatureReports;
+	vector<InitReport*> initOutputReports;
 	vector<int> initStrings;
 
 

@@ -2,11 +2,8 @@
 
 #include <csignal>
 
-#include "HIDDevice.h"
-#include "USBDevice.h"
 #include "VMulti.h"
 #include "Tablet.h"
-#include "ScreenMapper.h"
 #include "CommandLine.h"
 #include "DataFormatter.h"
 
@@ -16,6 +13,8 @@
 #pragma comment(lib, "hid.lib")
 #pragma comment(lib, "setupapi.lib")
 #pragma comment(lib, "winusb.lib")
+#pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "ntdll.lib")
 
 
 // Global variables...
@@ -25,9 +24,11 @@ VMulti *vmulti;
 CommandHandler *commandHandler;
 OutputManager *outputManager;
 ScreenMapper *mapper;
+PipeHandler *pipeHandler;
 
 void InitConsole();
 bool ProcessCommand(CommandLine *cmd);
+
 
 //
 // Main
@@ -54,7 +55,7 @@ int main(int argc, char**argv) {
 
 	// Screen mapper
 	mapper = new ScreenMapper(tablet);
-	mapper->SetRotation(0);
+	mapper->primaryMap->SetRotation(0);
 
 	//
 	// Command: Start
@@ -110,6 +111,16 @@ int main(int argc, char**argv) {
 	// Start logger
 	LOGGER_START();
 
+
+	// Pipe handler
+	if(argc > 2) {
+		pipeHandler = new PipeHandler(argv[2]);
+	}
+	else {
+		pipeHandler = new PipeHandler("TabletDriver");
+	}
+	pipeHandler->Start();
+
 	// VMulti XP-Pen
 	vmulti = new VMulti(VMulti::TypeXPPen);
 
@@ -132,7 +143,6 @@ int main(int argc, char**argv) {
 	// Output manager
 	outputManager = new OutputManager();
 
-
 	// Read init file
 	filename = "init.cfg";
 
@@ -142,6 +152,7 @@ int main(int argc, char**argv) {
 	if(!commandHandler->ExecuteFile(filename)) {
 		LOG_ERROR("Can't open '%s'\n", filename.c_str());
 	}
+
 
 	//
 	// Main loop
@@ -195,21 +206,31 @@ int main(int argc, char**argv) {
 //
 void CleanupAndExit(int code) {
 
+	// PipeHandler
+	printf("Cleanup PipeHandler\n");
+	if(pipeHandler != NULL) {
+		delete pipeHandler;
+	}
+	
 	// TabletHandler
+	printf("Cleanup TabletHandler\n");
 	if(tabletHandler != NULL) {
 		delete tabletHandler;
 	}
 
 	// OutputManager
+	printf("Cleanup OutputManager\n");
 	if(outputManager != NULL) {
 		delete outputManager;
 	}
 
 	// VMulti
+	printf("Cleanup VMulti\n");
 	if(vmulti != NULL)
 		delete vmulti;
 	
 	// Tablet
+	printf("Cleanup Tablet\n");
 	if(tablet != NULL)
 		delete tablet;
 	

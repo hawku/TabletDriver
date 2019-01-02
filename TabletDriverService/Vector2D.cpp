@@ -82,3 +82,9 @@ void Vector2D::LerpAdd(Vector2D target, double t) {
 	y += (target.y - y) * t;
 }
 
+void Vector2D::LerpAdd2D(Vector2D target, double tx, double ty)
+{
+	x += (target.x - x) * tx;
+	y += (target.y - y) * ty;
+}
+

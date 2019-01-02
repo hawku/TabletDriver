@@ -22,8 +22,9 @@ public:
 	double GetLatency(double filterWeight, double interval, double threshold);
 	double GetLatency(double filterWeight);
 	double GetLatency();
+	void SetLatency(double latency);
+
 	double GetWeight(double latency, double interval, double threshold);
 	double GetWeight(double latency);
-	void SetLatency(double latency);
 };
 

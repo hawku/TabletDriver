@@ -50,7 +50,10 @@ bool OutputSendInputAbsolute::Set(TabletState *tabletState) {
 	unsigned char buttons = tabletState->buttons;
 
 	// Map position to virtual screen (values between 0 and 1)
-	mapper->GetScreenPosition(&x, &y);
+	bool mapValid = mapper->GetScreenPosition(&x, &y);
+	if(!mapValid) {
+		return false;
+	}
 
 	input.type = INPUT_MOUSE;
 	input.mi.mouseData = 0;

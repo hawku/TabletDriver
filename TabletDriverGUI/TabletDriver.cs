@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Timers;
+using System.IO.Pipes;
+using System.Windows;
+using System.Text;
+using System.Runtime.InteropServices;
 
 namespace TabletDriverGUI
 {
@@ -41,8 +45,40 @@ namespace TabletDriverGUI
         public bool HasConsoleUpdated;
         private readonly int ConsoleMaxLines;
         private System.Threading.Mutex mutexConsoleUpdate;
-        private Dictionary<String, String> commands;
-        public Dictionary<String, String> Commands { get { return commands; } }
+        private Dictionary<string, string> commands;
+        public Dictionary<string, string> Commands { get { return commands; } }
+
+        // Pipe
+        System.Threading.Thread pipeInputThread = null;
+        System.Threading.Thread pipeStateThread = null;
+
+        NamedPipeClientStream pipeStreamInput;
+        NamedPipeClientStream pipeStreamOutput;
+        NamedPipeClientStream pipeStreamState;
+
+        StreamReader pipeInputReader = null;
+        StreamWriter pipeOutputWriter = null;
+        BinaryReader pipeStateReader = null;
+
+        [StructLayout(LayoutKind.Sequential, Pack = 4, CharSet = CharSet.Unicode)]
+        [Serializable]
+        public struct TabletState
+        {
+            public int index;
+
+            public int inputButtons;
+            public double inputX;
+            public double inputY;
+            public double inputPressure;
+            public double inputVelocity;
+
+            public int outputButtons;
+            public double outputX;
+            public double outputY;
+            public double outputPressure;
+        }
+        public TabletState tabletState;
+
 
         // Other variables
         private readonly string servicePath;
@@ -67,7 +103,7 @@ namespace TabletDriverGUI
 
             commands = new Dictionary<string, string>();
 
-         
+
         }
 
         //
@@ -85,14 +121,17 @@ namespace TabletDriverGUI
                 }
 
                 processService.Refresh();
-                switch(processService.PriorityClass)
+                if (processService != null && !processService.HasExited)
                 {
-                    case ProcessPriorityClass.High:
-                    case ProcessPriorityClass.RealTime:
-                        break;
-                    default:
-                        RaiseError("TabletDriverService priority too low! Run the GUI as an administrator or change the priority to high!");
-                        break;
+                    switch (processService.PriorityClass)
+                    {
+                        case ProcessPriorityClass.High:
+                        case ProcessPriorityClass.RealTime:
+                            break;
+                        default:
+                            RaiseError("TabletDriverService priority too low! Run the GUI as an administrator or change the priority to high!");
+                            break;
+                    }
                 }
             }
         }
@@ -103,13 +142,30 @@ namespace TabletDriverGUI
         public void SendCommand(string line)
         {
             if (running)
+            {
                 processService.StandardInput.WriteLine(line);
+            }
+        }
+
+        //
+        // Send command to the driver service through a named pipe
+        //
+        public void SendPipeCommand(string line)
+        {
+            if (running)
+            {
+                if (pipeOutputWriter != null)
+                {
+                    pipeOutputWriter.WriteLine(line);
+                    pipeOutputWriter.Flush();
+                }
+            }
         }
 
         //
         // Add text to console
         //
-        public void ConsoleAddText(string line)
+        public void ConsoleAddLine(string line)
         {
             mutexConsoleUpdate.WaitOne();
             ConsoleBuffer.Add(line);
@@ -152,7 +208,7 @@ namespace TabletDriverGUI
                     commandsFound.Add(item.Value);
                 }
             }
-           
+
 
             // Only one command found
             if (commandsFound.Count == 1)
@@ -180,7 +236,7 @@ namespace TabletDriverGUI
                 int columns = (int)Math.Ceiling(100.0 / maxWidth);
                 int rows = (int)Math.Ceiling((double)commandsFound.Count / columns);
 
-                string[,] commandMatrix = new string[rows,columns];
+                string[,] commandMatrix = new string[rows, columns];
                 int row = 0;
                 int column = 0;
 
@@ -203,9 +259,10 @@ namespace TabletDriverGUI
                     }
                 }
 
-                for(row = 0; row < rows; row++) {
-                    if(row != 0)
-                    commandsString += "\r\n  | ";
+                for (row = 0; row < rows; row++)
+                {
+                    if (row != 0)
+                        commandsString += "\r\n  | ";
                     for (column = 0; column < columns; column++)
                     {
                         string commandString = commandMatrix[row, column];
@@ -219,9 +276,9 @@ namespace TabletDriverGUI
                 // Add commands to console output
                 if (showCommands)
                 {
-                    ConsoleAddText("");
-                    ConsoleAddText("Commands: ");
-                    ConsoleAddText(commandsString);
+                    ConsoleAddLine("");
+                    ConsoleAddLine("Commands: ");
+                    ConsoleAddLine(commandsString);
                 }
 
                 // Fill input text
@@ -288,7 +345,7 @@ namespace TabletDriverGUI
         //
         private void ProcessService_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
-            ConsoleAddText("ERROR! " + e.Data);
+            ConsoleAddLine("ERROR! " + e.Data);
             ErrorReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Error, e.Data, ""));
         }
 
@@ -307,7 +364,8 @@ namespace TabletDriverGUI
                 string line = e.Data;
 
                 // Status line?
-                if (line.Contains("[STATUS]")) {
+                if (line.Contains("[STATUS]"))
+                {
 
                     // Parse status variable and value
                     Match match = Regex.Match(line, "^.+\\[STATUS\\] ([^ ]+) (.*?)$");
@@ -341,10 +399,200 @@ namespace TabletDriverGUI
                 }
 
 
-                ConsoleAddText(e.Data);
+                //ConsoleAddLine(e.Data);
                 MessageReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Message, e.Data, ""));
             }
         }
+
+
+        //
+        // Pipe input thread
+        //
+        private void RunPipeInputThread()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            char[] buffer = new char[1024];
+
+
+            while (running)
+            {
+                pipeStreamInput = new NamedPipeClientStream(".", "TabletDriverOutput", PipeDirection.InOut);
+                pipeStreamOutput = new NamedPipeClientStream(".", "TabletDriverInput", PipeDirection.InOut);
+
+                //ConsoleAddLine("Connecting...");
+                try
+                {
+                    pipeStreamInput.Connect();
+                    pipeStreamOutput.Connect();
+                }
+                catch (Exception)
+                {
+                    // ConsoleAddLine("Input pipe connect error! " + ex.Message);
+                    break;
+                }
+                //ConsoleAddLine("Connected!");
+
+                pipeInputReader = new StreamReader(pipeStreamInput);
+                pipeOutputWriter = new StreamWriter(pipeStreamOutput);
+
+
+                while (running && pipeStreamInput.IsConnected)
+                {
+                    //ConsoleAddLine("Read!");
+                    int bytesRead = 0;
+                    try
+                    {
+                        bytesRead = pipeInputReader.Read(buffer, 0, buffer.Length);
+                    }
+                    catch (Exception)
+                    {
+                        // ConsoleAddLine("Can't read input pipe!");
+                        break;
+                    }
+                    if (bytesRead == 0) continue;
+                    //ConsoleAddLine("Read: " + bytesRead);
+
+                    for (int i = 0; i < bytesRead; i++)
+                    {
+                        char c = buffer[i];
+                        if (c == '\n' || c == '\r' || c == 0)
+                        {
+                            if (stringBuilder.Length > 0)
+                            {
+                                ConsoleAddLine(stringBuilder.ToString());
+                            }
+                            stringBuilder.Clear();
+                        }
+                        else
+                        {
+                            stringBuilder.Append(c);
+                        }
+                    }
+
+                }
+
+                ConsoleAddLine("Input pipe disconnected!");
+
+                // Close input reader
+                try
+                {
+                    pipeInputReader.Close();
+                    pipeInputReader.Dispose();
+                    pipeInputReader = null;
+                }
+                catch (Exception) { }
+
+                // Close input stream
+                try
+                {
+                    pipeStreamInput.Close();
+                    pipeStreamInput.Dispose();
+                    pipeStreamInput = null;
+                }
+                catch (Exception) { }
+
+
+
+                // Close output writer
+                try
+                {
+                    pipeOutputWriter.Close();
+                    pipeOutputWriter.Dispose();
+                    pipeOutputWriter = null;
+                }
+                catch (Exception) { }
+
+                // Close output stream
+                try
+                {
+                    pipeStreamOutput.Close();
+                    pipeStreamOutput.Dispose();
+                    pipeStreamOutput = null;
+                }
+                catch (Exception) { }
+
+            }
+
+        }
+
+
+        //
+        // Pipe state thread
+        //
+        private void RunPipeStateThread()
+        {
+            int size = 0;
+            byte[] bytes;
+            GCHandle gcHandle;
+            TabletState readState;
+
+            while (running)
+            {
+                if (!running) break;
+                pipeStreamState = new NamedPipeClientStream(".", "TabletDriverState", PipeDirection.InOut);
+
+                try
+                {
+                    pipeStreamState.Connect();
+                }
+                catch (Exception)
+                {
+                    // ConsoleAddLine("State pipe connection error! " + ex.Message);
+                    break;
+                }
+                pipeStateReader = new BinaryReader(pipeStreamState);
+
+
+                while (running && pipeStreamState.IsConnected)
+                {
+                    try
+                    {
+
+                        size = Marshal.SizeOf(typeof(TabletState));
+                        bytes = pipeStateReader.ReadBytes(size);
+                        gcHandle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+                        readState = (TabletState)Marshal.PtrToStructure(gcHandle.AddrOfPinnedObject(), typeof(TabletState));
+                        gcHandle.Free();
+                    }
+                    catch (Exception)
+                    {
+                        //ConsoleAddLine("Can't read state pipe! " + ex.Message);
+                        size = 0;
+                        break;
+                    }
+                    if (size > 0)
+                    {
+                        tabletState = readState;
+                        //ConsoleAddLine("State X: " + tabletState.inputX + ", Y: " + tabletState.inputY);
+                    }
+
+
+                }
+
+                ConsoleAddLine("State pipe disconnected!");
+
+                // Close state reader
+                try
+                {
+                    pipeStateReader.Close();
+                    pipeStateReader.Dispose();
+                    pipeStateReader = null;
+                }
+                catch (Exception) { }
+
+
+                // Close state stream
+                try
+                {
+                    pipeStreamState.Close();
+                    pipeStreamState.Dispose();
+                    pipeStreamState = null;
+                }
+                catch (Exception) { }
+
+            }
+        }
+
 
         //
         // Start the driver service
@@ -401,6 +649,15 @@ namespace TabletDriverGUI
                     running = true;
                     timerWatchdog.Start();
 
+                    // Pipe input thread
+                    pipeInputThread = new System.Threading.Thread(new System.Threading.ThreadStart(RunPipeInputThread));
+                    pipeInputThread.Start();
+
+                    // Pipe state thread
+                    pipeStateThread = new System.Threading.Thread(new System.Threading.ThreadStart(RunPipeStateThread));
+                    pipeStateThread.Start();
+
+
                     Started?.Invoke(this, new EventArgs());
                 }
 
@@ -427,16 +684,113 @@ namespace TabletDriverGUI
             if (!running) return;
             running = false;
             timerWatchdog.Stop();
+
+            // Close pipe reader
+            try
+            {
+                if (pipeInputReader != null)
+                {
+                    pipeInputReader.Close();
+                    pipeInputReader.Dispose();
+                }
+            }
+            catch (Exception e) { Debug.WriteLine("Pipe input reader error! " + e.Message); }
+
+            // Close pipe input stream
+            try
+            {
+                if (pipeStreamInput != null)
+                {
+                    pipeStreamInput.Close();
+                    pipeStreamInput.Dispose();
+                }
+            }
+            catch (Exception e) { Debug.WriteLine("Pipe input stream error! " + e.Message); }
+
+            // Close pipe writer
+            try
+            {
+                if (pipeOutputWriter != null)
+                {
+                    pipeOutputWriter.Close();
+                    pipeOutputWriter.Dispose();
+                }
+
+            }
+            catch (Exception e) { Debug.WriteLine("Pipe writer error! " + e.Message); }
+
+
+            // Close pipe output stream
+            try
+            {
+                if (pipeStreamOutput != null)
+                {
+                    pipeStreamOutput.Close();
+                    pipeStreamOutput.Dispose();
+                }
+            }
+            catch (Exception e) { Debug.WriteLine("Pipe output stream error! " + e.Message); }
+
+
+            // Close state reader
+            try
+            {
+                if (pipeStateReader != null)
+                {
+                    pipeStateReader.Close();
+                    pipeStateReader.Dispose();
+                }
+
+            }
+            catch (Exception e) { Debug.WriteLine("Pipe state reader error! " + e.Message); }
+
+            // Close pipe state stream
+            try
+            {
+                if (pipeStreamState != null)
+                {
+                    pipeStreamState.Close();
+                    pipeStreamState.Dispose();
+                }
+            }
+            catch (Exception e) { Debug.WriteLine("Pipe state stream error! " + e.Message); }
+
+            // Close pipe input thread
+            try
+            {
+                if (pipeInputThread != null)
+                {
+                    pipeInputThread.Abort();
+                }
+            }
+            catch (Exception e) { Debug.WriteLine("Pipe input thread error! " + e.Message); }
+
+            // Close pipe state thread
+            try
+            {
+                if (pipeStateThread != null)
+                {
+                    pipeStateThread.Abort();
+                }
+            }
+            catch (Exception e) { Debug.WriteLine("Pipe state thread error! " + e.Message); }
+
+
             try
             {
                 processService.CancelOutputRead();
                 processService.Kill();
                 processService.Dispose();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Debug.WriteLine("Service process error! " + e.Message);
             }
             Stopped?.Invoke(this, new EventArgs());
+
+
+            System.Threading.Thread.Sleep(10);
+
         }
 
 

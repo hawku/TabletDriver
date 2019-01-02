@@ -13,10 +13,13 @@ public:
 	double timerInterval;
 	mutex lock;
 	chrono::high_resolution_clock::time_point timeBegin;
+	chrono::high_resolution_clock::time_point timeLastTimerProblem;
 	TabletState outputState;
+	TabletState outputStateWrite;
 	InputEmulator inputEmulator;
 
 	bool isRunning;
+	bool isTimerTickRunning;
 
 	TabletHandler();
 	~TabletHandler();

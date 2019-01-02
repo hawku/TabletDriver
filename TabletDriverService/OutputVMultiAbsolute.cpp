@@ -48,7 +48,10 @@ bool OutputVMultiAbsolute::Set(TabletState *tabletState) {
 	double y = tabletState->position.y;
 
 	// Map position to virtual screen (values between 0 and 1)
-	mapper->GetScreenPosition(&x, &y);
+	bool mapValid = mapper->GetScreenPosition(&x, &y);
+	if(!mapValid) {
+		return false;
+	}
 
 	report.buttons = tabletState->buttons;
 	report.x = (USHORT)round(x * 32767.0);

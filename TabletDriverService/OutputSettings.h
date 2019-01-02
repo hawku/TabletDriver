@@ -12,6 +12,7 @@ public:
 	} PixelPosition;
 
 	struct {
+		bool firstPosition;
 		PixelPosition pixelPosition;
 		Vector2D targetPosition;
 		Vector2D lastPosition;
@@ -21,6 +22,7 @@ public:
 	Vector2D relativeSensitivity;
 	double relativeResetDistance;
 	double relativeResetTime;
+	bool relativeDragMove;
 
 	void ResetRelativeState(double x, double y, chrono::high_resolution_clock::time_point time);
 

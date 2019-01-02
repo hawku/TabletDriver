@@ -187,6 +187,18 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 				) {
 					GetHIDStrings(deviceHandle, &_manufacturerName, &_productName, &_serialNumber);
 
+					// Set timeouts
+					COMMTIMEOUTS commTimeOuts;
+					GetCommTimeouts(deviceHandle, &commTimeOuts);
+					commTimeOuts.ReadIntervalTimeout = 1;
+					commTimeOuts.ReadTotalTimeoutConstant = 1;
+					commTimeOuts.ReadTotalTimeoutMultiplier = 1;
+					SetCommTimeouts(deviceHandle, &commTimeOuts);
+
+					_devicePathW = deviceInterfaceDetailData->DevicePath;
+					string str(_devicePathW.begin(), _devicePathW.end());
+					_devicePath = str;
+
 					resultHandle = deviceHandle;
 				}
 
@@ -318,9 +330,21 @@ string HIDDevice::GetSerialNumber()
 void HIDDevice::CloseDevice() {
 	if(isOpen && _deviceHandle != NULL && _deviceHandle != INVALID_HANDLE_VALUE) {
 		try {
+			// Workaround for hanging CloseHandle
+			_deviceHandle = CreateFile(
+					_devicePathW.c_str(),
+					GENERIC_READ | GENERIC_WRITE,
+					FILE_SHARE_READ | FILE_SHARE_WRITE,
+					NULL,
+					OPEN_EXISTING,
+					0,
+					NULL);
+
 			CloseHandle(_deviceHandle);
 			_deviceHandle = NULL;
-		} catch(exception) {}
+		} catch(exception) {
+			_deviceHandle = NULL;
+		}
 	}
 	isOpen = false;
 }

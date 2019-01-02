@@ -184,8 +184,12 @@ void CommandHandler::CreateTabletCommands() {
 	//
 	AddCommand(new Command("PressureDeadzone", [&](CommandLine *cmd) {
 		if(tablet == NULL) return false;
-		tablet->settings.pressureDeadzone = cmd->GetDouble(0, tablet->settings.pressureDeadzone);
-		LOG_INFO("Tablet pressure deadzone = %0.2f\n", tablet->settings.pressureDeadzone);
+		tablet->settings.pressureDeadzoneLow = cmd->GetDouble(0, tablet->settings.pressureDeadzoneLow);
+		tablet->settings.pressureDeadzoneHigh = cmd->GetDouble(1, tablet->settings.pressureDeadzoneHigh);
+		LOG_INFO("Tablet pressure deadzone = low:%0.2f high:%0.2f\n",
+			tablet->settings.pressureDeadzoneLow,
+			tablet->settings.pressureDeadzoneHigh
+		);
 		return true;
 	}));
 
@@ -210,6 +214,17 @@ void CommandHandler::CreateTabletCommands() {
 		tablet->settings.scrollAcceleration = cmd->GetDouble(0, tablet->settings.scrollAcceleration);
 		if(tablet->settings.scrollAcceleration < 0.1) tablet->settings.scrollAcceleration = 0.1;
 		LOG_INFO("Tablet scroll acceleration = %0.2f\n", tablet->settings.scrollAcceleration);
+		return true;
+	}));
+
+
+	//
+	// Command: ScrollDrag
+	//
+	AddCommand(new Command("ScrollDrag", [&](CommandLine *cmd) {
+		if(tablet == NULL) return false;
+		tablet->settings.scrollDrag = cmd->GetBoolean(0, tablet->settings.scrollDrag);
+		LOG_INFO("Tablet scroll drag = %s\n", tablet->settings.scrollDrag ? "true" : "false");
 		return true;
 	}));
 
@@ -318,6 +333,7 @@ void CommandHandler::CreateTabletCommands() {
 				if(targetByteName == "buttonslow") targetByte = 1;
 				if(targetByteName == "buttonshigh") targetByte = 2;
 				if(targetByteName == "detect") targetByte = 3;
+				if(targetByteName == "ispressed") targetByte = 4;
 
 			}
 
@@ -335,24 +351,31 @@ void CommandHandler::CreateTabletCommands() {
 
 
 			instruction.targetByte = targetByte;
+			instruction.writeMode = DataFormatter::DataInstruction::WriteModeOR;
 
 			// Loop through parameters
 			for(int i = 1; i < cmd->valueCount; i += 2) {
 				string parameter = cmd->GetStringLower(i, "");
 				int value = cmd->GetInt(i + 1, -1);
+				string stringValue = cmd->GetStringLower(i + 1, "");
 
 				// Set instruction parameters
 				if(parameter == "targetmask" || parameter == "mask") instruction.targetBitMask = value;
 				if(parameter == "source") instruction.sourceByte = value;
 				if(parameter == "sourcemask") instruction.sourceBitMask = value;
 				if(parameter == "sourceshift" || parameter == "shift") instruction.sourceBitShift = value;
+				if(parameter == "writemode") {
+					if(stringValue == "or") instruction.writeMode = DataFormatter::DataInstruction::WriteModeOR;
+					else if(stringValue == "and") instruction.writeMode = DataFormatter::DataInstruction::WriteModeAND;
+					else if(stringValue == "set") instruction.writeMode = DataFormatter::DataInstruction::WriteModeSet;
+				}
 
 			}
 
 
 			// Add aux data format instruction
 			if(commandName.compare(0, 3, "aux") == 0) {
-				tablet->auxDataFormatter.AddInstruction(&instruction);
+				tablet->settings.auxCurrentReport->formatter.AddInstruction(&instruction);
 			}
 			// Add tablet data format instruction
 			else {
@@ -361,12 +384,13 @@ void CommandHandler::CreateTabletCommands() {
 
 
 			//
-			LOG_INFO("Custom data format: Target=%d, TargetMask=0x%02X, Source=%d, SourceMask=0x%02X, SourceShift=%d\n",
+			LOG_INFO("Custom data format: Target=%d, TargetMask=0x%02X, Source=%d, SourceMask=0x%02X, SourceShift=%d WriteMode=%d\n",
 				instruction.targetByte,
 				instruction.targetBitMask,
 				instruction.sourceByte,
 				instruction.sourceBitMask,
-				instruction.sourceBitShift
+				instruction.sourceBitShift,
+				instruction.writeMode
 			);
 
 		}
@@ -394,36 +418,42 @@ void CommandHandler::CreateTabletCommands() {
 
 
 	//
-	// Command: InitFeature
+	// Command: InitFeatureReport, InitFeature
 	//
-	AddCommand(new Command("InitFeature", [&](CommandLine *cmd) {
+	AddAlias("InitFeature", "InitFeatureReport");
+	AddCommand(new Command("InitFeatureReport", [&](CommandLine *cmd) {
 		if(cmd->valueCount <= 0) return false;
 		if(tablet == NULL) return false;
-		tablet->initFeature = new BYTE[cmd->valueCount];
+
+		Tablet::InitReport *report = new Tablet::InitReport(cmd->valueCount);
 		for(int i = 0; i < (int)cmd->valueCount; i++) {
-			tablet->initFeature[i] = cmd->GetInt(i, 0);
+			report->data[i] = cmd->GetInt(i, 0);
 		}
-		tablet->initFeatureLength = cmd->valueCount;
-		LOG_INFOBUFFER(tablet->initFeature, tablet->initFeatureLength, "Tablet initialization feature report: ");
+		tablet->initFeatureReports.push_back(report);
+
+
+		LOG_INFOBUFFER(report->data, report->length, "Tablet init feature report: ");
 		return true;
 	}));
 
 
 	//
-	// Command: InitReport
+	// Command: InitOutputReport, InitReport
 	//
 	// Initialization HID output report
 	//
-	AddCommand(new Command("InitReport", [&](CommandLine *cmd) {
+	AddAlias("InitReport", "InitOutputReport");
+	AddCommand(new Command("InitOutputReport", [&](CommandLine *cmd) {
 		if(cmd->valueCount <= 0) return false;
-
 		if(tablet == NULL) return false;
-		tablet->initReport = new BYTE[cmd->valueCount];
+
+		Tablet::InitReport *report = new Tablet::InitReport(cmd->valueCount);
 		for(int i = 0; i < (int)cmd->valueCount; i++) {
-			tablet->initReport[i] = cmd->GetInt(i, 0);
+			report->data[i] = cmd->GetInt(i, 0);
 		}
-		tablet->initReportLength = cmd->valueCount;
-		LOG_INFOBUFFER(tablet->initReport, tablet->initReportLength, "Tablet initialization report: ");
+		tablet->initOutputReports.push_back(report);
+
+		LOG_INFOBUFFER(report->data, report->length, "Tablet init output report: ");
 
 		return true;
 	}));
@@ -461,12 +491,31 @@ void CommandHandler::CreateTabletCommands() {
 	AddCommand(new Command("TabletArea", [&](CommandLine *cmd) {
 
 		if(!ExecuteCommand("TabletValid")) return false;
-		mapper->areaTablet.width = cmd->GetDouble(0, mapper->areaTablet.width);
-		mapper->areaTablet.height = cmd->GetDouble(1, mapper->areaTablet.height);
-		mapper->areaTablet.x = cmd->GetDouble(2, mapper->areaTablet.x);
-		mapper->areaTablet.y = cmd->GetDouble(3, mapper->areaTablet.y);
 
-		ExecuteCommand("LogTabletArea", "Tablet area");
+		int index = cmd->GetInt(4, 0);
+
+		// Validate map index
+		if(index >= sizeof(mapper->screenMaps) / sizeof(ScreenMapper::ScreenMap)) {
+			LOG_ERROR("Invalid map index!\n");
+			return false;
+		}
+
+		ScreenMapper::Area *area = &mapper->screenMaps[index].tablet;
+
+		area->width = cmd->GetDouble(0, area->width);
+		area->height = cmd->GetDouble(1, area->height);
+		area->x = cmd->GetDouble(2, area->x);
+		area->y = cmd->GetDouble(3, area->y);
+
+		LOG_INFO("Tablet area = (%0.2f mm x %0.2f mm X+%0.2f mm Y+%0.2f mm)\n",
+			area->width,
+			area->height,
+			area->x,
+			area->y
+		);
+
+		mapper->UpdateValues();
+
 		return true;
 	}));
 
@@ -476,8 +525,8 @@ void CommandHandler::CreateTabletCommands() {
 	//
 	AddCommand(new Command("ClearButtonMap", [&](CommandLine *cmd) {
 		if(!ExecuteCommand("TabletValid")) return false;
-		for(int i = 0; i < 16; i++) {
-			tablet->settings.buttonMap[i] = "";
+		for(string &str : tablet->settings.buttonMap) {
+			str = "";
 		}
 		LOG_INFO("Pen button map cleared!\n");
 		return true;
@@ -569,23 +618,30 @@ void CommandHandler::CreateTabletCommands() {
 			moved = true;
 
 			if(border == "top") {
-				mapper->areaTablet.y = offset + mapper->areaTablet.height / 2.0;
+				mapper->primaryTabletArea->y = offset + mapper->primaryTabletArea->height / 2.0;
 			}
 			else if(border == "bottom") {
-				mapper->areaTablet.y = tablet->settings.height - mapper->areaTablet.height / 2.0 - offset;
+				mapper->primaryTabletArea->y = tablet->settings.height - mapper->primaryTabletArea->height / 2.0 - offset;
 			}
 			else if(border == "left") {
-				mapper->areaTablet.x = offset + mapper->areaTablet.width / 2.0;;
+				mapper->primaryTabletArea->x = offset + mapper->primaryTabletArea->width / 2.0;;
 			}
 			else if(border == "right") {
-				mapper->areaTablet.x = tablet->settings.width - mapper->areaTablet.width / 2.0 - offset;
+				mapper->primaryTabletArea->x = tablet->settings.width - mapper->primaryTabletArea->width / 2.0 - offset;
 			}
 			else {
 				moved = false;
 			}
 			if(moved) {
 				LOG_INFO("Tablet area moved to %s border with %0.2f mm margin.\n", border.c_str(), offset);
-				ExecuteCommand("LogTabletArea", "  New tablet area");
+
+				ScreenMapper::Area *area = mapper->primaryTabletArea;
+				LOG_INFO("Tablet area = (%0.2f mm x %0.2f mm X+%0.2f mm Y+%0.2f mm)\n",
+					area->width,
+					area->height,
+					area->x,
+					area->y
+				);
 			}
 		}
 		return true;
@@ -600,14 +656,27 @@ void CommandHandler::CreateTabletCommands() {
 	AddCommand(new Command("Rotate", [&](CommandLine *cmd) {
 		if(!ExecuteCommand("TabletValid")) return false;
 
+		int index = cmd->GetInt(1, 0);
+
+		// Validate map index
+		if(index >= sizeof(mapper->screenMaps) / sizeof(ScreenMapper::ScreenMap)) {
+			LOG_ERROR("Invalid map index!\n");
+			return false;
+		}
+
+		ScreenMapper::ScreenMap *screenMap = &mapper->screenMaps[index];
+
 		double value = cmd->GetDouble(0, 0);
-		mapper->SetRotation(value);
+		screenMap->SetRotation(value);
 		LOG_INFO("Rotation matrix = [%f,%f,%f,%f]\n",
-			mapper->rotationMatrix[0],
-			mapper->rotationMatrix[1],
-			mapper->rotationMatrix[2],
-			mapper->rotationMatrix[3]
+			screenMap->rotationMatrix[0],
+			screenMap->rotationMatrix[1],
+			screenMap->rotationMatrix[2],
+			screenMap->rotationMatrix[3]
 		);
+		
+		mapper->UpdateValues();
+
 		return true;
 	}));
 
@@ -630,6 +699,20 @@ void CommandHandler::CreateTabletCommands() {
 		LOG_INFO("Relative mode sensitivity = X=%0.2f px/mm, Y=%0.2f px/mm\n",
 			outputManager->settings->relativeSensitivity.x,
 			outputManager->settings->relativeSensitivity.y
+		);
+		return true;
+	}));
+
+	//
+	// Command: RelativeDragMove
+	//
+	// Sets if relative mouse position only moves when pen tip is pressed down
+	//
+	AddCommand(new Command("RelativeDragMove", [&](CommandLine *cmd) {
+		if(!ExecuteCommand("TabletValid")) return false;
+		outputManager->settings->relativeDragMove = cmd->GetBoolean(0, outputManager->settings->relativeDragMove);
+		LOG_INFO("Relative mode drag move = %s\n",
+			outputManager->settings->relativeDragMove ? "true" : "false"
 		);
 		return true;
 	}));

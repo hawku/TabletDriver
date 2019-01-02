@@ -1,0 +1,120 @@
+﻿<Window x:Class="TabletDriverGUI.WindowAreaEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TabletDriverGUI"
+        mc:Ignorable="d"
+        Title="Area Editor" Height="270" Width="500">
+  <Window.Resources>
+    <Style TargetType="GroupBox">
+      <Setter Property="HeaderTemplate">
+        <Setter.Value>
+          <DataTemplate>
+            <TextBlock Text="{Binding}" FontWeight="Bold"/>
+          </DataTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style x:Key="ControlStyleTextBox" TargetType="Control">
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="Width" Value="100"/>
+    </Style>
+    <Style BasedOn="{StaticResource ControlStyleTextBox}" TargetType="TextBox">
+      <Setter Property="Padding" Value="5,0"/>
+    </Style>
+  </Window.Resources>
+  <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+    <StackPanel Orientation="Vertical">
+
+      <!-- Screen Area -->
+      <GroupBox Header="Screen Area" Name="groupScreenArea">
+        <StackPanel Orientation="Horizontal">
+
+          <!-- Screen area width -->
+          <GroupBox Header="Width">
+            <Grid>
+              <TextBox Name="textScreenAreaWidth" TextChanged="OnTextBoxChanged" KeyUp="OnTextBoxKeyUp">123</TextBox>
+              <Label HorizontalAlignment="Right">px</Label>
+            </Grid>
+          </GroupBox>
+
+          <!-- Screen area height -->
+          <GroupBox Header="Height">
+            <Grid>
+              <TextBox Name="textScreenAreaHeight" TextChanged="OnTextBoxChanged" KeyUp="OnTextBoxKeyUp">123</TextBox>
+              <Label HorizontalAlignment="Right">px</Label>
+            </Grid>
+          </GroupBox>
+
+          <!-- Screen area X -->
+          <GroupBox Header="Left Offset">
+            <Grid>
+              <TextBox Name="textScreenAreaX" TextChanged="OnTextBoxChanged" KeyUp="OnTextBoxKeyUp">123</TextBox>
+              <Label HorizontalAlignment="Right">px</Label>
+            </Grid>
+          </GroupBox>
+
+          <!-- Screen area Y -->
+          <GroupBox Header="Top Offset">
+            <Grid>
+              <TextBox Name="textScreenAreaY" TextChanged="OnTextBoxChanged" KeyUp="OnTextBoxKeyUp">123</TextBox>
+              <Label HorizontalAlignment="Right">px</Label>
+            </Grid>
+          </GroupBox>
+        </StackPanel>
+      </GroupBox>
+
+      <GroupBox Header="Tablet Area" Name="groupTabletArea">
+        <StackPanel Orientation="Horizontal">
+
+          <!-- Tablet area width -->
+          <GroupBox Header="Width">
+            <Grid>
+              <TextBox Name="textTabletAreaWidth" TextChanged="OnTextBoxChanged" KeyUp="OnTextBoxKeyUp">123</TextBox>
+              <Label HorizontalAlignment="Right">mm</Label>
+            </Grid>
+          </GroupBox>
+
+          <!-- Tablet area height -->
+          <GroupBox Header="Height">
+            <Grid>
+              <TextBox Name="textTabletAreaHeight" TextChanged="OnTextBoxChanged" KeyUp="OnTextBoxKeyUp">123</TextBox>
+              <Label HorizontalAlignment="Right">mm</Label>
+            </Grid>
+          </GroupBox>
+
+          <!-- Tablet area X -->
+          <GroupBox Header="X">
+            <Grid>
+              <TextBox Name="textTabletAreaX" TextChanged="OnTextBoxChanged" KeyUp="OnTextBoxKeyUp">123</TextBox>
+              <Label HorizontalAlignment="Right">mm</Label>
+            </Grid>
+          </GroupBox>
+
+          <!-- Tablet area Y -->
+          <GroupBox Header="Y">
+            <Grid>
+              <TextBox Name="textTabletAreaY" TextChanged="OnTextBoxChanged" KeyUp="OnTextBoxKeyUp">123</TextBox>
+              <Label HorizontalAlignment="Right">mm</Label>
+            </Grid>
+          </GroupBox>
+        </StackPanel>
+      </GroupBox>
+      <Grid Margin="5,5" Height="30">
+        <Button Name="buttonSave"
+                Width="100" HorizontalAlignment="Left"
+                Click="ButtonSave_Click">
+          Save
+        </Button>
+        <Button Name="buttonCancel"
+                Width="100" HorizontalAlignment="Right"
+                Click="ButtonCancel_Click">
+          Cancel
+        </Button>
+      </Grid>
+    </StackPanel>
+  </Grid>
+</Window>

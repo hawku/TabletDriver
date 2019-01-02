@@ -19,5 +19,6 @@ public:
 	double Distance(Vector2D *target);
 	double Angle(Vector2D target);
 	void LerpAdd(Vector2D target, double t);
+	void LerpAdd2D(Vector2D target, double tx, double ty);
 };
 

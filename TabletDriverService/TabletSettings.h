@@ -1,4 +1,7 @@
 #pragma once
+
+#include "DataFormatter.h"
+
 class TabletSettings {
 public:
 
@@ -29,10 +32,12 @@ public:
 	double width;
 	double height;
 	double pressureSensitivity;
-	double pressureDeadzone;
+	double pressureDeadzoneLow;
+	double pressureDeadzoneHigh;
 	double scrollSensitivity;
 	double scrollAcceleration;
 	bool scrollStopCursor;
+	bool scrollDrag;
 	double skew;
 	TabletDataFormat dataFormat;
 	string buttonMap[16];
@@ -40,11 +45,19 @@ public:
 
 
 	// Aux
-	BYTE auxReportId;
+	class AuxReport {
+	public:
+		BYTE reportId;
+		BYTE detectMask;
+		BYTE ignoreMask;
+		TabletAuxFormat format;
+		DataFormatter formatter;
+	};
 	int auxReportLength;
-	BYTE auxDetectMask;
-	BYTE auxIgnoreMask;
-	TabletAuxFormat auxFormat;
+	AuxReport auxReports[10];
+	int auxReportCount;
+	AuxReport *auxCurrentReport;
+	int auxCurrentReportIndex;
 	string auxButtonMap[16];
 	int auxButtonCount;
 

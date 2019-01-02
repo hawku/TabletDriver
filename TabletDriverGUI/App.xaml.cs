@@ -127,12 +127,16 @@ namespace TabletDriverGUI
             }
             else
             {
+                MessageBox.Show("TabletDriverGUI is already open!");
+
                 // Broadcast to the another instance to show itself
                 NativeMethods.PostMessage(
-                             (IntPtr)NativeMethods.HWND_BROADCAST,
-                             NativeMethods.WM_SHOWTABLETDRIVERGUI,
-                             IntPtr.Zero,
-                             IntPtr.Zero);
+                    (IntPtr)NativeMethods.HWND_BROADCAST,
+                    NativeMethods.WM_SHOWTABLETDRIVERGUI,
+                    IntPtr.Zero,
+                    IntPtr.Zero
+                );
+
                 Shutdown();
             }
         }

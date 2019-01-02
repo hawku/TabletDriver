@@ -50,11 +50,14 @@ bool OutputVMultiDigitizer::Set(TabletState *tabletState) {
 	double y = tabletState->position.y;
 
 	// Map position to virtual screen (values between 0 and 1)
-	mapper->GetScreenPosition(&x, &y);
+	bool mapValid = mapper->GetScreenPosition(&x, &y);
+	if(!mapValid) {
+		return false;
+	}
 
 	// Offset coordinates by one pixel
-	double offsetX = -(32767.0 / mapper->areaVirtualScreen.width);
-	double offsetY = -(32767.0 / mapper->areaVirtualScreen.height);
+	double offsetX = -(32767.0 / mapper->virtualScreen.width);
+	double offsetY = -(32767.0 / mapper->virtualScreen.height);
 
 	report.buttons = tabletState->buttons | 0x20;
 	report.x = (USHORT)round(x * 32767.0 + offsetX);

@@ -16,18 +16,47 @@ void CommandHandler::CreateOtherCommands() {
 	//
 	AddCommand(new Command("ScreenArea", [&](CommandLine *cmd) {
 		if(!ExecuteCommand("TabletValid")) return false;
-		mapper->areaScreen.width = cmd->GetDouble(0, mapper->areaScreen.width);
-		mapper->areaScreen.height = cmd->GetDouble(1, mapper->areaScreen.height);
-		mapper->areaScreen.x = cmd->GetDouble(2, mapper->areaScreen.x);
-		mapper->areaScreen.y = cmd->GetDouble(3, mapper->areaScreen.y);
+
+		int index = cmd->GetInt(4, 0);
+
+		// Validate map index
+		if(index >= sizeof(mapper->screenMaps) / sizeof(ScreenMapper::ScreenMap)) {
+			LOG_ERROR("Invalid map index!\n");
+			return false;
+		}
+
+		ScreenMapper::Area *area = &mapper->screenMaps[index].screen;
+
+		area->width = cmd->GetDouble(0, area->width);
+		area->height = cmd->GetDouble(1, area->height);
+		area->x = cmd->GetDouble(2, area->x);
+		area->y = cmd->GetDouble(3, area->y);
 		LOG_INFO("Screen area = (w=%0.2f, h=%0.2f, x=%0.2f, y=%0.2f)\n",
-			mapper->areaScreen.width,
-			mapper->areaScreen.height,
-			mapper->areaScreen.x,
-			mapper->areaScreen.y
+			area->width,
+			area->height,
+			area->x,
+			area->y
 		);
+
+		mapper->UpdateValues();
+
 		return true;
 	}));
+
+	//
+	// Command: ScreenMapCount
+	//
+	// Sets the screen mapper map count
+	//
+	AddCommand(new Command("ScreenMapCount", [&](CommandLine *cmd) {
+		if(!ExecuteCommand("TabletValid")) return false;
+
+		mapper->screenMapCount = cmd->GetInt(0, mapper->screenMapCount);
+		LOG_INFO("Screen map count = %d\n", mapper->screenMapCount);
+
+		return true;
+	}));
+
 
 
 	//
@@ -38,11 +67,11 @@ void CommandHandler::CreateOtherCommands() {
 	AddAlias("Desktop", "DesktopSize");
 	AddCommand(new Command("DesktopSize", [&](CommandLine *cmd) {
 		if(!ExecuteCommand("TabletValid")) return false;
-		mapper->areaVirtualScreen.width = cmd->GetDouble(0, mapper->areaVirtualScreen.width);
-		mapper->areaVirtualScreen.height = cmd->GetDouble(1, mapper->areaVirtualScreen.height);
+		mapper->virtualScreen.width = cmd->GetDouble(0, mapper->virtualScreen.width);
+		mapper->virtualScreen.height = cmd->GetDouble(1, mapper->virtualScreen.height);
 		LOG_INFO("Desktop size = (%0.2f px x %0.2f px)\n",
-			mapper->areaVirtualScreen.width,
-			mapper->areaVirtualScreen.height
+			mapper->virtualScreen.width,
+			mapper->virtualScreen.height
 		);
 		return true;
 	}));
@@ -70,17 +99,32 @@ void CommandHandler::CreateOtherCommands() {
 			LOG_INFO("Output Mode = Relative\n");
 		}
 
-		// Digitizer
-		else if(mode.compare(0, 3, "dig") == 0 || mode.compare(0, 3, "pen") == 0) {
+		// Digitizer Absolute
+		else if(mode.compare(0, 12, "digitizerabs") == 0) {
 
 			outputManager->SetOutputMode(OutputManager::ModeVMultiDigitizer);
-			LOG_INFO("Output Mode = Digitizer\n");
+			LOG_INFO("Output Mode = Digitizer Absolute\n");
 		}
 
-		// SendInput
+		// Digitizer Absolute
+		else if(mode.compare(0, 12, "digitizerrel") == 0) {
+
+			outputManager->SetOutputMode(OutputManager::ModeVMultiDigitizerRelative);
+			LOG_INFO("Output Mode = Digitizer Relative\n");
+		}
+
+
+
+		// SendInput Absolute
 		else if(mode.compare(0, 12, "sendinputabs") == 0) {
 			outputManager->SetOutputMode(OutputManager::ModeSendInputAbsolute);
 			LOG_INFO("Output Mode = SendInput Absolute\n");
+		}
+
+		// SendInput Relative
+		else if(mode.compare(0, 12, "sendinputrel") == 0) {
+			outputManager->SetOutputMode(OutputManager::ModeSendInputRelative);
+			LOG_INFO("Output Mode = SendInput Relative\n");
 		}
 
 		// Dummy
@@ -138,20 +182,20 @@ void CommandHandler::CreateOtherCommands() {
 				LOG_INFO("Benchmark result (%d positions):\n", tablet->measurement.totalReports);
 				LOG_INFO("  Tablet: %s\n", tablet->name.c_str());
 				LOG_INFO("  Area: %0.2f mm x %0.2f mm (%0.0f px x %0.0f px)\n",
-					mapper->areaTablet.width,
-					mapper->areaTablet.height,
-					mapper->areaScreen.width,
-					mapper->areaScreen.height
+					mapper->primaryTabletArea->width,
+					mapper->primaryTabletArea->height,
+					mapper->primaryTabletArea->width,
+					mapper->primaryTabletArea->height
 				);
 				LOG_INFO("  X range: %0.3f mm <-> %0.3f mm\n", tablet->measurement.minimum.x, tablet->measurement.maximum.x);
 				LOG_INFO("  Y range: %0.3f mm <-> %0.3f mm\n", tablet->measurement.minimum.y, tablet->measurement.maximum.y);
 				LOG_INFO("  Width: %0.3f mm (%0.2f px)\n",
 					width,
-					mapper->areaScreen.width / mapper->areaTablet.width * width
+					mapper->primaryScreenArea->width / mapper->primaryTabletArea->width * width
 				);
 				LOG_INFO("  Height: %0.3f mm (%0.2f px)\n",
 					height,
-					mapper->areaScreen.height / mapper->areaTablet.height* height
+					mapper->primaryScreenArea->height / mapper->primaryTabletArea->height* height
 				);
 				LOG_INFO("  Noise filter threshold: %0.2f mm\n", sqrt(width * width + height * height));
 
@@ -279,18 +323,14 @@ void CommandHandler::CreateOtherCommands() {
 
 
 	//
-	// Command: LogTabletArea
+	// Command: StateOutput
 	//
-	// Prints current tablet area
+	// Enable/disable state output
 	//
-	AddCommand(new Command("LogTabletArea", [&](CommandLine *cmd) {
-		LOG_INFO("%s: (%0.2f mm x %0.2f mm X+%0.2f mm Y+%0.2f mm)\n",
-			cmd->GetParameterString().c_str(),
-			mapper->areaTablet.width,
-			mapper->areaTablet.height,
-			mapper->areaTablet.x,
-			mapper->areaTablet.y
-		);
+	AddCommand(new Command("StateOutput", [&](CommandLine *cmd) {
+		if(!ExecuteCommand("TabletValid")) return false;
+		pipeHandler->isStateOutputEnabled = cmd->GetBoolean(0, pipeHandler->isStateOutputEnabled);
+		LOG_INFO("State output = %s\n", pipeHandler->isStateOutputEnabled  ? "Enabled" : "Disabled");
 		return true;
 	}));
 
@@ -390,7 +430,7 @@ void CommandHandler::CreateOtherCommands() {
 
 		if(!ExecuteCommand("TabletValid")) return false;
 
-		char stringBuffer[64];
+		char stringBuffer[1024];
 		int maxLength = sizeof(stringBuffer) - 1;
 		int stringIndex = 0;
 
@@ -421,12 +461,14 @@ void CommandHandler::CreateOtherCommands() {
 		LOG_INFO("  Detect Mask = 0x%02X\n", tablet->settings.detectMask);
 		LOG_INFO("  Ignore Mask = 0x%02X\n", tablet->settings.ignoreMask);
 
+
+		// Pen buttons
 		for(int i = 0; i < tablet->settings.buttonCount; i++) {
 			stringIndex += sprintf_s(stringBuffer + stringIndex, maxLength - stringIndex, "'%s' ", tablet->settings.buttonMap[i].c_str());
 		}
 		LOG_INFO("  Pen button map = %s\n", stringBuffer);
 
-
+		// Aux buttons
 		if(tablet->settings.auxButtonCount > 0) {
 			stringIndex = 0;
 			for(int i = 0; i < tablet->settings.auxButtonCount; i++) {
@@ -434,21 +476,30 @@ void CommandHandler::CreateOtherCommands() {
 			}
 			LOG_INFO("  Aux button map = %s\n", stringBuffer);
 		}
-
 		LOG_INFO("  Aux button count = %d\n", tablet->settings.auxButtonCount);
 
-		if(tablet->initFeatureLength > 0) {
-			LOG_INFOBUFFER(tablet->initFeature, tablet->initFeatureLength, "  Init feature report: ");
-		}
-		if(tablet->initReportLength > 0) {
-			LOG_INFOBUFFER(tablet->initReport, tablet->initReportLength, "  Init report: ");
-		}
+
+		// Init strings
 		if(tablet->initStrings.size() > 0) {
 			string stringIds = "";
 			for(int stringId : tablet->initStrings) {
 				stringIds += to_string(stringId) + " ";
 			}
 			LOG_INFO("  Init string ids: %s\n", stringIds.c_str());
+		}
+
+		// Init feature reports
+		if(tablet->initFeatureReports.size() > 0) {
+			for(Tablet::InitReport *report : tablet->initFeatureReports) {
+				LOG_INFOBUFFER(report->data, report->length, "  Init feature report: ");
+			}
+		}
+
+		// Init output reports
+		if(tablet->initOutputReports.size() > 0) {
+			for(Tablet::InitReport *report : tablet->initOutputReports) {
+				LOG_INFOBUFFER(report->data, report->length, "  Init output report: ");
+			}
 		}
 
 		LOG_INFO("\n");
@@ -458,22 +509,22 @@ void CommandHandler::CreateOtherCommands() {
 		//
 		LOG_INFO("Area:\n");
 		LOG_INFO("  Desktop = %0.0fpx x %0.0fpx\n",
-			mapper->areaVirtualScreen.width, mapper->areaVirtualScreen.height
+			mapper->virtualScreen.width, mapper->virtualScreen.height
 		);
 		LOG_INFO("  Screen Map = %0.0fpx x %0.0fpx @ X%+0.0fpx, Y%+0.0fpx\n",
-			mapper->areaScreen.width, mapper->areaScreen.height,
-			mapper->areaScreen.x, mapper->areaScreen.y
+			mapper->primaryScreenArea->width, mapper->primaryScreenArea->height,
+			mapper->primaryScreenArea->x, mapper->primaryScreenArea->y
 		);
 		LOG_INFO("  Tablet =  %0.2fmm x %0.2fmm @ Min(%0.2fmm, %0.2fmm) Max(%0.2fmm, %0.2fmm)\n",
-			mapper->areaTablet.width, mapper->areaTablet.height,
-			mapper->areaTablet.x, mapper->areaTablet.y,
-			mapper->areaTablet.width + mapper->areaTablet.x, mapper->areaTablet.height + mapper->areaTablet.y
+			mapper->primaryTabletArea->width, mapper->primaryTabletArea->height,
+			mapper->primaryTabletArea->x, mapper->primaryTabletArea->y,
+			mapper->primaryTabletArea->width + mapper->primaryTabletArea->x, mapper->primaryTabletArea->height + mapper->primaryTabletArea->y
 		);
 		LOG_INFO("  Rotation matrix = [%f,%f,%f,%f]\n",
-			mapper->rotationMatrix[0],
-			mapper->rotationMatrix[1],
-			mapper->rotationMatrix[2],
-			mapper->rotationMatrix[3]
+			mapper->primaryRotationMatrix[0],
+			mapper->primaryRotationMatrix[1],
+			mapper->primaryRotationMatrix[2],
+			mapper->primaryRotationMatrix[3]
 		);
 		LOG_INFO("\n");
 

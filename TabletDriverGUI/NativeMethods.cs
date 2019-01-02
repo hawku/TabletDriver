@@ -56,5 +56,22 @@ namespace TabletDriverGUI
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
 
+
+        //
+        // Multimedia timer
+        //
+        internal delegate void MultimediaTimerCallback(UInt32 id, UInt32 msg, ref UInt32 userCtx, UInt32 rsv1, UInt32 rsv2);
+
+        [DllImport("winmm.dll", SetLastError = true, EntryPoint = "timeSetEvent")]
+        internal static extern UInt32 TimeSetEvent(UInt32 msDelay, UInt32 msResolution, MultimediaTimerCallback callback, ref UInt32 userCtx, UInt32 eventType);
+
+        [DllImport("winmm.dll", SetLastError = true, EntryPoint = "timeKillEvent")]
+        internal static extern void TimeKillEvent(UInt32 uTimerId);
+
+        //
+        // GDI
+        //
+        [DllImport("gdi32.dll")]
+        public static extern bool DeleteObject(IntPtr hObject);
     }
 }

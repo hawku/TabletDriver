@@ -19,10 +19,12 @@ TabletSettings::TabletSettings() {
 	width = 1;
 	height = 1;
 	pressureSensitivity = 0;
-	pressureDeadzone = 0;
+	pressureDeadzoneLow = 0;
+	pressureDeadzoneHigh = 0;
 	scrollSensitivity = 1;
 	scrollAcceleration = 1;
 	scrollStopCursor = false;
+	scrollDrag = false;
 	skew = 0;
 	dataFormat = TabletFormatNormal;
 	buttonMap[0] = "MOUSE1";
@@ -31,11 +33,12 @@ TabletSettings::TabletSettings() {
 	buttonCount = 3;
 
 	// Aux
-	auxReportId = 0;
-	auxReportLength = 0;
-	auxDetectMask = 0;
-	auxIgnoreMask = 0;
-	auxFormat = AuxFormatCustom;
+	for(AuxReport &auxReport : auxReports) {
+		auxReport.format = AuxFormatCustom;
+	}
+	auxCurrentReport = &auxReports[0];
+	auxCurrentReportIndex = 0;
+	auxReportCount = 1;
 	auxButtonCount = 0;
 }
 

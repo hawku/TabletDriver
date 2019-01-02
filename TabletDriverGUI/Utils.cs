@@ -1,4 +1,6 @@
 ﻿using System.Globalization;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace TabletDriverGUI
 {
@@ -56,5 +58,25 @@ namespace TabletDriverGUI
             CheckCultureInfo();
             return val.ToString(format, cultureInfo.NumberFormat);
         }
+
+
+
+
+        //
+        // RGB to hex string
+        //
+        public static string RGBToHex(byte r, byte g, byte b)
+        {
+            return string.Format("{0:X2}{1:X2}{2:X2}", r, g, b); ;
+        }
+
+        //
+        // RGB to color hex string
+        //
+        public static string RGBToHexColor(byte r, byte g, byte b)
+        {
+            return "#" + RGBToHex(r, g, b);
+        }
+
     }
 }

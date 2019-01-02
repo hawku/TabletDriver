@@ -1,20 +1,25 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace TabletDriverGUI
 {
     public partial class MainWindow : Window
     {
+
+        // Ink canvas undo history
+        StrokeCollection inkCanvasUndoHistory;
+
+        // Ink canvas DrawingAttributes
+        DrawingAttributes inkCanvasDrawingAttributes;
+
 
         //
         // Ink canvas stylys move
@@ -41,8 +46,12 @@ namespace TabletDriverGUI
             progressPressure.Value = 0;
 
             Random random = new Random();
-            byte shade = (byte)random.Next(0x33, 0x77);
-            inkCanvasDrawingAttributes.Color = Color.FromRgb(shade, shade, shade);
+            double shade = random.Next(0x33, 0x77);
+            inkCanvasDrawingAttributes.Color = Color.FromRgb(
+                (byte)(shade * (0.95 + random.NextDouble() * 0.1)),
+                (byte)(shade * (0.95 + random.NextDouble() * 0.1)),
+                (byte)(shade * (0.95 + random.NextDouble() * 0.1))
+            );
             if (inkCanvasUndoHistory != null && inkCanvasUndoHistory.Count > 0)
             {
                 inkCanvasUndoHistory.Clear();
@@ -77,16 +86,21 @@ namespace TabletDriverGUI
         private void SliderPressure_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             sliderPressureSensitivity.ToolTip = Utils.GetNumberString(-sliderPressureSensitivity.Value);
-            sliderPressureDeadzone.ToolTip = Utils.GetNumberString(sliderPressureDeadzone.Value * 100) + "%";
+            sliderPressureDeadzoneLow.ToolTip = Utils.GetNumberString(sliderPressureDeadzoneLow.Value * 100) + "%";
+            sliderPressureDeadzoneHigh.ToolTip = Utils.GetNumberString(sliderPressureDeadzoneHigh.Value * 100) + "%";
 
             if (isLoadingSettings) return;
 
             config.PressureSensitivity = sliderPressureSensitivity.Value;
-            config.PressureDeadzone = sliderPressureDeadzone.Value;
+            config.PressureDeadzoneLow = sliderPressureDeadzoneLow.Value;
+            config.PressureDeadzoneHigh = sliderPressureDeadzoneHigh.Value;
 
 
             driver.SendCommand("PressureSensitivity " + Utils.GetNumberString(config.PressureSensitivity));
-            driver.SendCommand("PressureDeadzone " + Utils.GetNumberString(config.PressureDeadzone));
+            driver.SendCommand("PressureDeadzone " +
+                Utils.GetNumberString(config.PressureDeadzoneLow) + " " +
+                Utils.GetNumberString(config.PressureDeadzoneHigh)
+            );
         }
 
 

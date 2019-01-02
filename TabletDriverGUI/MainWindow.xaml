@@ -1,14 +1,20 @@
 ﻿<Window x:Class="TabletDriverGUI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:TabletDriverGUI"
         mc:Ignorable="d"
         Keyboard.PreviewKeyDown="Window_PreviewKeyDown"
         Title="TabletDriverGUI" Height="703" Width="680"
         >
+
+  <Window.DataContext>
+    <Binding Source="config"/>
+  </Window.DataContext>
+
   <Window.Resources>
+
+    <!-- GroupBox style -->
     <Style TargetType="GroupBox">
       <Setter Property="HeaderTemplate">
         <Setter.Value>
@@ -19,13 +25,38 @@
       </Setter>
     </Style>
 
+    <!-- TextBox style -->
+
+    <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#999" />
+    <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#f9f9f9" />
+
     <Style x:Key="ControlStyleTextBox" TargetType="Control">
       <Setter Property="HorizontalContentAlignment" Value="Left"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
     <Style BasedOn="{StaticResource ControlStyleTextBox}" TargetType="TextBox">
       <Setter Property="Padding" Value="5,0"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="TextBox">
+            <Border Name="Bd" BorderThickness="{TemplateBinding BorderThickness}" 
+                                             BorderBrush="{TemplateBinding BorderBrush}" 
+                                             Background="{TemplateBinding Background}" 
+                                             SnapsToDevicePixels="true">
+              <ScrollViewer Name="PART_ContentHost" Background="{TemplateBinding Background}" 
+                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter Value="{StaticResource DisabledBackgroundBrush}" Property="Background" />
+                <Setter Value="{StaticResource DisabledForegroundBrush}" Property="Foreground" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
     </Style>
+
   </Window.Resources>
 
   <Grid Background="Transparent" Margin="0,0,0,0">
@@ -39,12 +70,25 @@
     <DockPanel Grid.Row="0" Background="White" Height="18">
       <Menu DockPanel.Dock="Top"  Background="White">
         <MenuItem Header="Fil_e">
-          <MenuItem Name="mainMenuImport" Header="_Import Settings" Click="MainMenuClick" />
-          <MenuItem Name="mainMenuExport" Header="_Export Settings" Click="MainMenuClick" />
+          <MenuItem Name="mainMenuSaveSettings" Header="_Save settings" InputGestureText="Ctrl+S" Click="MainMenuClick" />
+          <Separator/>
+          <MenuItem Name="mainMenuImport" InputGestureText="Ctrl+I" Header="_Import Settings" Click="MainMenuClick" />
+          <MenuItem Name="mainMenuExport" InputGestureText="Ctrl+E" Header="_Export Settings" Click="MainMenuClick" />
           <Separator/>
           <MenuItem Name="mainMenuResetToDefault" Header="_Reset to default" Click="MainMenuClick" />
           <Separator />
           <MenuItem Name="mainMenuExit" Header="E_xit" Click="MainMenuClick" />
+        </MenuItem>
+        <MenuItem Header="_Tools">
+          <MenuItem Header="Show folder">
+            <MenuItem Name="mainMenuOpenCurrentDirectory" Header="_TabletDriver" Click="MainMenuClick" />
+            <MenuItem Name="mainMenuOpenConfig" Header="_Config" Click="MainMenuClick" />
+            <MenuItem Name="mainMenuOpenTools" Header="T_ools" Click="MainMenuClick" />
+          </MenuItem>
+          <MenuItem Name="mainMenuTabletView" Header="_Tablet View" Click="MainMenuClick" />
+          <MenuItem Name="mainMenuTabletViewSettings" Header="Tablet View _Settings" Click="MainMenuClick" />
+          <MenuItem Name="mainMenuUpdateDesktopImage" Header="_Update desktop image" Click="MainMenuClick" />
+          <MenuItem Name="mainMenuFitToContent" Header="_Fit window to content" Click="MainMenuClick" />
         </MenuItem>
       </Menu>
       <TextBox AcceptsReturn="True" />
@@ -52,18 +96,20 @@
 
     <TabControl Grid.Row="1" Name="tabControl"
                 Background="White"
-                Selector.IsSelected="True"                
+                Selector.IsSelected="True"
+                SelectionChanged="TabControl_SelectionChanged"
                 >
 
       <!-- Area tab -->
-      <TabItem Margin="10,0,-10,0" Padding="10,5">
+      <TabItem Name="tabArea" Margin="10,0,-10,0" Padding="10,5">
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#006600" FontWeight="Bold">
             <AccessText Text="_Area"/>
           </TextBlock>
         </TabItem.Header>
 
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      FocusVisualStyle="{x:Null}">
           <StackPanel Orientation="Vertical"
                       HorizontalAlignment="Left"
                       Margin="5,0">
@@ -87,7 +133,13 @@
                     <LineBreak/>
                     - Alt + Drag = Move area 80 pixels at a time.
                     <LineBreak/>
-                    - Use the "Set Area" to set the screen area to single monitor or full desktop.
+                    - Mouse scroll = Resize area 10 pixels per scroll.
+                    <LineBreak/>
+                    - Control + Mouse scroll = Resize area 100 pixels per scroll.
+                    <LineBreak/>
+                    - Use the "Move Area To" to set move screen area to single monitor or full desktop.
+                    <LineBreak/>
+                    - <TextBlock FontWeight="Bold" Foreground="#000099">Right-clicking the area will show more options</TextBlock>
                   </TextBlock>
                 </StackPanel>
               </GroupBox.ToolTip>
@@ -96,15 +148,38 @@
 
                 <!-- Screen map canvas -->
                 <Canvas Name="canvasScreenMap"
-                        Cursor="Hand"
                         Height="130" Margin="0,0,0,0"
                         Background="Transparent"
                         ClipToBounds="True"
+                        ContextMenuOpening="Canvas_ContextMenuOpening"
+                        MouseWheel="CanvasMouseWheel"
                         MouseMove="Canvas_MouseMove"                        
                         MouseDown="Canvas_MouseDown"
-                        MouseUp="Canvas_MouseUp"
-                      >
+                        MouseUp="Canvas_MouseUp">
+                  <Canvas.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="" Name="menuCanvasScreenAreaInfo" FontWeight="Bold"/>
+                      <MenuItem Header="Move to center of a monitor" Name="menuCanvasMoveToMonitorCenter" Click="Canvas_MenuClick" />
+                      <MenuItem Header="Set to full monitor" Name="menuCanvasSetToFullMonitor" Click="Canvas_MenuClick" />
+                      <MenuItem Header="Set to full desktop" Name="menuCanvasSetToFullDesktop" Click="Canvas_MenuClick" />
+                      <Separator/>
+                      <MenuItem Header="Add area" Name="menuCanvasAddScreenArea" Click="Canvas_MenuClick" />
+                      <MenuItem Header="Edit area" Name="menuCanvasEditScreenArea" Click="Canvas_MenuClick" />
+                      <MenuItem Header="Remove area" Name="menuCanvasRemoveScreenArea" Click="Canvas_MenuClick" />
+                      <Separator/>
+                      <MenuItem Header="Reset all areas" Name="menuCanvasResetScreenAreas" Click="Canvas_MenuClick" />
+                    </ContextMenu>
+                  </Canvas.ContextMenu>
                 </Canvas>
+
+                <!-- Screen area information -->
+                <Label Name="labelScreenAreaInfo"
+                       HorizontalAlignment="Center"
+                       FontSize="11"
+                       FontWeight="Bold"
+                       Padding="0">
+                  RATIO 1.777:1
+                </Label>
 
                 <!-- Screen map controls -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -112,7 +187,7 @@
                   <!-- Screen Area Width -->
                   <GroupBox Header="Width" Height="50" Width="100">
                     <Grid>
-                      <TextBox Name="textScreenAreaWidth" TextChanged="TextChanged">1920</TextBox>
+                      <TextBox Name="textScreenAreaWidth" TextChanged="TextChanged" />
                       <Label HorizontalAlignment="Right">px</Label>
                     </Grid>
                   </GroupBox>
@@ -120,7 +195,7 @@
                   <!-- Screen Area Height -->
                   <GroupBox Header="Height" Height="50" Width="100" Margin="5,0,0,0">
                     <Grid>
-                      <TextBox Name="textScreenAreaHeight" TextChanged="TextChanged">1080</TextBox>
+                      <TextBox Name="textScreenAreaHeight" TextChanged="TextChanged"/>
                       <Label HorizontalAlignment="Right">px</Label>
                     </Grid>
                   </GroupBox>
@@ -128,7 +203,7 @@
                   <!-- Screen Area Left -->
                   <GroupBox Header="Left Offset" Height="50" Width="100" Margin="5,0,0,0">
                     <Grid>
-                      <TextBox Name="textScreenAreaX" TextChanged="TextChanged">0</TextBox>
+                      <TextBox Name="textScreenAreaX" TextChanged="TextChanged"/>
                       <Label HorizontalAlignment="Right">px</Label>
                     </Grid>
                   </GroupBox>
@@ -136,13 +211,13 @@
                   <!-- Screen Area Top -->
                   <GroupBox Header="Top Offset" Height="50" Width="100" Margin="5,0,0,0">
                     <Grid>
-                      <TextBox Name="textScreenAreaY" TextChanged="TextChanged">0</TextBox>
+                      <TextBox Name="textScreenAreaY" TextChanged="TextChanged"/>
                       <Label HorizontalAlignment="Right">px</Label>
                     </Grid>
                   </GroupBox>
 
-                  <!-- Set monitor -->
-                  <GroupBox Header="Set Area" Height="50" Width="150" Margin="5,0,0,0">
+                  <!-- Move area to -->
+                  <GroupBox Header="Move Area To" Height="50" Width="150" Margin="5,0,0,0">
                     <ComboBox Name="comboBoxMonitor"
                               PreviewMouseDown="ComboBoxMonitor_MouseDown"
                               SelectionChanged="ComboBoxMonitor_SelectionChanged"
@@ -172,10 +247,18 @@
                     - Shift + Drag = Move area Y direction.
                     <LineBreak/>
                     - Alt + Drag = Move area 5 mm at a time.
-                    <LineBreak/>                   
+                    <LineBreak/>
+                    - Mouse scroll = Resize area 1 mm per scroll.
+                    <LineBreak/>
+                    - Control + Mouse scroll = Resize area 10 mm per scroll.
+                    <LineBreak/>                    
                     - For left handed mode, enable the "Left handed (Inverted)" checkbox or use a rotation value of 180 degrees.
                     <LineBreak/>
                     - Click Wacom Area button to type in the Wacom driver area settings.
+                    <LineBreak/>
+                    - Draw Area will allow you to set the tablet area by clicking two points with a pen.
+                    <LineBreak/>
+                    - <TextBlock FontWeight="Bold" Foreground="#000099">Right-clicking the area will show more options.</TextBlock>
                   </TextBlock>
                 </StackPanel>
               </GroupBox.ToolTip>
@@ -184,13 +267,14 @@
 
                 <Grid>
                   <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="21*"/>
+                    <ColumnDefinition Width="192*"/>
+                    <ColumnDefinition Width="212*"/>
+                    <ColumnDefinition Width="213*"/>
                   </Grid.ColumnDefinitions>
 
                   <!-- Rotation + invert + area buttons -->
-                  <StackPanel Grid.Column="0" HorizontalAlignment="Right">
+                  <StackPanel Grid.Column="1" HorizontalAlignment="Right">
 
                     <!-- Rotation + Invert -->
                     <StackPanel Orientation="Horizontal">
@@ -251,49 +335,69 @@
                       </Button>
 
                     </StackPanel>
-
-
-
                   </StackPanel>
 
                   <!-- Tablet area canvas -->
-                  <Canvas Grid.Column="1" Name="canvasTabletArea"
-                          Cursor="Hand"
+                  <Canvas Grid.Column="2" Name="canvasTabletArea"
                           Height="120" Margin="5,0,5,0"
                           Background="Transparent"
                           ClipToBounds="True"
+                          ContextMenuOpening="Canvas_ContextMenuOpening"
+                          MouseWheel="CanvasMouseWheel"
                           MouseMove="Canvas_MouseMove"                          
                           MouseDown="Canvas_MouseDown"
-                          MouseUp="Canvas_MouseUp" />
+                          MouseUp="Canvas_MouseUp">
+                    <Canvas.ContextMenu>
+                      <ContextMenu>
+                        <MenuItem Header="" Name="menuCanvasTabletAreaInfo" FontWeight="Bold"/>
+                        <MenuItem Name="menuCanvasMoveToCenter" Header="Move to center" Click="Canvas_MenuClick" />
+                        <MenuItem Name="menuCanvasSetToFullTabletArea" Header="Set to full area" Click="Canvas_MenuClick" />
+                        <MenuItem Name="menuCanvasForceProportions" Header="Force proportions" Click="Canvas_MenuClick" />                        
+                        <Separator/>
+                        <MenuItem Name="menuCanvasAddTabletArea" Header="Add area" Click="Canvas_MenuClick" />
+                        <MenuItem Name="menuCanvasEditTabletArea" Header="Edit area" Click="Canvas_MenuClick" />
+                        <MenuItem Name="menuCanvasRemoveTabletArea" Header="Remove area" Click="Canvas_MenuClick" />
+                        <Separator/>
+                        <MenuItem Name="menuCanvasResetTabletAreas" Header="Reset all areas" Click="Canvas_MenuClick" />
+                      </ContextMenu>
+                    </Canvas.ContextMenu>
+                  </Canvas>
 
-                  
                   <!-- Output mode selector -->
-                  <StackPanel Grid.Column="2">
-                    
-                    <GroupBox Header="Mode" HorizontalAlignment="Left">
+                  <StackPanel Grid.Column="3">
+
+                    <!-- Positioning -->
+                    <GroupBox Header="Positioning" Width="170" HorizontalAlignment="Left">
+                      <ComboBox Name="comboBoxOutputPositioning"
+                                SelectionChanged="ItemSelectionChanged"
+                                SelectedIndex="0">
+                        <ComboBoxItem>Absolute (Pen)</ComboBoxItem>
+                        <ComboBoxItem>Relative (Mouse)</ComboBoxItem>
+                      </ComboBox>
+                    </GroupBox>
+
+                    <!-- Output mode -->
+                    <GroupBox Header="Mode" HorizontalAlignment="Left" Width="170" Padding="0,3,0,0">
                       <GroupBox.ToolTip>
                         <TextBlock>
                           <TextBlock FontWeight="Bold" FontSize="16">Mode</TextBlock>
                           <LineBreak/>
-                          <TextBlock FontWeight="Bold">Absolute</TextBlock>: Use this with osu!
+                          <TextBlock FontWeight="Bold">Standard:</TextBlock> Gaming and other programs that don't need pen pressure.
                           <LineBreak/>
-                          <TextBlock FontWeight="Bold">Relative</TextBlock>: Mouse mode. Sensitivity is determined by your tablet area size.
+                          <TextBlock FontWeight="Bold">Windows Ink:</TextBlock> Enables pen pressure for applications that support Windows Ink.
                           <LineBreak/>
-                          <TextBlock FontWeight="Bold">Windows Ink</TextBlock>: Pen pressure is enabled in this mode. Check if your drawing application supports Windows Ink.
-                          <LineBreak/>
-                          <TextBlock FontWeight="Bold">SendInput</TextBlock>: This is for debugging and testing purposes. Use this if you have problems with the absolute mode.
+                          <TextBlock FontWeight="Bold">Compatibility:</TextBlock> Use this mode if you have problems with cursor movement in standard mode.
                         </TextBlock>
                       </GroupBox.ToolTip>
                       <StackPanel>
-                        <RadioButton Name="radioModeAbsolute" GroupName="OutputMode" Margin="2" Content="Absolute (osu!)" 
+                        <RadioButton Name="radioOutputModeStandard" GroupName="OutputMode" Margin="2" Content="Standard (Game)"
                                      IsChecked="True"
                                      Checked="CheckboxChanged" />
-                        <RadioButton Name="radioModeRelative" GroupName="OutputMode" Margin="2" Content="Relative (Mouse)" 
+                        <RadioButton Name="radioOutputModeWindowsInk" GroupName="OutputMode" Margin="2" Content="Windows Ink (Draw)"
                                      Checked="CheckboxChanged" />
-                        <RadioButton Name="radioModeDigitizer" GroupName="OutputMode" Margin="2" Content="Windows Ink (Draw)"
+                        <RadioButton Name="radioOutputModeCombatibility" GroupName="OutputMode" Margin="2" Content="Compatibility (Debug)"
                                      Checked="CheckboxChanged" />
-                        <RadioButton Name="radioModeSendInput" GroupName="OutputMode" Margin="2" Content="SendInput (Debug)"
-                                     Checked="CheckboxChanged" />
+
                       </StackPanel>
                     </GroupBox>
 
@@ -301,13 +405,22 @@
 
                 </Grid>
 
+                <!-- Tablet area information -->
+                <Label Name="labelTabletAreaInfo"
+                       HorizontalAlignment="Center"
+                       Padding="0"
+                       FontSize="11"
+                       FontWeight="Bold">
+                  RATIO 1:777:1
+                </Label>
+
                 <!-- Tablet area settings -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
                   <!-- Tablet Area Width -->
                   <GroupBox Header="Width" Height="50" Width="90" Margin="0,0,0,0">
                     <Grid>
-                      <TextBox Name="textTabletAreaWidth" TextChanged="TextChanged">80</TextBox>
+                      <TextBox Name="textTabletAreaWidth" TextChanged="TextChanged"/>
                       <Label HorizontalAlignment="Right">mm</Label>
                     </Grid>
                   </GroupBox>
@@ -315,7 +428,7 @@
                   <!-- Tablet Area Height -->
                   <GroupBox Header="Height" Height="50" Width="90" Margin="5,0,0,0">
                     <Grid>
-                      <TextBox Name="textTabletAreaHeight" TextChanged="TextChanged">45</TextBox>
+                      <TextBox Name="textTabletAreaHeight" TextChanged="TextChanged" />
                       <Label HorizontalAlignment="Right">mm</Label>
                     </Grid>
                   </GroupBox>
@@ -323,7 +436,7 @@
                   <!-- Tablet Area Left -->
                   <GroupBox Header="X" Height="50" Width="90" Margin="5,0,0,0">
                     <Grid>
-                      <TextBox Name="textTabletAreaX" TextChanged="TextChanged">0</TextBox>
+                      <TextBox Name="textTabletAreaX" TextChanged="TextChanged"/>
                       <Label HorizontalAlignment="Right">mm</Label>
                     </Grid>
                   </GroupBox>
@@ -331,21 +444,15 @@
                   <!-- Tablet Area Top -->
                   <GroupBox Header="Y" Height="50" Width="90" Margin="5,0,0,0">
                     <Grid>
-                      <TextBox Name="textTabletAreaY" TextChanged="TextChanged">0</TextBox>
+                      <TextBox Name="textTabletAreaY" TextChanged="TextChanged"/>
                       <Label HorizontalAlignment="Right">mm</Label>
                     </Grid>
                   </GroupBox>
 
-                  <!-- Talbet area checkboxes -->
-                  <StackPanel Orientation="Vertical" VerticalAlignment="Bottom">
+                  <!-- Tablet area checkboxes -->
+                  <StackPanel Orientation="Vertical" VerticalAlignment="Center">
 
                     <!-- Full area checkbox -->
-                    <CheckBox Name="checkBoxForceFullArea"
-                              Margin="3"
-                              Checked="CheckboxChanged"
-                              Unchecked="CheckboxChanged">
-                      Full area
-                    </CheckBox>
 
                     <!-- Force Aspect Ratio -->
                     <CheckBox Name="checkBoxForceAspect"
@@ -367,7 +474,7 @@
       </TabItem>
 
       <!-- Buttons tab -->
-      <TabItem Margin="10,0,-10,0" Padding="10,5">
+      <TabItem Name="tabButtons" Margin="10,0,-10,0" Padding="10,5">
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#006699" FontWeight="Bold">
             <AccessText Text="_Buttons"/>
@@ -475,6 +582,10 @@
                       - Use negative number in sensitivity to invert the direction.
                       <LineBreak/>
                       - Acceleration 1.0 = No acceleration. Recommended range is from 1 to 5.
+                      <LineBreak/>
+                      - <TextBlock FontWeight="Bold">Stop cursor</TextBlock>: cursor will be stopped when scrolling.
+                      <LineBreak/>
+                      - <TextBlock FontWeight="Bold">Drag scroll</TextBlock>: scrolls only when the pen tip is pressed down.
                     </TextBlock>
                   </StackPanel>
                 </GroupBox.ToolTip>
@@ -503,6 +614,16 @@
                           Unchecked="CheckboxChanged">
                     <TextBlock>Stop cursor</TextBlock>
                   </CheckBox>
+
+                  <!-- Scroll drag -->
+                  <CheckBox Name="checkBoxScrollDrag"
+                          Margin="7,5,0,0"
+                          HorizontalAlignment="Left"
+                          Checked="CheckboxChanged"
+                          Unchecked="CheckboxChanged">
+                    <TextBlock>Drag scroll</TextBlock>
+                  </CheckBox>
+
 
                 </StackPanel>
               </GroupBox>
@@ -541,34 +662,78 @@
                     </Grid>
                   </GroupBox>
 
-                  <!-- Pressure Deadzone -->
-                  <GroupBox Header="Pressure Deadzone">
-                    <Grid>
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="auto"/>
-                      </Grid.ColumnDefinitions>
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                      <Label Grid.Column="0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" FontWeight="DemiBold">0%</Label>
+                    <!-- Pressure Low Deadzone -->
+                    <GroupBox Header="Pressure Low Deadzone" Grid.Column="0">
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="auto"/>
+                          <ColumnDefinition Width="*"/>
+                          <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
 
-                      <!-- Deadzone slider -->
-                      <Slider Grid.Column="1" Name="sliderPressureDeadzone"
+                        <Label Grid.Column="0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" FontWeight="DemiBold">0%</Label>
+
+                        <!-- Deadzone slider -->
+                        <Slider Grid.Column="1" Name="sliderPressureDeadzoneLow"
                             IsSnapToTickEnabled="True"
-                            TickFrequency="0.01"
+                            TickFrequency="0.025"
                             TickPlacement="Both"
-                            SmallChange="0.01"
-                            LargeChange="0.01"
+                            SmallChange="0.025"
+                            LargeChange="0.025"
                             Value="0.0"
                             Minimum="0"
-                            Maximum="0.25"
+                            Maximum="0.5"
                             ToolTip="0%"
                             ValueChanged="SliderPressure_ValueChanged"
                             >
-                      </Slider>
-                      <Label Grid.Column="2" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" FontWeight="DemiBold">25%</Label>
-                    </Grid>
-                  </GroupBox>
+                        </Slider>
+                        <Label Grid.Column="2" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" FontWeight="DemiBold">
+                          50%
+                        </Label>
+                      </Grid>
+                    </GroupBox>
+
+
+                    <!-- Pressure High Deadzone -->
+                    <GroupBox Header="Pressure High Deadzone" Grid.Column="1">
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="auto"/>
+                          <ColumnDefinition Width="*"/>
+                          <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" FontWeight="DemiBold">
+                          50%
+                        </Label>
+
+                        <!-- Deadzone slider -->
+                        <Slider Grid.Column="1" Name="sliderPressureDeadzoneHigh"
+                            IsSnapToTickEnabled="True"
+                            TickFrequency="0.025"
+                            TickPlacement="Both"
+                            SmallChange="0.025"
+                            LargeChange="0.025"
+                            Value="0.0"
+                            Minimum="0"
+                            Maximum="0.5"
+                            ToolTip="0%"
+                            IsDirectionReversed="True"
+                            ValueChanged="SliderPressure_ValueChanged"
+                            >
+                        </Slider>
+                        <Label Grid.Column="2" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" FontWeight="DemiBold">0%</Label>
+                      </Grid>
+                    </GroupBox>
+
+
+                  </Grid>
 
 
 
@@ -688,7 +853,7 @@
       </TabItem>
 
       <!-- Filters tab -->
-      <TabItem Margin="10,0,-10,0" Padding="10,5">
+      <TabItem Name="tabFilters" Margin="10,0,-10,0" Padding="10,5">
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#003399" FontWeight="Bold">
             <AccessText Text="_Filters"/>
@@ -738,7 +903,9 @@
 
 
               <!-- Filter Latency -->
-              <GroupBox Header="Latency" Height="50" Width="80" Margin="0,0,0,0">
+              <GroupBox Header="Latency"
+                        IsEnabled="{Binding ElementName=checkBoxSmoothing, Path=IsChecked}"
+                        Height="50" Width="80" Margin="0,0,0,0">
                 <Grid>
                   <TextBox Name="textSmoothingLatency" TextChanged="TextChanged">0</TextBox>
                   <Label HorizontalAlignment="Right">ms</Label>
@@ -746,7 +913,9 @@
               </GroupBox>
 
               <!-- Filter Rate -->
-              <GroupBox Header="Rate" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" Height="50">
+              <GroupBox Header="Rate"
+                        IsEnabled="{Binding ElementName=checkBoxSmoothing, Path=IsChecked}"
+                        VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" Height="50">
                 <ComboBox Name="comboBoxSmoothingRate" SelectionChanged="ItemSelectionChanged" VerticalContentAlignment="Center">
                   <ComboBoxItem>1000 Hz</ComboBoxItem>
                   <ComboBoxItem>500 Hz</ComboBoxItem>
@@ -759,10 +928,11 @@
 
               <!-- Only when buttons are down -->
               <CheckBox Name="checkBoxSmoothingOnlyWhenButtons"
-                            VerticalAlignment="Center"
-                          VerticalContentAlignment="Center"
-                            Margin="5,10,5,0"
-                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">
+                        IsEnabled="{Binding ElementName=checkBoxSmoothing, Path=IsChecked}"
+                        VerticalAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Margin="5,10,5,0"
+                        Checked="CheckboxChanged" Unchecked="CheckboxChanged">
                 <TextBlock>
                     Only when buttons down
                 </TextBlock>
@@ -826,8 +996,8 @@
               </StackPanel>
             </GroupBox.ToolTip>
 
-
             <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+
 
               <!-- Noise filter enabled -->
               <CheckBox Name="checkBoxNoiseFilter"
@@ -836,22 +1006,33 @@
                             Checked="CheckboxChanged" Unchecked="CheckboxChanged">
               </CheckBox>
 
+
               <!-- Noise filter buffer size -->
-              <GroupBox Header="Buffer" Height="50" Margin="0,0,0,0">
+              <GroupBox Header="Buffer"
+                        IsEnabled="{Binding ElementName=checkBoxNoiseFilter, Path=IsChecked}"
+                        Height="50" Margin="0,0,0,0">
                 <TextBox Name="textNoiseBuffer" TextChanged="TextChanged">10</TextBox>
               </GroupBox>
 
               <!-- Noise filter threshold -->
-              <GroupBox Header="Threshold" Height="50" Width="80" Margin="0,0,0,0">
+              <GroupBox Header="Threshold"
+                        IsEnabled="{Binding ElementName=checkBoxNoiseFilter, Path=IsChecked}"
+                        Height="50" Width="80" Margin="0,0,0,0">
                 <Grid>
                   <TextBox Name="textNoiseThreshold" TextChanged="TextChanged">1.0</TextBox>
                   <Label HorizontalAlignment="Right">mm</Label>
                 </Grid>
               </GroupBox>
 
+
+              <GroupBox Header="Preset" IsEnabled="{Binding ElementName=checkBoxNoiseFilter, Path=IsChecked}">
+                <ComboBox Name="comboBoxNoiseReductionPresets"
+                            Width="150" 
+                            VerticalContentAlignment="Center">
+                </ComboBox>
+              </GroupBox>
+
             </StackPanel>
-
-
           </GroupBox>
 
           <!-- Anti-smoothing filter -->
@@ -877,18 +1058,14 @@
                   Check the checkbox to enable the filter.
                   <LineBreak/>
                   <LineBreak/>
-                  <TextBlock FontWeight="Bold">
-                  Shape
-                  </TextBlock>
+                  <TextBlock FontWeight="Bold">Shape</TextBlock>
                   <LineBreak/>
                   Shape value is the how the filter handles pen acceleration. Start with a neutral 0.5 shape value and try to keep it around that.
                   <LineBreak/>
                   Use a lower value when there are are too much artifacts in sharp corners and increase the value if corners are too smooth.
                   <LineBreak/>
                   <LineBreak/>
-                  <TextBlock FontWeight="Bold">
-                  Compensation
-                  </TextBlock>
+                  <TextBlock FontWeight="Bold">Compensation</TextBlock>
                   <LineBreak/>                    
                   Compensation value is the amount of latency compensation.
                   <LineBreak/>
@@ -901,90 +1078,114 @@
                   Try to find a balance between response time and artifacting.
                   <LineBreak/>
                   <LineBreak/>
-                  <TextBlock FontWeight="Bold">
-                    Only when hovering
-                  </TextBlock>
+                  <TextBlock FontWeight="Bold">Only when hovering</TextBlock>
                   <LineBreak/>
                   This feature is mainly meant for Wacom CTL-490, but might be useful with other tablets too.
                   <LineBreak/>
                   <LineBreak/>
-                  <TextBlock FontWeight="Bold">
-                    Recommended value ranges
-                  </TextBlock>
+                  <TextBlock FontWeight="Bold">Recommended value ranges</TextBlock>
                   <LineBreak/>
-                  Shape: 0.1 - 0.9
+                  Shape: 0.1 - 2.0
                   <LineBreak/>
                   Compensation: 10 - 30 ms
                   <LineBreak/>
-                  <LineBreak/>                    
-                  <TextBlock FontWeight="Bold">
-                  Example values:
-                  </TextBlock>
-                  <LineBreak/>
-                  <TextBlock Margin="5,0,0,0">
-                    <TextBlock FontWeight="Bold">Gaomon S56K:</TextBlock>
-                    Shape 0.7, Compensation = 15 - 20 ms
-                    <LineBreak/>                     
-                    <TextBlock FontWeight="Bold">Huion 420 &amp; H420:</TextBlock>
-                    Shape = 0.5, Compensation = 15 - 20 ms
-                    <LineBreak/>
-                    <TextBlock FontWeight="Bold">Huion H430P &amp; H640P:</TextBlock>
-                    Shape = 0.7, Compensation = 20 - 30 ms
-                    <LineBreak/>
-                    <TextBlock FontWeight="Bold">XP-PEN G430 &amp; G640:</TextBlock>
-                    Shape = 0.5, Compensation = 10 - 20 ms, Invalid low speed data, use noise reduction 10/0.5 mm
-                    <LineBreak/>                   
-                    <TextBlock FontWeight="Bold">Wacom CTL-490 Hover:</TextBlock>
-                    Shape = 0.5, Compensation = 10 - 20 ms, Enable "Only when hovering"
-                    <LineBreak/>
-                    <TextBlock FontWeight="Bold">VEIKK S640:</TextBlock>
-                    <LineBreak/>
-                    <TextBlock Margin="10,0,0,0">
-                      Shape = 0.5, Compensation = 10 - 20 ms, Filter will automatically adjust the compensation level.
-                      <LineBreak/>
-                      The tablet does have a 166 RPS mode with higher smoothing latency.
-                    </TextBlock>
-                  </TextBlock>
                 </TextBlock>
               </StackPanel>
             </GroupBox.ToolTip>
 
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+            <StackPanel Orientation="Vertical">
 
-              <!-- Anti-smoothing filter enabled -->
-              <CheckBox Name="checkBoxAntiSmoothing"
-                            VerticalAlignment="Center"
-                            Margin="5,10,5,0"
-                            Checked="CheckboxChanged" Unchecked="CheckboxChanged">
-              </CheckBox>
+              <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
 
-              <!-- Anti-smoothing power -->
-              <GroupBox Header="Shape" Height="50" Margin="0,0,0,0" Width="60">
-                <TextBox Name="textAntiSmoothingShape" TextChanged="TextChanged">0.3</TextBox>
-              </GroupBox>
+                <!-- Anti-smoothing filter enabled -->
+                <CheckBox Name="checkBoxAntiSmoothing"
+                          VerticalAlignment="Center"
+                          Margin="5,5"
+                          Checked="CheckboxChanged" Unchecked="CheckboxChanged">
+                  Enabled
+                </CheckBox>
 
-              <!-- Anti-smoothing compensation -->
-              <GroupBox Header="Compensation" Height="50" Margin="0,0,0,0">
-                <Grid>
-                  <TextBox Name="textAntiSmoothingCompensation" TextChanged="TextChanged">20</TextBox>
-                  <Label HorizontalAlignment="Right">ms</Label>
-                </Grid>
-              </GroupBox>
 
-              <!-- Anti-smoothing only when hovering -->
-              <CheckBox Name="checkBoxAntiSmoothingOnlyWhenHover"
+                <!-- Anti-smoothing only when hovering -->
+                <CheckBox Name="checkBoxAntiSmoothingOnlyWhenHover"
+                          IsEnabled="{Binding ElementName=checkBoxAntiSmoothing, Path=IsChecked}"
                           VerticalAlignment="Center"
                           VerticalContentAlignment="Center"
-                          Margin="5,10,5,0"
+                          Margin="5,0"
                           Checked="CheckboxChanged" Unchecked="CheckboxChanged">
-                <TextBlock>
+                  <TextBlock>
                     Only when hovering
-                </TextBlock>
-              </CheckBox>
+                  </TextBlock>
+                </CheckBox>
+
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal">
+
+                <!-- Anti-smoothing drag multiplier -->
+                <GroupBox Header="Drag Multiplier"
+                        IsEnabled="{Binding ElementName=checkBoxAntiSmoothing, Path=IsChecked}"
+                        Height="50" Margin="0,0,0,0">
+                  <TextBox Name="textAntiSmoothingDragMultiplier" TextChanged="TextChanged">1.0</TextBox>
+                </GroupBox>
+
+                <!-- Anti-smoothing presets -->
+                <GroupBox Header="Preset" IsEnabled="{Binding ElementName=checkBoxAntiSmoothing, Path=IsChecked}">
+                  <ComboBox Name="comboBoxAntiSmoothingPresets"
+                            Width="150"
+                            VerticalContentAlignment="Center">
+                  </ComboBox>
+                </GroupBox>
+
+
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal" Name="stackPanelAntiSmoothingSettings"
+                          IsEnabled="{Binding ElementName=checkBoxAntiSmoothing, Path=IsChecked}">
+
+                <GroupBox Header="Enabled" Name="groupBoxAntiSmoothingEnabled">
+                  <StackPanel Orientation="Vertical" Name="stackPanelAntiSmoothingEnabled"  Margin="0,0,0,0"/>
+                </GroupBox>
+
+                <GroupBox Header="Velocity" Name="groupBoxAntiSmoothingVelocity">
+                  <StackPanel Orientation="Vertical" Name="stackPanelAntiSmoothingVelocity"/>
+                </GroupBox>
+                <GroupBox Header="Shape" Name="groupBoxAntiSmoothingShape">
+                  <StackPanel Orientation="Vertical" Name="stackPanelAntiSmoothingShape"/>
+                </GroupBox>
+                <GroupBox Header="Compensation" Name="groupBoxAntiSmoothingCompensation">
+                  <StackPanel Orientation="Vertical" Name="stackPanelAntiSmoothingCompensation"/>
+                </GroupBox>
+
+                <!-- Anti-smoothing velocity -->
+                <!--
+                <GroupBox Header="Speed" Height="50" Margin="0,0,0,0" Width="90">
+                  <Grid>
+                    <TextBox Name="textAntiSmoothingVelocity" TextChanged="TextChanged">999</TextBox>
+                    <Label HorizontalAlignment="Right">mm/s</Label>
+                  </Grid>
+                </GroupBox>
+                -->
+
+                <!-- Anti-smoothing power -->
+                <!--
+                <GroupBox Header="Shape" Height="50" Margin="0,0,0,0" Width="60">
+                  <TextBox Name="textAntiSmoothingShape" TextChanged="TextChanged">0.3</TextBox>
+                </GroupBox>
+                -->
+
+                <!-- Anti-smoothing compensation -->
+                <!--
+                <GroupBox Header="Compensation" Height="50" Margin="0,0,0,0">
+                  <Grid>
+                    <TextBox Name="textAntiSmoothingCompensation" TextChanged="TextChanged">20</TextBox>
+                    <Label HorizontalAlignment="Right">ms</Label>
+                  </Grid>
+                </GroupBox>
+                -->
+              </StackPanel>
 
             </StackPanel>
-
-
           </GroupBox>
 
 
@@ -992,7 +1193,7 @@
       </TabItem>
 
       <!-- Misc tab -->
-      <TabItem Margin="10,0,-10,0" Padding="10,5">
+      <TabItem Name="tabMisc" Margin="10,0,-10,0" Padding="10,5">
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#000066" FontWeight="Bold">
             <AccessText Text="_Misc"/>
@@ -1046,7 +1247,7 @@
       </TabItem>
 
       <!-- Commands tab -->
-      <TabItem Margin="10,0,-10,0" Padding="10,5">
+      <TabItem Name="tabCommands" Margin="10,0,-10,0" Padding="10,5">
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#000" FontWeight="Bold">
             <AccessText Text="C_ommands"/>
@@ -1092,7 +1293,7 @@
       </TabItem>
 
       <!-- Console tab -->
-      <TabItem Margin="10,0,-10,0" Padding="10,5">
+      <TabItem Name="tabConsole" Margin="10,0,-10,0" Padding="10,5">
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#000" FontWeight="Bold">
             <AccessText Text="_Console"/>
@@ -1117,25 +1318,24 @@
               <!-- Console Context Menu -->
               <TextBlock.ContextMenu>
                 <ContextMenu>
-                  <MenuItem Name="menuCopyAll" Header="Copy all" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuCopyDebug" Header="Copy [DEBUG] messages" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuCopyErrors" Header="Copy [ERROR] messages" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuCopyAll" Header="Copy all" Click="ConsoleMenuClick" />
+                  <MenuItem Name="menuCopyDebug" Header="Copy [DEBUG] messages" Click="ConsoleMenuClick" />
+                  <MenuItem Name="menuCopyErrors" Header="Copy [ERROR] messages" Click="ConsoleMenuClick" />
                   <Separator/>
-                  <MenuItem Name="menuStartDebug" Header="Start debugging" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuStopDebug" Header="Stop debugging" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuFindLatestDebugLog" Header="Find latest debug log" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuFindStartupLog" Header="Find startuplog.txt" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuSettingsToUserConfig" Header="Write settings to user.cfg" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuStartDebug" Header="Start debugging" Click="ConsoleMenuClick" />
+                  <MenuItem Name="menuStopDebug" Header="Stop debugging" Click="ConsoleMenuClick" />
+                  <MenuItem Name="menuFindLatestDebugLog" Header="Find latest debug log" Click="ConsoleMenuClick" />
+                  <MenuItem Name="menuFindStartupLog" Header="Find startuplog.txt" Click="ConsoleMenuClick" />
                   <Separator/>
-                  <MenuItem Name="menuRunBenchmark" Header="Run benchmark" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuCopyBenchmark" Header="Copy benchmark result" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuMeasure2" Header="Measure 2 points" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuRunBenchmark" Header="Run benchmark" Click="ConsoleMenuClick" />
+                  <MenuItem Name="menuCopyBenchmark" Header="Copy benchmark result" Click="ConsoleMenuClick" />
+                  <MenuItem Name="menuMeasure2" Header="Measure 2 points" Click="ConsoleMenuClick" />
                   <Separator/>
-                  <MenuItem Name="menuOpenGithub" Header="Open GitHub page" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuOpenLatestURL" Header="Open latest URL" Click="ConsoleMenuClick"></MenuItem>
-                  <MenuItem Name="menuReportProblem" Header="Report a problem" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuOpenGithub" Header="Open GitHub page" Click="ConsoleMenuClick" />
+                  <MenuItem Name="menuOpenLatestURL" Header="Open latest URL" Click="ConsoleMenuClick" />
+                  <MenuItem Name="menuReportProblem" Header="Report a problem" Click="ConsoleMenuClick" />
                   <Separator/>
-                  <MenuItem Name="menuOpenFolder" Header="Open TabletDriver folder" Click="ConsoleMenuClick"></MenuItem>
+                  <MenuItem Name="menuOpenFolder" Header="Open TabletDriver folder" Click="ConsoleMenuClick" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
             </TextBlock>

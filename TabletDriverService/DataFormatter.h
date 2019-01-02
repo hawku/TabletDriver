@@ -4,6 +4,12 @@ class DataFormatter
 public:
 	class DataInstruction {
 	public:
+		enum WriteMode {
+			WriteModeOR,
+			WriteModeAND,
+			WriteModeSet
+		};
+
 		int targetByte;
 		int targetBitMask;
 
@@ -11,6 +17,8 @@ public:
 		int sourceBitShift;
 		int sourceBitMask;
 
+		int writeMode;
+		
 		DataInstruction();
 	};
 
@@ -23,7 +31,7 @@ public:
 	~DataFormatter();
 
 	bool Format(void *targetBuffer, void *sourceBuffer);
-	bool AddInstruction(int targetByte, int targetBitMask, int sourceByte, int sourceBitMask, int sourceBitShift);
+	bool AddInstruction(int targetByte, int targetBitMask, int sourceByte, int sourceBitMask, int sourceBitShift, int writeMode);
 	bool AddInstruction(DataInstruction *instruction);
 
 

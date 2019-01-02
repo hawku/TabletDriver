@@ -11,10 +11,8 @@ private:
 	double reportRateAverage;
 	double velocity;
 	double acceleration;
-	double jerk;
 	double oldVelocity;
 	double oldAcceleration;
-	double oldJerk;
 	int ignoreInvalidReports;
 	chrono::high_resolution_clock::time_point timeBegin;
 	chrono::high_resolution_clock::time_point timeLastReport;
@@ -28,13 +26,26 @@ public:
 	TabletState tabletState;
 	TabletState oldTabletState;
 
-	double shape;
-	double compensation;
+	class Settings {
+	public:
+		double velocity;
+		double shape;
+		double compensation;
+	};
+	Settings settings[32];
+	int settingCount;
+
 	bool onlyWhenHover;
 	double targetReportRate;
+	double dragMultiplier;
 
 	void SetTarget(TabletState *tabletState);
 	void Update();
+
+
+	void AddSettings(double velocity, double shape, double compensation);
+	void ClearSettings();
+	bool GetSettingsByVelocity(double velocity, double *shape, double *compensation);
 
 	TabletFilterAntiSmoothing();
 	~TabletFilterAntiSmoothing();

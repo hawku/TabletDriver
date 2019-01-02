@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -27,11 +28,18 @@ namespace TabletDriverGUI
                 // Console timer
                 timerConsoleUpdate.Start();
 
+                // Pen position timer
+                //timerUpdatePenPositions.Start();
+
                 driver.Start(config.DriverPath, config.DriverArguments);
                 if (!driver.IsRunning)
                 {
                     SetStatus("Can't start the driver! Check the console!");
-                    driver.ConsoleAddText("ERROR! Can't start the driver!");
+                    driver.ConsoleAddLine("ERROR! Can't start the driver!");
+                }
+                else
+                {
+                    SetStatus("Driver starting...");
                 }
             }
 
@@ -39,7 +47,7 @@ namespace TabletDriverGUI
             catch (Exception e)
             {
                 SetStatus("Can't start the driver! Check the console!");
-                driver.ConsoleAddText("ERROR! Can't start the driver!\n  " + e.Message);
+                driver.ConsoleAddLine("ERROR! Can't start the driver!\n  " + e.Message);
             }
         }
 
@@ -51,6 +59,9 @@ namespace TabletDriverGUI
         {
             if (!running) return;
             running = false;
+
+            //timerUpdatePenPositions.Stop();
+
             driver.Stop();
             timerConsoleUpdate.Stop();
         }
@@ -63,68 +74,136 @@ namespace TabletDriverGUI
         {
             if (!driver.IsRunning) return;
 
+            // Clear setting commands list
             settingCommands.Clear();
 
+            //
             // Desktop size
+            //
             settingCommands.Add("DesktopSize " + textDesktopWidth.Text + " " + textDesktopHeight.Text);
 
-            // Screen area
-            settingCommands.Add("ScreenArea " +
-                Utils.GetNumberString(config.ScreenArea.Width) + " " + Utils.GetNumberString(config.ScreenArea.Height) + " " +
-                Utils.GetNumberString(config.ScreenArea.X) + " " + Utils.GetNumberString(config.ScreenArea.Y)
-            );
-
 
             //
-            // Tablet area
+            // Screen and tablet areas
             //
-            // Inverted
-            if (config.Invert)
+            int areaIndex = 0;
+            for (int i = 0; i < config.GetAreaCount(); i++)
             {
-                settingCommands.Add("TabletArea " +
-                    Utils.GetNumberString(config.TabletArea.Width) + " " +
-                    Utils.GetNumberString(config.TabletArea.Height) + " " +
-                    Utils.GetNumberString(config.TabletFullArea.Width - config.TabletArea.X) + " " +
-                    Utils.GetNumberString(config.TabletFullArea.Height - config.TabletArea.Y)
-                );
-                settingCommands.Add("Rotate " + Utils.GetNumberString(config.TabletArea.Rotation + 180));
-            }
-            // Normal
-            else
-            {
-                settingCommands.Add("TabletArea " +
-                    Utils.GetNumberString(config.TabletArea.Width) + " " +
-                    Utils.GetNumberString(config.TabletArea.Height) + " " +
-                    Utils.GetNumberString(config.TabletArea.X) + " " +
-                    Utils.GetNumberString(config.TabletArea.Y)
-                );
-                settingCommands.Add("Rotate " + Utils.GetNumberString(config.TabletArea.Rotation));
-            }
-
-
-            // Output Mode
-            switch (config.OutputMode)
-            {
-                case Configuration.OutputModes.Absolute:
-                    settingCommands.Add("OutputMode Absolute");
-                    break;
-                case Configuration.OutputModes.Relative:
-                    settingCommands.Add("OutputMode Relative");
-                    settingCommands.Add("RelativeSensitivity " +
-                        Utils.GetNumberString(config.ScreenArea.Width / config.TabletArea.Width) +
-                        " " +
-                        Utils.GetNumberString(config.ScreenArea.Height / config.TabletArea.Height)
+                if (config.ScreenAreas[i].IsEnabled)
+                {
+                    // Screen area
+                    settingCommands.Add("ScreenArea " +
+                        Utils.GetNumberString(config.ScreenAreas[i].Width) + " " + Utils.GetNumberString(config.ScreenAreas[i].Height) + " " +
+                        Utils.GetNumberString(config.ScreenAreas[i].X) + " " + Utils.GetNumberString(config.ScreenAreas[i].Y) + " " +
+                        areaIndex
                     );
-                    break;
-                case Configuration.OutputModes.Digitizer:
-                    settingCommands.Add("OutputMode Digitizer");
-                    break;
 
-                case Configuration.OutputModes.SendInput:
-                    settingCommands.Add("OutputMode SendInputAbsolute");
-                    break;
+                    // Inverted tablet area
+                    if (config.Invert)
+                    {
+                        settingCommands.Add("TabletArea " +
+                            Utils.GetNumberString(config.TabletAreas[i].Width) + " " +
+                            Utils.GetNumberString(config.TabletAreas[i].Height) + " " +
+                            Utils.GetNumberString(config.TabletFullArea.Width - config.TabletAreas[i].X) + " " +
+                            Utils.GetNumberString(config.TabletFullArea.Height - config.TabletAreas[i].Y) + " " +
+                            areaIndex
+                        );
+                        settingCommands.Add(
+                            "Rotate " + Utils.GetNumberString(config.TabletAreas[0].Rotation + 180) + " " +
+                            areaIndex
+                        );
+
+                    }
+
+                    // Normal tablet area
+                    else
+                    {
+                        settingCommands.Add("TabletArea " +
+                            Utils.GetNumberString(config.TabletAreas[i].Width) + " " +
+                            Utils.GetNumberString(config.TabletAreas[i].Height) + " " +
+                            Utils.GetNumberString(config.TabletAreas[i].X) + " " +
+                            Utils.GetNumberString(config.TabletAreas[i].Y) + " " +
+                            areaIndex
+                        );
+                        settingCommands.Add(
+                            "Rotate " + Utils.GetNumberString(config.TabletAreas[0].Rotation) + " " +
+                            areaIndex
+                        );
+                    }
+                    areaIndex++;
+                }
+
+
 
             }
+            settingCommands.Add("ScreenMapCount " + areaIndex);
+
+
+            //
+            // Output Mode
+            //
+            switch (config.Mode)
+            {
+                case Configuration.OutputModes.Standard:
+
+                    // Windows 8, 8.1, 10
+                    if (VersionHelper.IsWindows8OrGreater())
+                    {
+                        if (config.Positioning == Configuration.OutputPositioning.Absolute)
+                            settingCommands.Add("OutputMode Absolute");
+                        else
+                            settingCommands.Add("OutputMode Relative");
+                    }
+
+                    // Windows 7
+                    else
+                    {
+                        if (config.Positioning == Configuration.OutputPositioning.Absolute)
+                            settingCommands.Add("OutputMode SendInputAbsolute");
+                        else
+                            settingCommands.Add("OutputMode SendInputRelative");
+                    }
+                    break;
+
+                case Configuration.OutputModes.WindowsInk:
+                    if (config.Positioning == Configuration.OutputPositioning.Absolute)
+                        settingCommands.Add("OutputMode DigitizerAbsolute");
+                    else
+                        settingCommands.Add("OutputMode DigitizerRelative");
+                    break;
+                case Configuration.OutputModes.Compatibility:
+
+                    // Windows 8, 8.1, 10
+                    if (VersionHelper.IsWindows8OrGreater())
+                    {
+                        if (config.Positioning == Configuration.OutputPositioning.Absolute)
+                            settingCommands.Add("OutputMode SendInputAbsolute");
+                        else
+                            settingCommands.Add("OutputMode SendInputRelative");
+                    }
+
+                    // Windows 7
+                    else
+                    {
+                        if (config.Positioning == Configuration.OutputPositioning.Absolute)
+                            settingCommands.Add("OutputMode Absolute");
+                        else
+                            settingCommands.Add("OutputMode Relative");
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            //
+            // Relative positioning sensitivity
+            //
+            settingCommands.Add("RelativeSensitivity " +
+                 Utils.GetNumberString(config.ScreenAreas[0].Width / config.TabletAreas[0].Width) +
+                 " " +
+                 Utils.GetNumberString(config.ScreenAreas[0].Height / config.TabletAreas[0].Height)
+             );
+
 
             //
             // Pen button map
@@ -143,6 +222,7 @@ namespace TabletDriverGUI
                     button++;
                 }
             }
+
 
             //
             // Tablet button map
@@ -170,7 +250,10 @@ namespace TabletDriverGUI
             // Pressure
             //
             settingCommands.Add("PressureSensitivity " + Utils.GetNumberString(config.PressureSensitivity));
-            settingCommands.Add("PressureDeadzone " + Utils.GetNumberString(config.PressureDeadzone));
+            settingCommands.Add("PressureDeadzone " +
+                Utils.GetNumberString(config.PressureDeadzoneLow) + " " +
+                Utils.GetNumberString(config.PressureDeadzoneHigh)
+            );
 
 
             //
@@ -179,24 +262,30 @@ namespace TabletDriverGUI
             settingCommands.Add("ScrollSensitivity " + Utils.GetNumberString(config.ScrollSensitivity));
             settingCommands.Add("ScrollAcceleration " + Utils.GetNumberString(config.ScrollAcceleration));
             settingCommands.Add("ScrollStopCursor " + (config.ScrollStopCursor ? "true" : "false"));
+            settingCommands.Add("ScrollDrag " + (config.ScrollDrag ? "true" : "false"));
 
 
+            //
             // Smoothing filter
+            //
             if (config.SmoothingEnabled)
             {
-                settingCommands.Add("FilterTimerInterval " + Utils.GetNumberString(config.SmoothingInterval));
                 settingCommands.Add(
-                    "Smoothing " + Utils.GetNumberString(config.SmoothingLatency) + " 90 " +
+                    "Smoothing " + Utils.GetNumberString(config.SmoothingLatency) + " " +
                     (config.SmoothingOnlyWhenButtons ? "true" : "false")
                 );
+                settingCommands.Add("FilterTimerInterval " + Utils.GetNumberString(config.SmoothingInterval));
             }
             else
             {
-                settingCommands.Add("FilterTimerInterval 10");
                 settingCommands.Add("Smoothing 0");
+                settingCommands.Add("FilterTimerInterval 10");
             }
 
+
+            //
             // Noise filter
+            //
             if (config.NoiseFilterEnabled)
             {
                 settingCommands.Add("Noise " + Utils.GetNumberString(config.NoiseFilterBuffer) + " " + Utils.GetNumberString(config.NoiseFilterThreshold));
@@ -207,20 +296,49 @@ namespace TabletDriverGUI
             }
 
 
+            //
             // Anti-smoothing filter
+            //
             if (config.AntiSmoothingEnabled)
             {
-                settingCommands.Add("AntiSmoothing " + Utils.GetNumberString(config.AntiSmoothingShape, "0.000") + " " +
-                    Utils.GetNumberString(config.AntiSmoothingCompensation) + " " +
-                    (config.AntiSmoothingOnlyWhenHover ? "true" : "false"));
+                settingCommands.Add(
+                    "AntiSmoothing " +
+                    (config.AntiSmoothingOnlyWhenHover ? "true" : "false") + " " +
+                    Utils.GetNumberString(config.AntiSmoothingDragMultiplier)
+                );
+
+                Configuration.AntiSmoothingSetting[] settings;
+                settings = (Configuration.AntiSmoothingSetting[])config.AntiSmoothingSettings.Clone();
+
+                // Sort
+                Array.Sort(settings, (a, b) =>
+                {
+                    if (a.Velocity > b.Velocity) return 1;
+                    if (b.Velocity > a.Velocity) return -1;
+                    return 0;
+                });
+                foreach (var setting in settings)
+                {
+                    if (setting.Enabled)
+                    {
+                        settingCommands.Add("AntiSmoothingAdd " +
+                            Utils.GetNumberString(setting.Velocity) + " " +
+                            Utils.GetNumberString(setting.Shape, "0.000") + " " +
+                            Utils.GetNumberString(setting.Compensation)
+                        );
+                    }
+                }
+
             }
             else
             {
-                settingCommands.Add("AntiSmoothing 0");
+                settingCommands.Add("AntiSmoothing off");
             }
 
 
+            //
             // Debugging
+            //
             if (config.DebuggingEnabled)
             {
                 settingCommands.Add("Debug true");
@@ -231,7 +349,9 @@ namespace TabletDriverGUI
             }
 
 
-            // Commands after settings
+            //
+            // Custom commands
+            //
             if (config.CustomCommands.Length > 0)
             {
                 foreach (string command in config.CustomCommands)
@@ -244,6 +364,7 @@ namespace TabletDriverGUI
                 }
             }
 
+
             //
             // Send commands to the driver
             //
@@ -254,6 +375,7 @@ namespace TabletDriverGUI
 
                 driver.SendCommand(command);
             }
+
 
             //
             // Write settings to usersettings.cfg
@@ -310,6 +432,8 @@ namespace TabletDriverGUI
             {
                 string tabletName = parameters;
                 string title = "TabletDriverGUI - " + tabletName;
+                Regex regex = new Regex("\\([^\\)]+\\)");
+                config.TabletName = regex.Replace(tabletName, "");
                 Title = title;
 
                 // Limit notify icon text length
@@ -333,10 +457,15 @@ namespace TabletDriverGUI
                 {
                     config.TabletFullArea.Width = val;
                     config.TabletFullArea.X = val / 2.0;
+                    if (isFirstStart)
+                    {
+                        config.TabletAreas[0].Width = config.TabletFullArea.Width;
+                        config.TabletAreas[0].X = config.TabletFullArea.X;
+                        FixTabletAreaDimensions(config.TabletAreas[0], config.ScreenAreas[0]);
+                        SendSettingsToDriver();
+                    }
                     LoadSettingsFromConfiguration();
                     UpdateSettingsToConfiguration();
-                    if (isFirstStart)
-                        SendSettingsToDriver();
                 }
             }
 
@@ -349,10 +478,15 @@ namespace TabletDriverGUI
                 {
                     config.TabletFullArea.Height = val;
                     config.TabletFullArea.Y = val / 2.0;
+                    if (isFirstStart)
+                    {
+                        config.TabletAreas[0].Height = config.TabletFullArea.Height;
+                        config.TabletAreas[0].Y = config.TabletFullArea.Y;
+                        FixTabletAreaDimensions(config.TabletAreas[0], config.ScreenAreas[0]);
+                        SendSettingsToDriver();
+                    }
                     LoadSettingsFromConfiguration();
                     UpdateSettingsToConfiguration();
-                    if (isFirstStart)
-                        SendSettingsToDriver();
 
                 }
             }
@@ -392,10 +526,10 @@ namespace TabletDriverGUI
                     double centerX = minimumX + areaWidth / 2.0;
                     double centerY = minimumY + areaHeight / 2.0;
 
-                    config.TabletArea.Width = areaWidth;
-                    config.TabletArea.Height = areaHeight;
-                    config.TabletArea.X = centerX;
-                    config.TabletArea.Y = centerY;
+                    config.SelectedTabletArea.Width = areaWidth;
+                    config.SelectedTabletArea.Height = areaHeight;
+                    config.SelectedTabletArea.X = centerX;
+                    config.SelectedTabletArea.Y = centerY;
                     LoadSettingsFromConfiguration();
                     UpdateSettingsToConfiguration();
 
@@ -487,7 +621,7 @@ namespace TabletDriverGUI
                 if (config.AutomaticRestart)
                 {
                     SetStatus("Driver stopped. Restarting! Check console !!!");
-                    driver.ConsoleAddText("Driver stopped. Restarting!");
+                    driver.ConsoleAddLine("Driver stopped. Restarting!");
 
                     // Run in the main application thread
                     Application.Current.Dispatcher.Invoke(() =>
@@ -500,7 +634,7 @@ namespace TabletDriverGUI
                 else
                 {
                     SetStatus("Driver stopped!");
-                    driver.ConsoleAddText("Driver stopped!");
+                    driver.ConsoleAddLine("Driver stopped!");
                 }
 
                 // Run in the main application thread

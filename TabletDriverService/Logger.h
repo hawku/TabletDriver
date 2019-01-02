@@ -96,6 +96,7 @@ public:
 	bool directPrint;
 	bool debugEnabled;
 	string logFilename = "";
+	HANDLE pipeHandle;
 
 	void OutputMessage(LogItem *message);
 	void ProcessMessages();

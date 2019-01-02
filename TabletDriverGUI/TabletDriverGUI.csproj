@@ -77,8 +77,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ButtonMapping.xaml.cs">
-      <DependentUpon>ButtonMapping.xaml</DependentUpon>
+    <Compile Include="MainWindow.Areas.cs" />
+    <Compile Include="MultimediaTimer.cs" />
+    <Compile Include="WindowTabletViewSettings.xaml.cs">
+      <DependentUpon>WindowTabletViewSettings.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WindowButtonMapping.xaml.cs">
+      <DependentUpon>WindowButtonMapping.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainWindow.Driver.cs" />
     <Compile Include="MainWindow.Console.cs" />
@@ -88,10 +93,23 @@
     <Compile Include="TabletDriver.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="VersionHelper.cs" />
-    <Compile Include="WacomArea.xaml.cs">
-      <DependentUpon>WacomArea.xaml</DependentUpon>
+    <Compile Include="WindowMessageBox.xaml.cs">
+      <DependentUpon>WindowMessageBox.xaml</DependentUpon>
     </Compile>
-    <Page Include="ButtonMapping.xaml">
+    <Compile Include="WindowTabletView.xaml.cs">
+      <DependentUpon>WindowTabletView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WindowWacomArea.xaml.cs">
+      <DependentUpon>WindowWacomArea.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WindowAreaEditor.xaml.cs">
+      <DependentUpon>WindowAreaEditor.xaml</DependentUpon>
+    </Compile>
+    <Page Include="WindowTabletViewSettings.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowButtonMapping.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -109,7 +127,19 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="WacomArea.xaml">
+    <Page Include="WindowMessageBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowTabletView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowWacomArea.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowAreaEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

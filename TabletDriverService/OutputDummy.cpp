@@ -14,13 +14,15 @@ bool OutputDummy::Set(TabletState *tabletState) {
 
 	double timeDelta = (tabletState->time - timeBegin).count() / 1000000.0;
 
-	LOG_DEBUG("T=%0.3f B=%d X=%0.2f Y=%0.2f P=%0.4f\n",
-		timeDelta,
-		tabletState->buttons,
-		tabletState->position.x,
-		tabletState->position.y,
-		tabletState->pressure
-	);
+	if(logger.debugEnabled) {
+		LOG_DEBUG("T=%0.3f B=%d X=%0.2f Y=%0.2f P=%0.4f\n",
+			timeDelta,
+			tabletState->buttons,
+			tabletState->position.x,
+			tabletState->position.y,
+			tabletState->pressure
+		);
+	}
 
 
 	return true;

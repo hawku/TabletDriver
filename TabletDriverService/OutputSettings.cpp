@@ -2,9 +2,11 @@
 #include "OutputSettings.h"
 
 OutputSettings::OutputSettings() {
+	relativeState.firstPosition = true;
 	relativeSensitivity.Set(1,1);
 	relativeResetDistance = 25;
 	relativeResetTime = 100;
+	relativeDragMove = false;
 	ResetRelativeState(0, 0, chrono::high_resolution_clock::now());
 }
 

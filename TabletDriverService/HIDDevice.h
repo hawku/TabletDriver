@@ -19,6 +19,8 @@ private:
 	string _manufacturerName;
 	string _productName;
 	string _serialNumber;
+	string _devicePath;
+	wstring _devicePathW;
 public:
 	bool isOpen;
 	bool debugEnabled;

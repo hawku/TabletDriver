@@ -9,40 +9,74 @@ Logger::Logger() {
 	newMessage = false;
 	directPrint = false;
 	debugEnabled = false;
+	pipeHandle = NULL;
 }
 
 
 void Logger::OutputMessage(LogItem *message) {
-	char timeBuffer[64];
-	char levelNameBuffer[128];
-	char moduleBuffer[128];
 
+	char buffer[4096];
+	int bufferSize = 4096;
+	int index = 0;
 
-	int index = strftime(timeBuffer, 64, "[%Y-%m-%d %H:%M:%S", &message->time);
-	sprintf_s(timeBuffer + index, 64 - index, ".%03d] ", message->systemTime.wMilliseconds);
+	// Time
+	index += strftime(buffer + index, bufferSize - index, "[%Y-%m-%d %H:%M:%S", &message->time);
 
+	// Milliseconds
+	if(index < bufferSize)
+		index += sprintf_s(buffer + index, bufferSize - index, ".%03d] ", message->systemTime.wMilliseconds);
+
+	// Module
 	if(message->module.length() > 0) {
-		sprintf_s(moduleBuffer, "[%s] ", message->module.c_str());
-	}
-	else {
-		moduleBuffer[0] = 0;
+		if(index < bufferSize)
+			index += sprintf_s(buffer + index, bufferSize - index, "[%s] ", message->module.c_str());
 	}
 
+	// Log level
 	if(message->level != LogLevelInfo) {
-		sprintf_s(levelNameBuffer, "[%s] ", levelNames[message->level].c_str());
-	}
-	else {
-		levelNameBuffer[0] = 0;
+		if(index < bufferSize)
+			index += sprintf_s(buffer + index, bufferSize - index, "[%s] ", levelNames[message->level].c_str());
 	}
 
+	// Message
+	if(index < bufferSize) {
 
+		// Message to large for the buffer
+		if((int)message->text.size() > bufferSize - index) {
+			memcpy(buffer + index, message->text.c_str(), (bufferSize - index) - 1);
+			index = bufferSize;
+		}
+
+		// Copy message to buffer
+		else
+		{
+			memcpy(buffer + index, message->text.c_str(), message->text.size());
+			index += message->text.size();
+		}
+	}
+
+	// Write to standard output
 	try {
-		cout << timeBuffer << levelNameBuffer << moduleBuffer << message->text << flush;
+		cout.write(buffer, index);
+		cout.flush();
 	} catch(exception) {
 		exit(1);
 	}
+
+	// Write to output pipe
+	try {
+		if(pipeHandle != NULL) {
+			DWORD bytesWritten = 0;
+			WriteFile(pipeHandle, buffer, index, &bytesWritten, NULL);
+		}
+	} catch(exception) {
+		logger.pipeHandle = NULL;
+	}
+
+	// Write to log file
 	if(logFile && logFile.is_open()) {
-		logFile << timeBuffer << levelNameBuffer << moduleBuffer << message->text << flush;
+		logFile.write(buffer, index);
+		logFile.flush();
 	}
 }
 
@@ -62,7 +96,7 @@ void Logger::ProcessMessages() {
 	lockMessages.unlock();
 
 	// Loop through messages
-	for(auto message : tmp) {
+	for(LogItem message : tmp) {
 		if(!directPrint) {
 			OutputMessage(&message);
 		}

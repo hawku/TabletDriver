@@ -8,6 +8,9 @@ InputEmulator::InputEmulator()
 {
 	CreateKeyMap();
 	CreateVirtualKeyMap();
+
+	//
+	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 }
 
 
@@ -31,9 +34,16 @@ void InputEmulator::CreateKeyMap()
 	AddKey("MOUSE5", "Mouse 5", 0, 5);
 
 	// Mouse scroll
-	AddKey("MOUSESCROLLV", "Mouse Scroll Vertical", 0, 0x101);
-	AddKey("MOUSESCROLLH", "Mouse Scroll Horizontal", 0, 0x102);
-	AddKey("MOUSESCROLLB", "Mouse Scroll Both", 0, 0x103);
+	AddKey("SCROLLUP", "Mouse Scroll Up", 0, MouseButtons::MouseScrollUp);
+	AddKey("SCROLLDOWN", "Mouse Scroll Down", 0, MouseButtons::MouseScrollDown);
+	AddKey("SCROLLLEFT", "Mouse Scroll Left", 0, MouseButtons::MouseScrollLeft);
+	AddKey("SCROLLRIGHT", "Mouse Scroll Right", 0, MouseButtons::MouseScrollRight);
+
+
+	// Mouse scroll
+	AddKey("MOUSESCROLLV", "Mouse Scroll Vertical", 0, MouseButtons::MouseScrollVertical);
+	AddKey("MOUSESCROLLH", "Mouse Scroll Horizontal", 0, MouseButtons::MouseScrollHorizontal);
+	AddKey("MOUSESCROLLB", "Mouse Scroll Both", 0, MouseButtons::MouseScrollBoth);
 
 	// Shift
 	AddKey("SHIFT", "Shift", VK_SHIFT);
@@ -504,10 +514,48 @@ void InputEmulator::SetInputStates(string inputs, bool down)
 			}
 
 			// Mouse button?
-			else if(keyMapValue->mouseButton > 0) {
+			else if(keyMapValue->mouseButton > 0 && keyMapValue->mouseButton < 5) {
 
 				// Set mouse button state
 				MouseSet(keyMapValue->mouseButton, down);
+			}
+
+			// Mouse scroll
+			else if(keyMapValue->mouseButton >= 0x81 && keyMapValue->mouseButton <= 0x84) {
+
+				switch(keyMapValue->mouseButton)
+				{
+				case MouseButtons::MouseScrollUp: MouseScroll(-1, true); break;
+				case MouseButtons::MouseScrollDown: MouseScroll(1, true); break;
+				case MouseButtons::MouseScrollLeft: MouseScroll(-1, false); break;
+				case MouseButtons::MouseScrollRight: MouseScroll(1, false); break;
+				default:
+					break;
+				}
+			}
+		}
+
+		//
+		// Precise volume control
+		//
+		else if(input.compare(0, 8, "VOLUMEUP") == 0 && input.size() > 8 && down) {
+			float value = 0;
+			try {
+				// Parse number from end of the string
+				value = stof(input.substr(8, input.size() - 8));
+				VolumeChange(value / 100.0f);
+			} catch(exception& e) {
+				LOG_ERROR("Volume control error! %s\n", e.what());
+			}
+		}
+		else if(input.compare(0, 10, "VOLUMEDOWN") == 0 && input.size() > 10 && down) {
+			float value = 0;
+			try {
+				// Parse number from end of the string
+				value = stof(input.substr(10, input.size() - 10));
+				VolumeChange(-value / 100.0f);
+			} catch(exception& e) {
+				LOG_ERROR("Volume control error! %s\n", e.what());
 			}
 		}
 	}
@@ -522,6 +570,81 @@ void InputEmulator::KeyPress(string keys, int time) {
 	SetInputStates(keys, true);
 	Sleep(time);
 	SetInputStates(keys, false);
+}
+
+
+//
+// Create audio endpoint volume
+//
+bool InputEmulator::CreateEndpointVolume()
+{
+	HRESULT hresult;
+
+	// Device enumerator
+	//LOG_DEBUG("Device enumerator\n");
+	hresult = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pDeviceEnumerator));
+	CHECK_HRESULT(hresult, pDeviceEnumerator);
+
+	// Default audio endpoint
+	//LOG_DEBUG("Default audio endpoint\n");
+	hresult = pDeviceEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &pDefaultAudioDevice);
+	CHECK_HRESULT(hresult, pDefaultAudioDevice);
+
+	// Endpoint volume
+	//LOG_DEBUG("Audio endpoint volume\n");
+	hresult = pDefaultAudioDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL, (LPVOID *)&pAudioEndpointVolume);
+	CHECK_HRESULT(hresult, pAudioEndpointVolume);
+
+	return true;
+}
+
+//
+// Release audio endpoint volume
+//
+bool InputEmulator::ReleaseEndpointVolume()
+{
+	SAFE_RELEASE(pAudioEndpointVolume);
+	SAFE_RELEASE(pDefaultAudioDevice);
+	SAFE_RELEASE(pDeviceEnumerator);
+	return true;
+}
+
+//
+// Set main audio device volume
+//
+void InputEmulator::VolumeSet(float volume)
+{
+	// Get endpoint volume
+	if(CreateEndpointVolume()) {
+		pAudioEndpointVolume->SetMasterVolumeLevelScalar(volume, &GUID_NULL);
+	}
+	ReleaseEndpointVolume();
+}
+
+//
+// Get main audio device volume
+//
+float InputEmulator::VolumeGet()
+{
+	float volume = 0;
+	if(CreateEndpointVolume()) {
+		pAudioEndpointVolume->GetMasterVolumeLevelScalar(&volume);
+	}
+	ReleaseEndpointVolume();
+	return volume;
+}
+
+//
+// Change main audio device volume
+//
+void InputEmulator::VolumeChange(float delta)
+{
+	float volume;
+	if(CreateEndpointVolume()) {
+		pAudioEndpointVolume->GetMasterVolumeLevelScalar(&volume);
+		pAudioEndpointVolume->SetMasterVolumeLevelScalar(volume + delta, &GUID_NULL);
+	}
+	ReleaseEndpointVolume();
 }
 
 

@@ -13,71 +13,67 @@
 ScreenMapper::ScreenMapper(Tablet *t) {
 	this->tablet = t;
 
+	screenMapCount = 1;
+	primaryMap = &screenMaps[0];
+	primaryTabletArea = &screenMaps[0].tablet;
+	primaryScreenArea = &screenMaps[0].screen;
+	primaryRotationMatrix = screenMaps[0].rotationMatrix;
+
 	// Default Virtual Screen Area
-	areaVirtualScreen.width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-	areaVirtualScreen.height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-	areaVirtualScreen.x = 0;
-	areaVirtualScreen.y = 0;
+	virtualScreen.width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+	virtualScreen.height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+	virtualScreen.x = virtualScreen.width / 2.0;
+	virtualScreen.y = virtualScreen.height / 2.0;
 
-	// Default Tablet Area
-	areaTablet.width = 100;
-	areaTablet.height = 50;
-	areaTablet.x = 50;
-	areaTablet.y = 25;
+	// Reset all screen maps
+	for(ScreenMap &map : screenMaps) {
 
-	// Default Screen Area
-	areaScreen.width = areaVirtualScreen.width;
-	areaScreen.height = areaVirtualScreen.height;
-	areaScreen.x = 0;
-	areaScreen.y = 0;
+		// Tablet area
+		map.tablet.width = 80;
+		map.tablet.height = 80 * (virtualScreen.height / virtualScreen.width);
+		map.tablet.x = map.tablet.width / 2.0;
+		map.tablet.y = map.tablet.height / 2.0;
 
-	// Default Rotation Matrix
-	rotationMatrix[0] = 1;
-	rotationMatrix[1] = 0;
-	rotationMatrix[2] = 0;
-	rotationMatrix[3] = 1;
+		// Screen area
+		map.screen.width = virtualScreen.width;
+		map.screen.height = virtualScreen.height;
+		map.screen.x = map.screen.width / 2.0;
+		map.screen.y = map.screen.height / 2.0;
 
+		// Rotation
+		map.SetRotation(0);
+	}
 
-}
+	UpdateValues();
 
-//
-// Create rotation matrix
-//
-void ScreenMapper::SetRotation(double angle) {
-	angle *= M_PI / 180;
-	rotationMatrix[0] = cos(angle);
-	rotationMatrix[1] = -sin(angle);
-	rotationMatrix[2] = sin(angle);
-	rotationMatrix[3] = cos(angle);
 }
 
 //
 // Get rotated tablet position
 //
 bool ScreenMapper::GetRotatedTabletPosition(double *x, double *y) {
-	double mapX, mapY;
-	double tmpX, tmpY;
-
-	mapX = (*x);
-	mapY = (*y);
+	Vector2D tmpPosition;
+	Vector2D position(
+		*x,
+		*y
+	);
 
 	// Offset tablet so that the center is at zero
-	mapX -= tablet->settings.width / 2.0;
-	mapY -= tablet->settings.height / 2.0;
+	position.x -= tablet->settings.width / 2.0;
+	position.y -= tablet->settings.height / 2.0;
 
 	// Rotate
-	tmpX = mapX;
-	tmpY = mapY;
-	mapX = tmpX * rotationMatrix[0] + tmpY * rotationMatrix[1];
-	mapY = tmpX * rotationMatrix[2] + tmpY * rotationMatrix[3];
+	tmpPosition.Set(position);
+	position.x = tmpPosition.x * primaryMap->rotationMatrix[0] + tmpPosition.y * primaryMap->rotationMatrix[1];
+	position.y = tmpPosition.x * primaryMap->rotationMatrix[2] + tmpPosition.y * primaryMap->rotationMatrix[3];
 
 	// Offset back to center from zero
-	mapX += tablet->settings.width / 2.0;
-	mapY += tablet->settings.height / 2.0;
+	position.x += tablet->settings.width / 2.0;
+	position.y += tablet->settings.height / 2.0;
 
 	// Set pointer values
-	*x = mapX;
-	*y = mapY;
+	*x = position.x;
+	*y = position.y;
 
 	return true;
 }
@@ -86,57 +82,194 @@ bool ScreenMapper::GetRotatedTabletPosition(double *x, double *y) {
 // Get screen position. Return values between 0 and 1
 //
 bool ScreenMapper::GetScreenPosition(double *x, double *y) {
-	double mapX, mapY;
-	double tmpX, tmpY;
+	Vector2D position;
+	Vector2D tmpPosition;
+	ScreenMap *screenMap;
+	double minimumDistance = 99999;
+	int matchingScreenMapIndex = 0;
 
-	mapX = (*x);
-	mapY = (*y);
+	//
+	// Loop through screen maps
+	//
+	for(int index = 0; index < screenMapCount; index++) {
 
-	// Offset tablet area position
-	mapX -= areaTablet.x;
-	mapY -= areaTablet.y;
+		screenMap = &screenMaps[index];
 
-	// Rotate
-	tmpX = mapX;
-	tmpY = mapY;
-	mapX = tmpX * rotationMatrix[0] + tmpY * rotationMatrix[1];
-	mapY = tmpX * rotationMatrix[2] + tmpY * rotationMatrix[3];
+		position.x = *x;
+		position.y = *y;
 
-	// Offset half of tablet area size
-	mapX += areaTablet.width / 2.0;
-	mapY += areaTablet.height / 2.0;
+		// Offset tablet area position
+		position.x -= screenMap->tablet.x;
+		position.y -= screenMap->tablet.y;
+
+		// Rotate
+		tmpPosition.Set(position);
+		position.x = tmpPosition.x * screenMap->rotationMatrix[0] + tmpPosition.y * screenMap->rotationMatrix[1];
+		position.y = tmpPosition.x * screenMap->rotationMatrix[2] + tmpPosition.y * screenMap->rotationMatrix[3];
+
+		// Offset half of tablet area size
+		position.x += screenMap->tablet.width / 2.0;
+		position.y += screenMap->tablet.height / 2.0;
+
+		// Update last rotated position
+		screenMap->rotatedPosition.Set(position);
+
+
+		//
+		// Is the pen position inside of a tablet area?
+		//
+		if(
+			position.x >= 0 && position.x <= screenMap->tablet.width
+			&&
+			position.y >= 0 && position.y <= screenMap->tablet.height
+		) {
+			matchingScreenMapIndex = index;
+			screenMap->distance = 0;
+			minimumDistance = 0;
+			break;
+		}
+
+		//
+		// Calculate distance from the tablet area
+		//
+		else {
+			double distanceX = 0;
+			double distanceY = 0;
+			double tmp = 0;
+
+			// X axis distance
+			if(position.x < 0) {
+				tmp = -position.x;
+				if(tmp > distanceX)
+					distanceX = tmp;
+			}
+			else if(position.x > screenMap->tablet.width) {
+				tmp = position.x - screenMap->tablet.width;
+				if(tmp > distanceX)
+					distanceX = tmp;
+			}
+
+			// Y axis distance
+			if(position.y < 0) {
+				tmp = -position.y;
+				if(tmp > distanceY)
+					distanceY = tmp;
+			}
+			else if(position.y > screenMap->tablet.height) {
+				tmp = position.y - screenMap->tablet.height;
+				if(tmp > distanceY)
+					distanceY = tmp;
+			}
+
+			// Distance
+			screenMap->distance = sqrt(distanceX * distanceX + distanceY * distanceY);
+		}
+
+		// Update minimum distance
+		if(screenMap->distance < minimumDistance) minimumDistance = screenMap->distance;
+
+	}
+
+
+	//
+	// Pen position is not inside of a tablet area
+	// 
+	if(minimumDistance > 0) {
+
+		// Set primary screen map as default
+		screenMap = &screenMaps[0];
+
+		//
+		// Find the closest screen map
+		//
+		for(int index = 0; index < screenMapCount; index++) {
+			if(screenMaps[index].distance <= minimumDistance) {
+				screenMap = &screenMaps[index];
+				position.Set(screenMaps[index].rotatedPosition);
+				break;
+			}
+		}
+	}
+
+	// Set screen map to one that directly matches with the pen position
+	else {
+		screenMap = &screenMaps[matchingScreenMapIndex];
+	}
 
 	// Normalize tablet area
-	mapX /= areaTablet.width;
-	mapY /= areaTablet.height;
-
+	position.x /= screenMap->tablet.width;
+	position.y /= screenMap->tablet.height;
 
 	// Scale to screen area size
-	mapX *= (areaScreen.width);
-	mapY *= (areaScreen.height);
-
-	// Offset screen area
-	mapX += areaScreen.x;
-	mapY += areaScreen.y;
+	position.x *= (screenMap->screen.width);
+	position.y *= (screenMap->screen.height);
 
 	// Limit cursor to screen area
-	if(mapX < areaScreen.x + 1) mapX = areaScreen.x + 1;
-	if(mapY < areaScreen.y + 1) mapY = areaScreen.y + 1;
-	if(mapX > areaScreen.x + areaScreen.width) mapX = areaScreen.x + areaScreen.width;
-	if(mapY > areaScreen.y + areaScreen.height) mapY = areaScreen.y + areaScreen.height;
+	if(position.x < 1) position.x = 1;
+	else if(position.x > screenMap->screen.width) position.x = screenMap->screen.width;
+	if(position.y < 1) position.y = 1;
+	else if(position.y > screenMap->screen.height) position.y = screenMap->screen.height;
 
+	// Offset screen area
+	position.x += screenMap->screen.minX;
+	position.y += screenMap->screen.minY;
 
-	// Normalize screen area
-	mapX /= areaVirtualScreen.width;
-	mapY /= areaVirtualScreen.height;
+	// Normalize virtual screen area
+	position.x /= virtualScreen.width;
+	position.y /= virtualScreen.height;
 
 	// Limit values
-	if(mapX > 1) mapX = 1;
-	if(mapY > 1) mapY = 1;
+	if(position.x > 1) position.x = 1;
+	if(position.y > 1) position.y = 1;
 
-	// Set pointer values
-	*x = mapX;
-	*y = mapY;
+	// Set output values
+	*x = position.x;
+	*y = position.y;
 
 	return true;
 }
+
+//
+// Update precalculated values in screen maps
+//
+void ScreenMapper::UpdateValues()
+{
+	for(ScreenMap &map : screenMaps) {
+		map.UpdateValues();
+	}
+}
+
+
+//
+// Update precalculated area values
+//
+void ScreenMapper::Area::UpdateValues()
+{
+	minX = x - width / 2.0;
+	maxX = x + width / 2.0;
+	minY = y - height / 2.0;
+	maxY = y + height / 2.0;
+}
+
+
+//
+// Set screen map rotation
+//
+void ScreenMapper::ScreenMap::SetRotation(double angle)
+{
+	angle *= M_PI / 180;
+	rotationMatrix[0] = cos(angle);
+	rotationMatrix[1] = -sin(angle);
+	rotationMatrix[2] = sin(angle);
+	rotationMatrix[3] = cos(angle);
+}
+
+//
+// Update precalculated screen map values
+//
+void ScreenMapper::ScreenMap::UpdateValues()
+{
+	screen.UpdateValues();
+	tablet.UpdateValues();
+}
+

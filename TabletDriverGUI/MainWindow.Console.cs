@@ -22,6 +22,8 @@ namespace TabletDriverGUI
         {
             StringBuilder stringBuilder = new StringBuilder();
 
+            if (driver == null) return;
+
             // Lock console
             driver.ConsoleLock();
 
@@ -108,11 +110,12 @@ namespace TabletDriverGUI
             textConsoleInput.ScrollToEnd();
             try
             {
-                driver.SendCommand(line);
+                driver.SendPipeCommand(line);
+                //driver.SendCommand(line);
             }
             catch (Exception e)
             {
-                driver.ConsoleAddText("Error! " + e.Message);
+                driver.ConsoleAddLine("Error! " + e.Message);
             }
         }
 
@@ -122,7 +125,12 @@ namespace TabletDriverGUI
         //
         private void TimerConsoleUpdate_Tick(object sender, EventArgs e)
         {
-            ConsoleBufferToText();
+            
+            // Update console text if console tab is active
+            if (tabControl.SelectedItem == tabConsole && WindowState != WindowState.Minimized)
+            {
+                ConsoleBufferToText();
+            }
         }
 
 
@@ -134,7 +142,7 @@ namespace TabletDriverGUI
             if (e.Key == Key.Enter)
             {
                 string line = textConsoleInput.Text;
-                ConsoleSendCommand(line);
+                ConsoleSendCommand(line.Trim());
             }
         }
 

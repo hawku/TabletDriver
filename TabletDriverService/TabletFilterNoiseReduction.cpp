@@ -52,9 +52,6 @@ void TabletFilterNoiseReduction::Update() {
 	double velocity = latestTarget.Distance(oldTarget) * reportRate;
 	oldTarget.Set(latestTarget);
 
-	
-
-
 	// One position in the buffer?
 	if(buffer.count == 1) {
 		outputPosition->Set(latestTarget);

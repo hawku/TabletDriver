@@ -19,10 +19,7 @@ void CommandHandler::CreateFilterCommands() {
 		if(!ExecuteCommand("TabletValid")) return false;
 
 		double latency = cmd->GetDouble(0, tablet->smoothing.GetLatency());
-		double threshold = cmd->GetDouble(1, tablet->smoothing.threshold * 100);
-		bool onlyWhenButtonsDown = cmd->GetBoolean(2, tablet->smoothing.onlyWhenButtonsDown);
-
-		threshold /= 100;
+		bool onlyWhenButtonsDown = cmd->GetBoolean(1, tablet->smoothing.onlyWhenButtonsDown);
 
 		string stringValue = cmd->GetStringLower(0, "");
 
@@ -34,11 +31,6 @@ void CommandHandler::CreateFilterCommands() {
 		// Limits
 		if(latency < 0) latency = 1;
 		if(latency > 1000) latency = 1000;
-		if(threshold < 0.1) threshold = 0.1;
-		if(threshold > 0.99) threshold = 0.99;
-
-		// Set threshold
-		tablet->smoothing.threshold = threshold;
 
 		// Set smoothing filter latency
 		tablet->smoothing.SetLatency(latency);
@@ -50,7 +42,8 @@ void CommandHandler::CreateFilterCommands() {
 		if(tablet->smoothing.weight < 1.0) {
 			tablet->smoothing.isEnabled = true;
 			LOG_INFO("Smoothing = %0.2f ms to reach %0.0f%% (weight = %f), OnlyWhenButtonDown=%s\n",
-				latency, tablet->smoothing.threshold * 100,
+				latency,
+				tablet->smoothing.threshold * 100,
 				tablet->smoothing.weight,
 				tablet->smoothing.onlyWhenButtonsDown ? "True" : "False"
 
@@ -61,6 +54,49 @@ void CommandHandler::CreateFilterCommands() {
 			LOG_INFO("Smoothing = off\n");
 		}
 
+		return true;
+	}));
+
+
+	//
+	// Command: AdvancedSmoothingFilter, AdvancedSmoothing
+	//
+	// Enables/disables advanced smoothing and clears settings
+	//
+	AddAlias("AdvancedSmoothing", "AdvancedSmoothingFilter");
+	AddCommand(new Command("AdvancedSmoothingFilter", [&](CommandLine *cmd) {
+		if(!ExecuteCommand("TabletValid")) return false;
+		tablet->advancedSmoothing.isEnabled = cmd->GetBoolean(0, tablet->advancedSmoothing.isEnabled);
+		tablet->advancedSmoothing.ClearSettings();
+
+		if(tablet->advancedSmoothing.isEnabled) {
+			LOG_INFO("Advanced smoothing = enabled\n");
+		}
+		else {
+			LOG_INFO("Advanced smoothing = disabled\n");
+		}
+		return true;
+	}));
+
+
+	//
+	// Command: AdvancedSmoothingAdd
+	//
+	// Sets advanced smoothing filter parameters
+	//
+	AddCommand(new Command("AdvancedSmoothingAdd", [&](CommandLine *cmd) {
+		if(!ExecuteCommand("TabletValid")) return false;
+
+		if(cmd->valueCount >= 3) {
+			double velocity = cmd->GetDouble(0, 0);
+			bool dragging = cmd->GetBoolean(1, false);
+			double latency = cmd->GetDouble(2, 0);
+			tablet->advancedSmoothing.AddSettings(velocity, dragging, latency);
+			LOG_INFO("Advanced smoothing setting added: %3d mm/s %s %3d ms\n", (int)velocity, dragging ? "drag " : "hover", (int)latency);
+		}
+		else {
+			LOG_INFO("Usage %s <velocity(mm/s)> <dragging? (true/false)> <latency(ms)>\n", cmd->command.c_str());
+		}
 		return true;
 	}));
 
@@ -129,8 +165,10 @@ void CommandHandler::CreateFilterCommands() {
 			tablet->noiseFilter.isEnabled = false;
 			LOG_INFO("Noise Reduction = off\n");
 
-			// Enable
+
 		}
+
+		// Enable
 		else {
 
 			// Position buffer length
@@ -198,48 +236,47 @@ void CommandHandler::CreateFilterCommands() {
 		string stringValue = cmd->GetStringLower(0, "");
 
 		// Off / False
-		if(stringValue == "off" || stringValue == "false") {
+		if(stringValue == "off") {
 			tablet->antiSmoothing.isEnabled = false;
 			LOG_INFO("Anti-smoothing = off\n");
 
-			// Enable
+
 		}
+
+		// Enable
 		else {
 
-			double shape = cmd->GetDouble(0, tablet->antiSmoothing.shape);
-			double compensation = cmd->GetDouble(1, tablet->antiSmoothing.compensation);
-			bool onlyWhenHover = cmd->GetBoolean(2, tablet->antiSmoothing.onlyWhenHover);
+			bool onlyWhenHover = cmd->GetBoolean(0, tablet->antiSmoothing.onlyWhenHover);
+			double dragMultiplier = cmd->GetDouble(1, tablet->antiSmoothing.dragMultiplier);
 
 			// Workaround for VEIKK S640
 			double defaultTargetReportRate = 0;
 			if(
 				tablet != NULL &&
 				tablet->hidDevice != NULL &&
-				tablet->hidDevice->vendorId == 0x2FEB
+				tablet->hidDevice->vendorId == 0x2FEB &&
+				tablet->hidDevice->vendorId == 0x0001
 			) {
 				defaultTargetReportRate = 250;
 			}
-			double targetReportRate = cmd->GetDouble(3, defaultTargetReportRate);
-			
+			double targetReportRate = cmd->GetDouble(2, defaultTargetReportRate);
+
 
 			if(cmd->valueCount == 0) {
-				LOG_INFO("Usage: %s <shape> <compensation> <only on hover> <target report rate>\n", cmd->command.c_str());
-			}
-			else if(shape <= 0) {
-				tablet->antiSmoothing.isEnabled = false;
-				LOG_INFO("Anti-smoothing = off\n");
+				LOG_INFO("Usage: %s <only on hover> <drag multiplier> <target report rate>\n", cmd->command.c_str());
 			}
 			else {
-				tablet->antiSmoothing.shape = shape;
-				tablet->antiSmoothing.compensation = compensation;
+				tablet->antiSmoothing.ClearSettings();
 				tablet->antiSmoothing.onlyWhenHover = onlyWhenHover;
+				tablet->antiSmoothing.dragMultiplier = dragMultiplier;
 				tablet->antiSmoothing.targetReportRate = targetReportRate;
 
 				tablet->antiSmoothing.isEnabled = true;
-				LOG_INFO("Anti-smoothing = Shape:%0.3f Compensation:%0.2f OnlyOnHover:%s TargetRPS:%0.2f\n",
-					tablet->antiSmoothing.shape,
-					tablet->antiSmoothing.compensation,
+				LOG_INFO("Anti-smoothing = Shape:%0.3f Compensation:%0.2f OnlyOnHover:%s DragMultiplier:%0.2f TargetRPS:%0.2f\n",
+					tablet->antiSmoothing.settings[0].shape,
+					tablet->antiSmoothing.settings[0].compensation,
 					tablet->antiSmoothing.onlyWhenHover ? "true" : "false",
+					tablet->antiSmoothing.dragMultiplier,
 					tablet->antiSmoothing.targetReportRate
 
 				);
@@ -247,6 +284,34 @@ void CommandHandler::CreateFilterCommands() {
 		}
 		return true;
 	}));
+
+
+	//
+	// Command: AntiSmoothingAdd, AntiAdd
+	//
+	AddAlias("AntiAdd", "AntiSmoothingAdd");
+	AddCommand(new Command("AntiSmoothingAdd", [&](CommandLine *cmd) {
+
+		double velocity = cmd->GetDouble(0, 0);
+		double shape = cmd->GetDouble(1, 0.5);
+		double compensation = cmd->GetDouble(2, 0);
+
+
+		if(cmd->valueCount < 3) {
+			LOG_INFO("Usage: %s <velocity> <shape> <compensation>\n", cmd->command.c_str());
+		}
+		else {
+			tablet->antiSmoothing.AddSettings(velocity, shape, compensation);
+			LOG_INFO("Anti-smoothing setting: Velocity:%0.2f mm/s Shape:%0.3f Compensation:%0.2f\n",
+				velocity,
+				shape,
+				compensation
+			);
+		}
+
+		return true;
+	}));
+
 
 
 	//
@@ -297,14 +362,20 @@ void CommandHandler::CreateFilterCommands() {
 		// Anti-smoothing
 		if(tablet->antiSmoothing.isEnabled) {
 			filterAntiSmoothing = new TabletFilterAntiSmoothing();
-			filterAntiSmoothing->shape = tablet->antiSmoothing.shape;
-			filterAntiSmoothing->compensation = tablet->antiSmoothing.compensation;
+			filterAntiSmoothing->settingCount = tablet->antiSmoothing.settingCount;
+			for(int i = 0; i < filterAntiSmoothing->settingCount; i++) {
+				filterAntiSmoothing->settings[i].velocity = tablet->antiSmoothing.settings[i].velocity;
+				filterAntiSmoothing->settings[i].shape = tablet->antiSmoothing.settings[i].shape;
+				filterAntiSmoothing->settings[i].compensation = tablet->antiSmoothing.settings[i].compensation;
+			}
 			filterAntiSmoothing->onlyWhenHover = tablet->antiSmoothing.onlyWhenHover;
+			filterAntiSmoothing->targetReportRate = tablet->antiSmoothing.targetReportRate;
 			settingsStringIndex += sprintf_s((settingsString + settingsStringIndex), settingsStringSize - settingsStringIndex,
-				"settings AntiSmoothing shape=%0.3f compensation=%0.3f dragignore=%s\r\n",
-				tablet->antiSmoothing.shape,
-				tablet->antiSmoothing.compensation,
-				tablet->antiSmoothing.onlyWhenHover ? "true" : "false"
+				"settings AntiSmoothing Shape=%0.3f Compensation=%0.3f OnlyWhenHover=%s TargetRPS=%0.2f\r\n",
+				tablet->antiSmoothing.settings[0].shape,
+				tablet->antiSmoothing.settings[0].compensation,
+				tablet->antiSmoothing.onlyWhenHover ? "true" : "false",
+				tablet->antiSmoothing.targetReportRate
 			);
 		}
 
@@ -316,7 +387,7 @@ void CommandHandler::CreateFilterCommands() {
 			filterNoise->distanceMaximum = tablet->noiseFilter.distanceMaximum;
 			filterNoise->iterations = tablet->noiseFilter.iterations;
 			settingsStringIndex += sprintf_s((settingsString + settingsStringIndex), settingsStringSize - settingsStringIndex,
-				"settings NoiseReduction buffer=%d threshold=%0.3f maximum=%0.3f iterations=%d\r\n",
+				"settings NoiseReduction Buffer=%d Threshold=%0.3f Maximum=%0.3f Iterations=%d\r\n",
 				tablet->noiseFilter.buffer.length,
 				tablet->noiseFilter.distanceThreshold,
 				tablet->noiseFilter.distanceMaximum,
@@ -324,9 +395,6 @@ void CommandHandler::CreateFilterCommands() {
 			);
 		}
 		if(filterAntiSmoothing != NULL || filterNoise != NULL) {
-
-			logger.directPrint = true;
-
 			LOG_INFO("Filter test starting!\n");
 
 			tester = new TabletFilterTester(inputFilepath, outputFilepath);
@@ -344,10 +412,7 @@ void CommandHandler::CreateFilterCommands() {
 			}
 			tester->outputFile << settingsString;
 			tester->Run();
-			LOG_INFO("Filter test ended!\n");
-
-			logger.ProcessMessages();
-			logger.directPrint = false;
+			LOG_INFO("Filter test done!\n");
 
 		}
 		else {

@@ -32,6 +32,9 @@ void CommandHandler::CreateDeviceCommands() {
 					LOG_WARNING("Can't open WinUSB tablet '%s'\n", guid.c_str());
 					delete tablet;
 					tablet = NULL;
+
+					// Slow down to save CPU time on startup
+					Sleep(10);
 				}
 			}
 		}
@@ -90,6 +93,9 @@ void CommandHandler::CreateDeviceCommands() {
 						isExclusive ? "True" : "False");
 					delete tablet;
 					tablet = NULL;
+
+					// Slow down to save CPU time on startup
+					Sleep(10);
 				}
 			}
 		}
@@ -162,13 +168,12 @@ void CommandHandler::CreateDeviceCommands() {
 		if(cmd->valueCount <= 1) return false;
 		if(tablet == NULL) return false;
 		if(tablet->hidDevice == NULL) return false;
-		int length = cmd->GetInt(0, 1);
-		BYTE *buffer = new BYTE[length];
-		for(int i = 0; i < length; i++) {
-			buffer[i] = cmd->GetInt(i + 1, 0);
+		BYTE *buffer = new BYTE[cmd->valueCount];
+		for(int i = 0; i < cmd->valueCount; i++) {
+			buffer[i] = cmd->GetInt(i, 0);
 		}
-		LOG_INFOBUFFER(buffer, length, "Set Feature Report (%d): ", length);
-		tablet->hidDevice->SetFeature(buffer, length);
+		LOG_INFOBUFFER(buffer, cmd->valueCount, "Set Feature Report (%d): ", cmd->valueCount);
+		tablet->hidDevice->SetFeature(buffer, cmd->valueCount);
 		LOG_INFO("HID Feature set!\n");
 		delete buffer;
 		return true;
@@ -207,13 +212,12 @@ void CommandHandler::CreateDeviceCommands() {
 		if(cmd->valueCount <= 1) return false;
 		if(tablet == NULL) return false;
 		if(tablet->hidDevice == NULL) return false;
-		int length = cmd->GetInt(0, 1);
-		BYTE *buffer = new BYTE[length];
-		for(int i = 0; i < length; i++) {
-			buffer[i] = cmd->GetInt(i + 1, 0);
+		BYTE *buffer = new BYTE[cmd->valueCount];
+		for(int i = 0; i < cmd->valueCount; i++) {
+			buffer[i] = cmd->GetInt(i, 0);
 		}
-		LOG_INFOBUFFER(buffer, length, "Sending HID Report: ");
-		tablet->hidDevice->Write(buffer, length);
+		LOG_INFOBUFFER(buffer, cmd->valueCount, "Sending HID Report: ");
+		tablet->hidDevice->Write(buffer, cmd->valueCount);
 		LOG_INFO("Report sent!\n");
 		delete buffer;
 		return true;

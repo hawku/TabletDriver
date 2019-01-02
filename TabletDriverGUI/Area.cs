@@ -43,20 +43,29 @@ namespace TabletDriverGUI
             {
                 double angle;
                 _rotation = value;
+
                 angle = _rotation * Math.PI / 180;
+
                 _rotationMatrix[0] = Math.Cos(angle);
                 _rotationMatrix[1] = Math.Sin(angle);
                 _rotationMatrix[2] = -Math.Sin(angle);
                 _rotationMatrix[3] = Math.Cos(angle);
+
                 UpdateCorners();
             }
         }
+        public bool IsEnabled;
+
+
 
         private double _rotation;
-        private double[] _rotationMatrix;
+        private readonly double[] _rotationMatrix;
+       private readonly Point[] _corners;
 
-        private Point[] _corners;
 
+        //
+        // Constructors
+        //
         public Area()
         {
             _corners = new Point[4] {
@@ -67,11 +76,11 @@ namespace TabletDriverGUI
             };
             _rotation = 0;
             _rotationMatrix = new double[4] { 1, 0, 0, 1 };
-
             _width = 0;
             _height = 0;
             X = 0;
             Y = 0;
+            IsEnabled = false;
 
         }
         public Area(double width, double height, double x, double y) : this()
@@ -80,10 +89,26 @@ namespace TabletDriverGUI
             _height = height;
             X = x;
             Y = y;
+            IsEnabled = false;
             UpdateCorners();
         }
 
+        //
+        // Copy values from an another area
+        //
+        public void Set(Area area)
+        {
+            X = area.X;
+            Y = area.Y;
+            Width = area.Width;
+            Height = area.Height;
+            Rotation = area.Rotation;
+            IsEnabled = area.IsEnabled;
+        }
 
+        //
+        // Update corner positions
+        //
         private void UpdateCorners()
         {
             GetRotatedPoint(ref _corners[0], -_width / 2.0, -_height / 2.0);
@@ -92,6 +117,9 @@ namespace TabletDriverGUI
             GetRotatedPoint(ref _corners[3], -_width / 2.0, _height / 2.0);
         }
 
+        //
+        // Rotate point
+        //
         public void GetRotatedPoint(ref Point p, double x, double y)
         {
             p.X = x * _rotationMatrix[0] + y * _rotationMatrix[1];
@@ -99,13 +127,44 @@ namespace TabletDriverGUI
         }
 
         //
+        // Rotate point in reverse direction
         //
-        //
-        public Point[] Corners
+        public void GetRotatedPointReverse(ref Point p, double x, double y)
         {
-            get { return _corners; }
+            p.X = x * _rotationMatrix[3] - y * _rotationMatrix[1];
+            p.Y = x * -_rotationMatrix[2] + y * _rotationMatrix[0];
         }
 
+
+        //
+        // Check if a point is inside of the area
+        //
+        public bool IsInside(Point p)
+        {
+            double x1, y1, x2, y2;
+
+            x1 = p.X - X;
+            y1 = p.Y - Y;
+            x2 = x1 * _rotationMatrix[0] + y1 * _rotationMatrix[1];
+            y2 = x1 * _rotationMatrix[2] + y1 * _rotationMatrix[3];
+
+            if (
+                x2 > -Width / 2.0 &&
+                x2 < +Width / 2.0 &&
+                y2 > -Height / 2.0 &&
+                y2 < +Height / 2.0
+            )
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        //
+        // Get corners
+        //
+        public Point[] Corners => _corners;
 
         //
         // Bounding Box
@@ -128,6 +187,7 @@ namespace TabletDriverGUI
             return box;
         }
 
+
         //
         // Scale to fit inside another area
         //
@@ -146,6 +206,9 @@ namespace TabletDriverGUI
             UpdateCorners();
         }
 
+        //
+        // Move area position inside of another area
+        //
         public void MoveInside(Area target)
         {
             double[] box = GetBoundingBox();
@@ -159,6 +222,21 @@ namespace TabletDriverGUI
                 Y = target.Y + targetBox[2] - box[2];
             if (Y + box[3] > target.Y + targetBox[3])
                 Y = target.Y + targetBox[3] - box[3];
+        }
+
+
+        //
+        // Convert to string
+        //
+        public override string ToString()
+        {
+            return
+                "Area[" +
+                    Utils.GetNumberString(X) + "," +
+                    Utils.GetNumberString(Y) + "," +
+                    Utils.GetNumberString(Width) + "," +
+                    Utils.GetNumberString(Height) +
+                "]";
         }
 
     }

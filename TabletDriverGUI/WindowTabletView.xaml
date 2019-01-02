@@ -1,0 +1,62 @@
+﻿<Window x:Class="TabletDriverGUI.WindowTabletView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Tablet View"
+        Width="700"
+        Height="300"
+        Background="Gray"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize">
+
+  <Canvas Name="canvasTabletView"
+          Width="600"
+          Height="200"
+          Background="White"
+          Margin="0"
+          VerticalAlignment="Top"
+          HorizontalAlignment="Left">
+
+    <!-- Tablet info -->
+    <TextBlock Name="textTabletInfo"
+               Foreground="#000000"
+               Canvas.Left="20"
+               Canvas.Top="20"
+               FontSize="25"
+               FontWeight="ExtraBold">
+      Test Tablet - 100x55mm - 1920x1080
+    </TextBlock>
+
+    <!-- Input text -->
+    <TextBlock Name="textInput"
+               Foreground="#33AA00"
+               Canvas.Left="20"
+               Canvas.Top="50"
+               FontSize="25"
+               FontWeight="ExtraBold">
+      Input
+    </TextBlock>
+
+    <!-- Output text -->
+    <TextBlock Name="textOutput"
+               Foreground="#AA3300"
+               Canvas.Left="20"
+               Canvas.Top="80"
+               FontSize="25"
+               FontWeight="ExtraBold">
+      Output
+    </TextBlock>
+
+    <!-- Latency text -->
+    <TextBlock Name="textLatency"
+               Foreground="#0033AA"
+               Canvas.Left="20"
+               Canvas.Top="110"
+               FontSize="25"
+               FontWeight="ExtraBold">
+      ±100ms
+    </TextBlock>
+  </Canvas>
+</Window>

@@ -36,14 +36,30 @@ void CommandHandler::CreateAuxCommands() {
 		return false;
 	}));
 
+	//
+	// Command: AuxReport
+	//
+	AddCommand(new Command("AuxReport", [&](CommandLine *cmd) {
+		if(tablet == NULL) return false;
+		tablet->settings.auxCurrentReportIndex = cmd->GetInt(0, tablet->settings.auxCurrentReportIndex);
+		tablet->settings.auxCurrentReport = &tablet->settings.auxReports[tablet->settings.auxCurrentReportIndex];
+		if(tablet->settings.auxCurrentReportIndex >= tablet->settings.auxReportCount - 1) {
+			tablet->settings.auxReportCount = tablet->settings.auxCurrentReportIndex + 1;
+		}
+		LOG_INFO("Auxiliary report index = %d (%d reports)\n",
+			tablet->settings.auxCurrentReportIndex,
+			tablet->settings.auxReportCount
+		);
+		return true;
+	}));
 
 	//
 	// Command: AuxReportId
 	//
 	AddCommand(new Command("AuxReportId", [&](CommandLine *cmd) {
 		if(tablet == NULL) return false;
-		tablet->settings.auxReportId = cmd->GetInt(0, tablet->settings.auxReportId);
-		LOG_INFO("Tablet aux report id = %d\n", tablet->settings.auxReportId);
+		tablet->settings.auxCurrentReport->reportId = cmd->GetInt(0, tablet->settings.auxCurrentReport->reportId);
+		LOG_INFO("Auxiliary report id = %d\n", tablet->settings.auxCurrentReport->reportId);
 		return true;
 	}));
 
@@ -64,8 +80,8 @@ void CommandHandler::CreateAuxCommands() {
 	//
 	AddCommand(new Command("AuxDetectMask", [&](CommandLine *cmd) {
 		if(tablet == NULL) return false;
-		tablet->settings.auxDetectMask = cmd->GetInt(0, tablet->settings.auxDetectMask);
-		LOG_INFO("Tablet aux detect mask = 0x%02X\n", tablet->settings.auxDetectMask);
+		tablet->settings.auxCurrentReport->detectMask = cmd->GetInt(0, tablet->settings.auxCurrentReport->detectMask);
+		LOG_INFO("Auxiliary detect mask = 0x%02X\n", tablet->settings.auxCurrentReport->detectMask);
 		return true;
 	}));
 
@@ -75,8 +91,8 @@ void CommandHandler::CreateAuxCommands() {
 	//
 	AddCommand(new Command("AuxIgnoreMask", [&](CommandLine *cmd) {
 		if(tablet == NULL) return false;
-		tablet->settings.auxIgnoreMask = cmd->GetInt(0, tablet->settings.auxIgnoreMask);
-		LOG_INFO("Tablet aux ignore mask = 0x%02X\n", tablet->settings.auxIgnoreMask);
+		tablet->settings.auxCurrentReport->ignoreMask = cmd->GetInt(0, tablet->settings.auxCurrentReport->ignoreMask);
+		LOG_INFO("Tablet aux ignore mask = 0x%02X\n", tablet->settings.auxCurrentReport->ignoreMask);
 		return true;
 	}));
 
@@ -99,7 +115,7 @@ void CommandHandler::CreateAuxCommands() {
 	//
 	AddCommand(new Command("ClearAuxCustomData", [&](CommandLine *cmd) {
 		if(tablet == NULL) return false;
-		tablet->auxDataFormatter.instructionCount = 0;
+		tablet->settings.auxCurrentReport->formatter.instructionCount = 0;
 		LOG_INFO("Custom aux data format instructions cleared!\n");
 		return true;
 	}));

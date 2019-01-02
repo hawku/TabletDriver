@@ -437,7 +437,7 @@ namespace TabletDriverGUI
                 Title = title;
 
                 // Limit notify icon text length
-                if (title.Length > 63)
+                if (tabletName.Length > 63)
                 {
                     notifyIcon.Text = tabletName.Substring(0, 63);
                 }
@@ -448,10 +448,11 @@ namespace TabletDriverGUI
                 SetStatus("Connected to " + tabletName);
             }
 
+
             //
             // Tablet width
             //
-            if (variableName == "width")
+            else if (variableName == "width")
             {
                 if (Utils.ParseNumber(parameters, out double val))
                 {
@@ -469,10 +470,11 @@ namespace TabletDriverGUI
                 }
             }
 
+
             //
             // Tablet height
             //
-            if (variableName == "height")
+            else if (variableName == "height")
             {
                 if (Utils.ParseNumber(parameters, out double val))
                 {
@@ -495,7 +497,7 @@ namespace TabletDriverGUI
             //
             // Tablet measurement to tablet area
             //
-            if (variableName == "measurement" && isEnabledMeasurementToArea)
+            else if (variableName == "measurement" && isEnabledMeasurementToArea)
             {
                 string[] stringValues = parameters.Split(' ');
                 int valueCount = stringValues.Count();
@@ -541,7 +543,10 @@ namespace TabletDriverGUI
             }
 
 
-            if (variableName == "aux_buttons")
+            //
+            // Tablet buttons
+            //
+            else if (variableName == "aux_buttons")
             {
                 if (Utils.ParseNumber(parameters, out double test))
                 {
@@ -567,6 +572,17 @@ namespace TabletDriverGUI
                         SendSettingsToDriver();
                 }
 
+            }
+
+            //
+            // Driver started
+            //
+            else if (variableName == "started")
+            {
+                if (parameters.Trim() == "1" || parameters.Trim().ToLower() == "true")
+                {
+                    isFirstStart = false;
+                }
             }
         }
 

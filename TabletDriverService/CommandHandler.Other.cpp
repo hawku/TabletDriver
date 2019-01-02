@@ -330,7 +330,7 @@ void CommandHandler::CreateOtherCommands() {
 	AddCommand(new Command("StateOutput", [&](CommandLine *cmd) {
 		if(!ExecuteCommand("TabletValid")) return false;
 		pipeHandler->isStateOutputEnabled = cmd->GetBoolean(0, pipeHandler->isStateOutputEnabled);
-		LOG_INFO("State output = %s\n", pipeHandler->isStateOutputEnabled  ? "Enabled" : "Disabled");
+		LOG_INFO("State output = %s\n", pipeHandler->isStateOutputEnabled ? "Enabled" : "Disabled");
 		return true;
 	}));
 
@@ -559,6 +559,9 @@ void CommandHandler::CreateOtherCommands() {
 		LOG_STATUS("MAX_Y %d\n", tablet->settings.maxY);
 		LOG_STATUS("MAX_PRESSURE %d\n", tablet->settings.maxPressure);
 		LOG_STATUS("AUX_BUTTONS %d\n", tablet->settings.auxButtonCount);
+		if(tabletHandler != NULL) {
+			LOG_STATUS("STARTED %d\n", tabletHandler->isRunning);
+		}
 
 		return true;
 	}));

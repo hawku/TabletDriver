@@ -93,7 +93,7 @@ namespace TabletDriverGUI
                 rect.Width = System.Windows.Forms.SystemInformation.VirtualScreen.Width;
                 rect.Height = System.Windows.Forms.SystemInformation.VirtualScreen.Height;
             }
-            else if(config.Mode != Configuration.OutputModes.Compatibility)
+            else if (config.Mode != Configuration.OutputModes.Compatibility)
             {
                 rect.Width = System.Windows.Forms.SystemInformation.VirtualScreen.Width;
                 rect.Height = System.Windows.Forms.SystemInformation.VirtualScreen.Height;
@@ -246,9 +246,9 @@ namespace TabletDriverGUI
                     Width = 10,
                     Height = 10,
                     Stroke = Brushes.Black,
-                    StrokeThickness = 1.0,
+                    StrokeThickness = 0.5,
                     Fill = Brushes.Transparent,
-                    Visibility = Visibility.Hidden
+                    Visibility = Visibility.Collapsed
                 };
                 canvasScreenMap.Children.Add(rectangleMonitors[i]);
             }
@@ -259,7 +259,7 @@ namespace TabletDriverGUI
             rectangleDesktop = new Rectangle
             {
                 Stroke = Brushes.Black,
-                StrokeThickness = 2.0,
+                StrokeThickness = 0.5,
                 Fill = Brushes.Transparent
             };
             canvasScreenMap.Children.Add(rectangleDesktop);
@@ -489,8 +489,8 @@ namespace TabletDriverGUI
                 bitmapDownscaled.Dispose();
 
                 // Run GC
-                GC.Collect(10, GCCollectionMode.Forced);
-
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
 
                 // Update last desktop size
                 lastDesktopSize.Width = config.DesktopSize.Width;
@@ -610,7 +610,7 @@ namespace TabletDriverGUI
             }
 
 
-            canvasScreenMap.UpdateLayout();
+            canvasScreenMap.InvalidateVisual();
 
         }
 
@@ -728,9 +728,7 @@ namespace TabletDriverGUI
             );
 
 
-            canvasTabletArea.UpdateLayout();
-
-
+            canvasTabletArea.InvalidateVisual();
 
         }
 
@@ -931,7 +929,7 @@ namespace TabletDriverGUI
         //
         //
         // Canvas mouse down
-        private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
+        private void CanvasArea_MouseDown(object sender, MouseButtonEventArgs e)
         {
             bool mouseDown = false;
 
@@ -983,7 +981,7 @@ namespace TabletDriverGUI
         //
         // Canvas mouse up
         //
-        private void Canvas_MouseUp(object sender, MouseButtonEventArgs e)
+        private void CanvasArea_MouseUp(object sender, MouseButtonEventArgs e)
         {
             mouseDrag.IsMouseDown = false;
             LoadSettingsFromConfiguration();
@@ -995,13 +993,21 @@ namespace TabletDriverGUI
             //isLoadingSettings = false;
             canvasScreenMap.ReleaseMouseCapture();
             canvasTabletArea.ReleaseMouseCapture();
+
+            // Focus
+            if(sender == canvasScreenMap)
+                canvasScreenMap.Focus();
+            else if (sender == canvasTabletArea)
+                canvasTabletArea.Focus();
+
+
         }
 
 
         //
         // Canvas mouse move
         //
-        private void Canvas_MouseMove(object sender, MouseEventArgs e)
+        private void CanvasArea_MouseMove(object sender, MouseEventArgs e)
         {
             Point position;
             double dx, dy;
@@ -1078,7 +1084,7 @@ namespace TabletDriverGUI
         //
         // Screen or tablet area mouse scroll
         //
-        private void CanvasMouseWheel(object sender, MouseWheelEventArgs e)
+        private void CanvasArea_MouseWheel(object sender, MouseWheelEventArgs e)
         {
 
             //
@@ -1106,10 +1112,11 @@ namespace TabletDriverGUI
 
         }
 
+
         //
         // Canvas context menu click
         //
-        private void Canvas_MenuClick(object sender, RoutedEventArgs e)
+        private void CanvasArea_MenuClick(object sender, RoutedEventArgs e)
         {
             if (sender == null) return;
             if (!(sender is MenuItem)) return;
@@ -1199,7 +1206,7 @@ namespace TabletDriverGUI
             //
             // Force tablet area proportions
             //
-            else if(sender == menuCanvasForceProportions)
+            else if (sender == menuCanvasForceProportions)
             {
                 double screenAspectRatio = config.SelectedScreenArea.Width / config.SelectedScreenArea.Height;
                 double tabletAspectRatio = config.SelectedTabletArea.Width / config.SelectedTabletArea.Height;
@@ -1394,7 +1401,7 @@ namespace TabletDriverGUI
         //
         // Canvas context menu opening
         //
-        private void Canvas_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        private void CanvasArea_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
 
             //
@@ -1500,7 +1507,6 @@ namespace TabletDriverGUI
             }
 
         }
-
 
 
 

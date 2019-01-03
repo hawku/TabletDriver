@@ -227,8 +227,8 @@ namespace TabletDriverGUI
 
             CustomCommands = new string[] { "" };
 
-            WindowWidth = 680;
-            WindowHeight = 650;
+            WindowWidth = 700;
+            WindowHeight = 700;
 
             TabletView = new TabletViewSettings();
 

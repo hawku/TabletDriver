@@ -267,6 +267,53 @@ namespace TabletDriverGUI
                 e.Handled = true;
             }
 
+            //
+            // Move screen or tablet area with keys
+            //
+            if (canvasScreenMap.IsFocused || canvasTabletArea.IsFocused)
+            {
+                int deltaX = 0;
+                int deltaY = 0;
+
+                // Arrow keys to delta
+                if (e.Key == Key.Left)
+                    deltaX = -1;
+                else if (e.Key == Key.Right)
+                    deltaX = 1;
+                else if (e.Key == Key.Up)
+                    deltaY = -1;
+                else if (e.Key == Key.Down)
+                    deltaY = 1;
+                if (deltaX == 0 && deltaY == 0)
+                    return;
+
+                // Control + arrow -> 10x movement
+                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                {
+                    deltaX *= 10;
+                    deltaY *= 10;
+                }
+
+                // Screen map
+                if (canvasScreenMap.IsFocused)
+                {
+                    SetStatus("Sender: " + sender);
+                    config.SelectedScreenArea.X += deltaX;
+                    config.SelectedScreenArea.Y += deltaY;
+                    LoadSettingsFromConfiguration();
+                    e.Handled = true;
+                }
+
+                // Tablet area
+                else if (canvasTabletArea.IsFocused)
+                {
+                    config.SelectedTabletArea.X += deltaX;
+                    config.SelectedTabletArea.Y += deltaY;
+                    LoadSettingsFromConfiguration();
+                    e.Handled = true;
+                }
+            }
+
         }
 
 
@@ -466,9 +513,5 @@ namespace TabletDriverGUI
             SetStatus("Event: " + e.RoutedEvent.ToString() + ", Mouse at " + ((UIElement)sender).ToString() + "! " + e.ChangedButton.ToString() + " " + e.ButtonState.ToString());
         }
 
-        private void CommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            MessageBox.Show(e.Command.ToString());
-        }
     }
 }

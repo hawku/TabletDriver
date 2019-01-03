@@ -101,23 +101,24 @@
                 >
 
       <!-- Area tab -->
-      <TabItem Name="tabArea" Margin="10,0,-10,0" Padding="10,5">
+      <TabItem Name="tabArea"
+               Margin="10,0,-10,0"
+               Padding="10,5">
         <TabItem.Header>
           <TextBlock FontSize="14" Foreground="#006600" FontWeight="Bold">
             <AccessText Text="_Area"/>
           </TextBlock>
         </TabItem.Header>
 
-        <ScrollViewer VerticalScrollBarVisibility="Auto"
-                      FocusVisualStyle="{x:Null}">
-          <StackPanel Orientation="Vertical"
-                      HorizontalAlignment="Left"
-                      Margin="5,0">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" FocusVisualStyle="{x:Null}">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
 
             <!-- Screen Mapping -->
-            <GroupBox Header="Screen Map"
-                      HorizontalAlignment="Center"
-                      Width="650">
+            <GroupBox Header="Screen Map" Grid.Row="0">
 
               <GroupBox.ToolTip>
                 <StackPanel>
@@ -144,34 +145,44 @@
                 </StackPanel>
               </GroupBox.ToolTip>
 
-              <StackPanel>
+              <Grid>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="*"/>
+                  <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
 
+                
                 <!-- Screen map canvas -->
                 <Canvas Name="canvasScreenMap"
-                        Height="130" Margin="0,0,0,0"
+                        Grid.Row="0"
+                        MinWidth="500"
+                        MinHeight="130"
+                        Margin="0,0,0,0"
                         Background="Transparent"
                         ClipToBounds="True"
-                        ContextMenuOpening="Canvas_ContextMenuOpening"
-                        MouseWheel="CanvasMouseWheel"
-                        MouseMove="Canvas_MouseMove"                        
-                        MouseDown="Canvas_MouseDown"
-                        MouseUp="Canvas_MouseUp">
+                        Focusable="True"
+                        ContextMenuOpening="CanvasArea_ContextMenuOpening"
+                        MouseWheel="CanvasArea_MouseWheel"
+                        MouseMove="CanvasArea_MouseMove"                        
+                        MouseDown="CanvasArea_MouseDown"
+                        MouseUp="CanvasArea_MouseUp">
                   <Canvas.ContextMenu>
                     <ContextMenu>
                       <MenuItem Header="" Name="menuCanvasScreenAreaInfo" FontWeight="Bold"/>
-                      <MenuItem Header="Move to center of a monitor" Name="menuCanvasMoveToMonitorCenter" Click="Canvas_MenuClick" />
-                      <MenuItem Header="Set to full monitor" Name="menuCanvasSetToFullMonitor" Click="Canvas_MenuClick" />
-                      <MenuItem Header="Set to full desktop" Name="menuCanvasSetToFullDesktop" Click="Canvas_MenuClick" />
+                      <MenuItem Header="Move to center of a monitor" Name="menuCanvasMoveToMonitorCenter" Click="CanvasArea_MenuClick" />
+                      <MenuItem Header="Set to full monitor" Name="menuCanvasSetToFullMonitor" Click="CanvasArea_MenuClick" />
+                      <MenuItem Header="Set to full desktop" Name="menuCanvasSetToFullDesktop" Click="CanvasArea_MenuClick" />
                       <Separator/>
-                      <MenuItem Header="Add area" Name="menuCanvasAddScreenArea" Click="Canvas_MenuClick" />
-                      <MenuItem Header="Edit area" Name="menuCanvasEditScreenArea" Click="Canvas_MenuClick" />
-                      <MenuItem Header="Remove area" Name="menuCanvasRemoveScreenArea" Click="Canvas_MenuClick" />
+                      <MenuItem Header="Add area" Name="menuCanvasAddScreenArea" Click="CanvasArea_MenuClick" />
+                      <MenuItem Header="Edit area" Name="menuCanvasEditScreenArea" Click="CanvasArea_MenuClick" />
+                      <MenuItem Header="Remove area" Name="menuCanvasRemoveScreenArea" Click="CanvasArea_MenuClick" />
                       <Separator/>
-                      <MenuItem Header="Reset all areas" Name="menuCanvasResetScreenAreas" Click="Canvas_MenuClick" />
+                      <MenuItem Header="Reset all areas" Name="menuCanvasResetScreenAreas" Click="CanvasArea_MenuClick" />
                     </ContextMenu>
                   </Canvas.ContextMenu>
                 </Canvas>
 
+                <StackPanel Grid.Row="1" Orientation="Vertical" >
                 <!-- Screen area information -->
                 <Label Name="labelScreenAreaInfo"
                        HorizontalAlignment="Center"
@@ -226,14 +237,15 @@
 
                 </StackPanel>
 
-              </StackPanel>
+                </StackPanel>
+              </Grid>
             </GroupBox>
 
             <!-- Tablet area -->
             <GroupBox Header="Tablet Area"
+                      Grid.Row="1"
                       HorizontalAlignment="Center"
-                      Margin="0,5,0,5"
-                      Width="650">
+                      Margin="0,5,0,5">
               <GroupBox.ToolTip>
                 <StackPanel>
                   <TextBlock FontWeight="Bold" FontSize="16">
@@ -267,14 +279,13 @@
 
                 <Grid>
                   <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="21*"/>
-                    <ColumnDefinition Width="192*"/>
-                    <ColumnDefinition Width="212*"/>
-                    <ColumnDefinition Width="213*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
 
                   <!-- Rotation + invert + area buttons -->
-                  <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                  <StackPanel Grid.Column="0" HorizontalAlignment="Right">
 
                     <!-- Rotation + Invert -->
                     <StackPanel Orientation="Horizontal">
@@ -338,33 +349,36 @@
                   </StackPanel>
 
                   <!-- Tablet area canvas -->
-                  <Canvas Grid.Column="2" Name="canvasTabletArea"
-                          Height="120" Margin="5,0,5,0"
+                  <Canvas Grid.Column="1" Name="canvasTabletArea"
+                          Width="200"
+                          Height="120"
+                          Margin="5,0,5,0"
                           Background="Transparent"
                           ClipToBounds="True"
-                          ContextMenuOpening="Canvas_ContextMenuOpening"
-                          MouseWheel="CanvasMouseWheel"
-                          MouseMove="Canvas_MouseMove"                          
-                          MouseDown="Canvas_MouseDown"
-                          MouseUp="Canvas_MouseUp">
+                          Focusable="True"
+                          ContextMenuOpening="CanvasArea_ContextMenuOpening"
+                          MouseWheel="CanvasArea_MouseWheel"
+                          MouseMove="CanvasArea_MouseMove"                          
+                          MouseDown="CanvasArea_MouseDown"
+                          MouseUp="CanvasArea_MouseUp">
                     <Canvas.ContextMenu>
                       <ContextMenu>
                         <MenuItem Header="" Name="menuCanvasTabletAreaInfo" FontWeight="Bold"/>
-                        <MenuItem Name="menuCanvasMoveToCenter" Header="Move to center" Click="Canvas_MenuClick" />
-                        <MenuItem Name="menuCanvasSetToFullTabletArea" Header="Set to full area" Click="Canvas_MenuClick" />
-                        <MenuItem Name="menuCanvasForceProportions" Header="Force proportions" Click="Canvas_MenuClick" />                        
+                        <MenuItem Name="menuCanvasMoveToCenter" Header="Move to center" Click="CanvasArea_MenuClick" />
+                        <MenuItem Name="menuCanvasSetToFullTabletArea" Header="Set to full area" Click="CanvasArea_MenuClick" />
+                        <MenuItem Name="menuCanvasForceProportions" Header="Force proportions" Click="CanvasArea_MenuClick" />                        
                         <Separator/>
-                        <MenuItem Name="menuCanvasAddTabletArea" Header="Add area" Click="Canvas_MenuClick" />
-                        <MenuItem Name="menuCanvasEditTabletArea" Header="Edit area" Click="Canvas_MenuClick" />
-                        <MenuItem Name="menuCanvasRemoveTabletArea" Header="Remove area" Click="Canvas_MenuClick" />
+                        <MenuItem Name="menuCanvasAddTabletArea" Header="Add area" Click="CanvasArea_MenuClick" />
+                        <MenuItem Name="menuCanvasEditTabletArea" Header="Edit area" Click="CanvasArea_MenuClick" />
+                        <MenuItem Name="menuCanvasRemoveTabletArea" Header="Remove area" Click="CanvasArea_MenuClick" />
                         <Separator/>
-                        <MenuItem Name="menuCanvasResetTabletAreas" Header="Reset all areas" Click="Canvas_MenuClick" />
+                        <MenuItem Name="menuCanvasResetTabletAreas" Header="Reset all areas" Click="CanvasArea_MenuClick" />
                       </ContextMenu>
                     </Canvas.ContextMenu>
                   </Canvas>
 
                   <!-- Output mode selector -->
-                  <StackPanel Grid.Column="3">
+                  <StackPanel Grid.Column="2" HorizontalAlignment="Left">
 
                     <!-- Positioning -->
                     <GroupBox Header="Positioning" Width="170" HorizontalAlignment="Left">
@@ -469,7 +483,7 @@
               </StackPanel>
             </GroupBox>
 
-          </StackPanel>
+          </Grid>
         </ScrollViewer>
       </TabItem>
 

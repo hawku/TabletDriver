@@ -156,16 +156,231 @@ void TabletHandler::ChangeTimerInterval(int newInterval) {
 //
 // Button helper functions
 //
-bool IsButtonDown(UCHAR buttons, int buttonIndex) {
+bool TabletHandler::IsButtonDown(UINT32 buttons, int buttonIndex) {
 	return buttons & (1 << buttonIndex);
 }
-bool IsButtonPressed(UCHAR buttons, UCHAR lastButtons, int buttonIndex) {
+bool TabletHandler::IsButtonPressed(UINT32 buttons, UINT32 lastButtons, int buttonIndex) {
 	return ((buttons & (1 << buttonIndex)) > 0 && (lastButtons & (1 << buttonIndex)) == 0);
 }
-bool IsButtonReleased(UCHAR buttons, UCHAR lastButtons, int buttonIndex) {
+bool TabletHandler::IsButtonReleased(UINT32 buttons, UINT32 lastButtons, int buttonIndex) {
 	return ((buttons & (1 << buttonIndex)) == 0 && (lastButtons & (1 << buttonIndex)) > 0);
 }
 
+
+
+//
+// Process pen and auxiliary buttons
+//
+void TabletHandler::ProcessPenButtons(UINT32 *outButtons) {
+	ProcessButtons(outButtons, true);
+}
+void TabletHandler::ProcessAuxButtons() {
+	UINT32 tmpButtons = 0;
+	ProcessButtons(&tmpButtons, false);
+}
+void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
+{
+	UINT32 buttons;
+	UINT32 lastButtons;
+	int buttonCount;
+	bool isDown;
+	bool isPressed;
+	bool isReleased;
+	bool hasBinding;
+	string key;
+
+	// Pen buttons
+	if(isPen) {
+		buttons = tablet->state.inputButtons;
+		lastButtons = tablet->state.lastButtons;
+		buttonCount = tablet->settings.buttonCount;
+	}
+
+	// Auxiliary buttons
+	else {
+		buttons = tablet->auxState.buttons;
+		lastButtons = tablet->auxState.lastButtons;
+		buttonCount = tablet->settings.auxButtonCount;
+	}
+
+
+	// Button state changed?
+	if(buttons > 0 || lastButtons > 0) {
+
+		// Loop through buttons
+		for(int buttonIndex = 0; buttonIndex < buttonCount; buttonIndex++) {
+
+			// Button is not down, pressed or released?
+			if((buttons & (1 << buttonIndex)) == 0 && (lastButtons & (1 << buttonIndex)) == 0) {
+				continue;
+			}
+
+			// Button state
+			isDown = IsButtonDown(buttons, buttonIndex);
+			isPressed = IsButtonPressed(buttons, lastButtons, buttonIndex);
+			isReleased = IsButtonReleased(buttons, lastButtons, buttonIndex);
+			
+			// Pen button map
+			hasBinding = false;
+			if(isPen && tablet->settings.buttonMap[buttonIndex].size() > 0) {
+				key = tablet->settings.buttonMap[buttonIndex];
+				if(inputEmulator.keyMap.count(key) > 0) {
+					hasBinding = true;
+				}
+			}
+
+			// Auxiliary button map
+			else if(!isPen && tablet->settings.auxButtonMap[buttonIndex].size() > 0) {
+				key = tablet->settings.auxButtonMap[buttonIndex];
+				if(inputEmulator.keyMap.count(key) > 0) {
+					hasBinding = true;
+				}
+			}
+
+			// Button has a binding?
+			if(hasBinding) {
+
+				InputEmulator::KeyMapValue *keyMapValue = inputEmulator.keyMap[key];
+
+				WORD virtualKey = keyMapValue->virtualKey;
+				int mouseButton = keyMapValue->mouseButton;
+
+				//
+				// Mouse buttons
+				//
+				if(mouseButton >= InputEmulator::Mouse1 && mouseButton <= InputEmulator::Mouse5) {
+
+					// Pen button
+					if(isPen && isDown) {
+						*outButtons |= (1 << (mouseButton - 1));
+					}
+
+					// Auxiliary button
+					else if(isPressed || isReleased) {
+						inputEmulator.MouseSet(mouseButton, isDown);
+					}
+				}
+
+				//
+				// Keyboard key
+				//
+				if(virtualKey > 0) {
+					if(isPressed) {
+						inputEmulator.SetKeyState(virtualKey, true);
+					}
+					else if(isReleased) {
+						inputEmulator.SetKeyState(virtualKey, false);
+					}
+				}
+
+				//
+				// Mouse scroll
+				//
+				if(
+					mouseButton == InputEmulator::MouseScrollVertical
+					||
+					mouseButton == InputEmulator::MouseScrollHorizontal
+					||
+					mouseButton == InputEmulator::MouseScrollBoth
+					||
+					mouseButton == InputEmulator::MediaVolumeControl
+				) {
+
+					// Scroll pen button down?
+					if(
+						isDown
+						&&
+						// Scroll when tip is down
+						(!tablet->settings.scrollDrag || IsButtonDown(buttons, 0))
+					) {
+
+						// Get rotated pen position
+						Vector2D scrollPosition;
+						scrollPosition.Set(tablet->state.position);
+						mapper->GetRotatedTabletPosition(&scrollPosition.x, &scrollPosition.y);
+
+						// Reset last scroll position and set the scroll start position
+						if(
+							isPressed
+							||
+							(tablet->settings.scrollDrag && IsButtonPressed(buttons, lastButtons, 0))
+						) {
+							lastScrollPosition.Set(scrollPosition);
+							scrollStartPosition.Set(tablet->state.position);
+
+							//
+							// Move normal mouse to digitizer position
+							//
+							if(outputManager->mode == OutputManager::ModeVMultiDigitizer) {
+								TabletState tmpState;
+								tmpState.position.Set(tablet->state.position);
+								outputManager->sendInputAbsolute.Set(&tmpState);
+								outputManager->sendInputAbsolute.Write();
+							}
+
+						}
+
+						// Disable mouse tip button when using drag scroll
+						if(tablet->settings.scrollDrag) {
+							*outButtons &= ~1;
+						}
+
+						// Delta from the last scroll position
+						Vector2D delta(
+							(scrollPosition.x - lastScrollPosition.x) * tablet->settings.scrollSensitivity,
+							(scrollPosition.y - lastScrollPosition.y) * tablet->settings.scrollSensitivity
+						);
+
+						// X Acceleration
+						if(delta.x > 0)
+							delta.x = round(pow(delta.x, tablet->settings.scrollAcceleration));
+						else
+							delta.x = -round(pow(-delta.x, tablet->settings.scrollAcceleration));
+
+						// Y Acceleration
+						if(delta.y > 0)
+							delta.y = round(pow(delta.y, tablet->settings.scrollAcceleration));
+						else
+							delta.y = -round(pow(-delta.y, tablet->settings.scrollAcceleration));
+
+
+						// Vertical Scroll
+						if(delta.y != 0 && (mouseButton & InputEmulator::MouseScrollVertical) == InputEmulator::MouseScrollVertical) {
+							inputEmulator.MouseScroll((int)delta.y, true);
+							lastScrollPosition.Set(scrollPosition);
+						}
+
+						// Horizontal scroll
+						if(delta.x != 0 && (mouseButton & InputEmulator::MouseScrollHorizontal) == InputEmulator::MouseScrollHorizontal) {
+							inputEmulator.MouseScroll((int)-delta.x, false);
+							lastScrollPosition.Set(scrollPosition);
+						}
+
+						// Media volume control
+						if(delta.y != 0 && mouseButton == InputEmulator::MediaVolumeControl) {
+							inputEmulator.VolumeChange(-(float)delta.y / 100.0f);
+							lastScrollPosition.Set(scrollPosition);
+						}
+
+						// Stop cursor
+						if(tablet->settings.scrollStopCursor) {
+							tablet->state.position.Set(scrollStartPosition);
+						}
+
+					}
+				}
+			}
+		}
+
+		// Set last buttons
+		if(isPen) {
+			tablet->state.lastButtons = buttons;
+		}
+		else {
+			tablet->auxState.lastButtons = buttons;
+		}
+	}
+}
 
 
 //
@@ -179,11 +394,9 @@ void TabletHandler::RunTabletInputThread() {
 	TabletState filterState;
 	TabletState oldState;
 	bool filterTimedEnabled;
-	UCHAR buttons = 0;
-	UCHAR outButtons = 0;
-	UCHAR lastButtons = 0;
-	Vector2D lastScrollPosition;
-	Vector2D scrollStartPosition;
+	UINT32 buttons = 0;
+	UINT32 lastButtons = 0;
+	UINT32 outButtons = 0;
 
 	timeBegin = chrono::high_resolution_clock::now();
 
@@ -277,155 +490,13 @@ void TabletHandler::RunTabletInputThread() {
 			tablet->state.buttons = 0;
 		}
 
-		//
-		// Button map
-		//
-		buttons = tablet->state.buttons;
+		// Process buttons
 		outButtons = 0;
-
-		if(buttons > 0 || lastButtons > 0) {
-
-			// Loop through buttons
-			for(int buttonIndex = 0; buttonIndex < tablet->settings.buttonCount; buttonIndex++) {
-
-				// Button is not down, pressed or released?
-				if((buttons & (1 << buttonIndex)) == 0 && (lastButtons & (1 << buttonIndex)) == 0) {
-					continue;
-				}
-
-				// Button state
-				bool isDown = IsButtonDown(buttons, buttonIndex);
-				bool isPressed = IsButtonPressed(buttons, lastButtons, buttonIndex);
-				bool isReleased = IsButtonReleased(buttons, lastButtons, buttonIndex);
-
-				// Button is set
-				if(tablet->settings.buttonMap[buttonIndex].size() > 0) {
-
-					string key = tablet->settings.buttonMap[buttonIndex];
-
-					if(inputEmulator.keyMap.count(key) > 0) {
-						InputEmulator::KeyMapValue *keyMapValue = inputEmulator.keyMap[key];
-
-						// Mouse buttons
-						if(keyMapValue->mouseButton > 0 && keyMapValue->mouseButton < 8) {
-							if(isDown) {
-								outButtons |= (1 << (keyMapValue->mouseButton - 1));
-							}
-						}
-
-						//
-						// Mouse scroll
-						//
-						else if((keyMapValue->mouseButton & 0x103) > 0) {
-
-							// Scroll pen button down?
-							if(
-								isDown
-								&&
-
-								// Scroll when tip is down
-								(!tablet->settings.scrollDrag || IsButtonDown(buttons, 0))
-								) {
-
-								// Get rotated pen position
-								Vector2D scrollPosition;
-								scrollPosition.Set(tablet->state.position);
-								mapper->GetRotatedTabletPosition(&scrollPosition.x, &scrollPosition.y);
-
-								// Reset last scroll position and set the scroll start position
-								if(isPressed
-									||
-									(tablet->settings.scrollDrag  && isDown && IsButtonPressed(buttons, lastButtons, 0))
-									) {
-									lastScrollPosition.Set(scrollPosition);
-									scrollStartPosition.Set(tablet->state.position);
-
-									//
-									// Move normal mouse to digitizer position
-									//
-									if(outputManager->mode == OutputManager::ModeVMultiDigitizer) {
-										TabletState tmpState;
-										tmpState.position.Set(tablet->state.position);
-										outputManager->sendInputAbsolute.Set(&tmpState);
-										outputManager->sendInputAbsolute.Write();
-									}
-
-								}
-
-								// Disable mouse tip button when using drag scroll
-								if(tablet->settings.scrollDrag) {
-									outButtons &= ~1;
-								}
-
-								// Delta from the last scroll position
-								Vector2D delta(
-									(scrollPosition.x - lastScrollPosition.x) * tablet->settings.scrollSensitivity,
-									(scrollPosition.y - lastScrollPosition.y) * tablet->settings.scrollSensitivity
-								);
-
-								// X Acceleration
-								if(delta.x > 0)
-									delta.x = round(pow(delta.x, tablet->settings.scrollAcceleration));
-								else
-									delta.x = -round(pow(-delta.x, tablet->settings.scrollAcceleration));
-
-								// Y Acceleration
-								if(delta.y > 0)
-									delta.y = round(pow(delta.y, tablet->settings.scrollAcceleration));
-								else
-									delta.y = -round(pow(-delta.y, tablet->settings.scrollAcceleration));
-
-
-								// Vertical Scroll
-								if(delta.y != 0 && (keyMapValue->mouseButton & 0x101) == 0x101) {
-									inputEmulator.MouseScroll((int)delta.y, true);
-									lastScrollPosition.Set(scrollPosition);
-								}
-
-								// Horizontal scroll
-								if(delta.x != 0 && (keyMapValue->mouseButton & 0x102) == 0x102) {
-									inputEmulator.MouseScroll((int)-delta.x, false);
-									lastScrollPosition.Set(scrollPosition);
-								}
-
-								// Stop cursor
-								if(tablet->settings.scrollStopCursor) {
-									tablet->state.position.Set(scrollStartPosition);
-								}
-
-							}
-						}
-
-						// Keyboard key
-						if(keyMapValue->virtualKey > 0) {
-							if(isPressed) {
-								inputEmulator.SetKeyState(keyMapValue->virtualKey, true);
-							}
-							else if(isReleased) {
-								inputEmulator.SetKeyState(keyMapValue->virtualKey, false);
-							}
-						}
-
-					}
-
-					// Keyboard keys
-					else {
-						if(isPressed) {
-							inputEmulator.SetInputStates(key, true);
-						}
-						else if(isReleased) {
-							inputEmulator.SetInputStates(key, false);
-						}
-					}
-				}
-
-			}
-		}
-
-		// Set button values
+		ProcessPenButtons(&outButtons);
 		tablet->state.buttons = outButtons;
-		lastButtons = buttons;
 
+		// Reprocess auxiliary buttons (for mouse scroll)
+		ProcessAuxButtons();
 
 		//
 		// Report filters
@@ -495,6 +566,7 @@ void TabletHandler::RunTabletInputThread() {
 
 }
 
+
 //
 // Auxiliary input thread (tablet buttons, etc.)
 //
@@ -534,53 +606,16 @@ void TabletHandler::RunAuxInputThread()
 		memcpy(&auxState, &tablet->auxState, sizeof(Tablet::TabletAuxState));
 		tablet->auxState.isValid = false;
 
-		// Buttons
-		buttons = auxState.buttons;
-
+		// Process buttons
 		if(logger.debugEnabled) {
-			LOG_DEBUG("Aux buttons: 0x%04X\n", buttons);
+			LOG_DEBUG("Aux buttons: 0x%04X\n", auxState.buttons);
 		}
-
-		// Loop through buttons
-		for(int button = 1; button <= tablet->settings.auxButtonCount; button++) {
-
-			int buttonMask = 1 << (button - 1);
-
-			//
-			// Button pressed
-			//
-			if((buttons & buttonMask) == buttonMask && (lastButtons & buttonMask) != buttonMask) {
-
-				// Button mapped?
-				if(tablet->settings.auxButtonMap[button - 1].size() > 0) {
-
-					// Set key down
-					inputEmulator.SetInputStates(tablet->settings.auxButtonMap[button - 1], true);
-				}
-
-			}
-
-			//
-			// Button released
-			//
-			else if((buttons & buttonMask) != buttonMask && (lastButtons & buttonMask) == buttonMask) {
-
-				// Button mapped?
-				if(tablet->settings.auxButtonMap[button - 1].size() > 0) {
-
-					// Set key up
-					inputEmulator.SetInputStates(tablet->settings.auxButtonMap[button - 1], false);
-				}
-
-			}
-
-		}
-
-		lastButtons = buttons;
+		ProcessAuxButtons();
 
 	}
 
 }
+
 
 //
 // Timer tick
@@ -655,6 +690,7 @@ void TabletHandler::OnTimerTick() {
 
 	isTimerTickRunning = false;
 }
+
 
 //
 // Write output state with output manager

@@ -8,9 +8,6 @@ InputEmulator::InputEmulator()
 {
 	CreateKeyMap();
 	CreateVirtualKeyMap();
-
-	//
-	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 }
 
 
@@ -27,11 +24,11 @@ void InputEmulator::CreateKeyMap()
 	AddKey("DISABLED", "Disabled", 0, 0);
 
 	// Mouse buttons
-	AddKey("MOUSE1", "Mouse 1", 0, 1);
-	AddKey("MOUSE2", "Mouse 2", 0, 2);
-	AddKey("MOUSE3", "Mouse 3", 0, 3);
-	AddKey("MOUSE4", "Mouse 4", 0, 4);
-	AddKey("MOUSE5", "Mouse 5", 0, 5);
+	AddKey("MOUSE1", "Mouse 1", 0, MouseButtons::Mouse1);
+	AddKey("MOUSE2", "Mouse 2", 0, MouseButtons::Mouse2);
+	AddKey("MOUSE3", "Mouse 3", 0, MouseButtons::Mouse3);
+	AddKey("MOUSE4", "Mouse 4", 0, MouseButtons::Mouse4);
+	AddKey("MOUSE5", "Mouse 5", 0, MouseButtons::Mouse5);
 
 	// Mouse scroll
 	AddKey("SCROLLUP", "Mouse Scroll Up", 0, MouseButtons::MouseScrollUp);
@@ -44,6 +41,9 @@ void InputEmulator::CreateKeyMap()
 	AddKey("MOUSESCROLLV", "Mouse Scroll Vertical", 0, MouseButtons::MouseScrollVertical);
 	AddKey("MOUSESCROLLH", "Mouse Scroll Horizontal", 0, MouseButtons::MouseScrollHorizontal);
 	AddKey("MOUSESCROLLB", "Mouse Scroll Both", 0, MouseButtons::MouseScrollBoth);
+
+	// Media volume control
+	AddKey("VOLUMECONTROL", "Media Volume Control", 0, MouseButtons::MediaVolumeControl);
 
 	// Shift
 	AddKey("SHIFT", "Shift", VK_SHIFT);
@@ -616,6 +616,8 @@ void InputEmulator::VolumeSet(float volume)
 {
 	// Get endpoint volume
 	if(CreateEndpointVolume()) {
+		if(volume < 0) volume = 0.0f;
+		else if(volume > 1) volume = 1.0f;
 		pAudioEndpointVolume->SetMasterVolumeLevelScalar(volume, &GUID_NULL);
 	}
 	ReleaseEndpointVolume();
@@ -642,7 +644,10 @@ void InputEmulator::VolumeChange(float delta)
 	float volume;
 	if(CreateEndpointVolume()) {
 		pAudioEndpointVolume->GetMasterVolumeLevelScalar(&volume);
-		pAudioEndpointVolume->SetMasterVolumeLevelScalar(volume + delta, &GUID_NULL);
+		volume += delta;
+		if(volume < 0) volume = 0.0f;
+		else if(volume > 1) volume = 1.0f;
+		pAudioEndpointVolume->SetMasterVolumeLevelScalar(volume, &GUID_NULL);
 	}
 	ReleaseEndpointVolume();
 }

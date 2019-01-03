@@ -817,13 +817,6 @@ namespace TabletDriverGUI
             isLoadingSettings = true;
             Width = config.WindowWidth;
             Height = config.WindowHeight;
-            if (isFirstStart)
-            {
-                SizeToContent = SizeToContent.WidthAndHeight;
-                UpdateLayout();
-                SizeToContent = SizeToContent.Manual;
-                Height += 50;
-            }
             isLoadingSettings = false;
 
             //
@@ -1083,6 +1076,7 @@ namespace TabletDriverGUI
                 config.WindowWidth = (int)e.NewSize.Width;
                 config.WindowHeight = (int)e.NewSize.Height;
             }
+            UpdateCanvasElements();
         }
 
 
@@ -1375,7 +1369,9 @@ namespace TabletDriverGUI
                 tabletView.ShowDialog();
                 tabletView.Close();
                 tabletView = null;
-                GC.Collect(10, GCCollectionMode.Forced);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
             }
 
 
@@ -1417,7 +1413,8 @@ namespace TabletDriverGUI
                 timer.Tick += (s, ev) =>
                 {
                     imageDesktopScreenshot.Source = null;
-                    GC.Collect(10, GCCollectionMode.Forced);
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
                     UpdateDesktopImage();
                     timer.Stop();
                 };
@@ -1434,10 +1431,24 @@ namespace TabletDriverGUI
         //
         private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            //
+            // Update canvas elements when changed to area tab
+            //
             if (tabControl.SelectedItem == tabArea)
             {
-                UpdateCanvasElements();
+                if (IsLoaded)
+                {
+                    DispatcherTimer timer = new DispatcherTimer
+                    {
+                        Interval = new TimeSpan(0, 0, 0, 0, 100)
+                    };
+                    timer.Tick += (snd, ev) =>
+                    {
+                        UpdateCanvasElements();
+                        timer.Stop();
+                    };
+                    timer.Start();
+                }
             }
 
             //

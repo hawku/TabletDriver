@@ -18,18 +18,18 @@ namespace TabletDriverGUI
         Button button;
         public string Result;
 
-        public class MouseAction
+        public class ButtonBinding
         {
-            public string Action;
+            public string Key;
             public string Name;
             public bool Visible;
 
-            public MouseAction(string name) : this("", name)
-            {                
-            }
-            public MouseAction(string action, string name)
+            public ButtonBinding(string name) : this("", name)
             {
-                Action = action;
+            }
+            public ButtonBinding(string key, string name)
+            {
+                Key = key;
                 Name = name;
                 Visible = true;
             }
@@ -39,7 +39,8 @@ namespace TabletDriverGUI
             }
         }
 
-        public OrderedDictionary mouseActions;
+        public OrderedDictionary mouseBindings;
+        public OrderedDictionary multimediaBindings;
 
         public WindowButtonMapping()
         {
@@ -50,24 +51,41 @@ namespace TabletDriverGUI
             Result = "";
 
 
-            mouseActions = new OrderedDictionary()
+            mouseBindings = new OrderedDictionary()
             {
-                { "", new MouseAction("None") },
-                { "MOUSE1", new MouseAction("Mouse 1 (Left / Tip)") },
-                { "MOUSE2", new MouseAction("Mouse 2 (Right / Barrel)") },
-                { "MOUSE3", new MouseAction("Mouse 3 (Middle / Eraser)") },
-                { "MOUSE4", new MouseAction("Mouse 4 (Back)") },
-                { "MOUSE5", new MouseAction("Mouse 5 (Forward)") },
-                { "MOUSESCROLLV", new MouseAction("Scroll Up/Down") },
-                { "MOUSESCROLLH", new MouseAction("Scroll Left/Right") },
-                { "MOUSESCROLLB", new MouseAction("Scroll Both") },
-                { "SCROLLUP", new MouseAction("Scroll One Up") },
-                { "SCROLLDOWN", new MouseAction("Scroll One Down") },
-                { "SCROLLLEFT", new MouseAction("Scroll One Left") },
-                { "SCROLLRIGHT", new MouseAction("Scroll One Right") }
+                { "", new ButtonBinding("None") },
+                { "MOUSE1", new ButtonBinding("Mouse 1 (Left / Tip)") },
+                { "MOUSE2", new ButtonBinding("Mouse 2 (Right / Barrel)") },
+                { "MOUSE3", new ButtonBinding("Mouse 3 (Middle / Eraser)") },
+                { "MOUSE4", new ButtonBinding("Mouse 4 (Back)") },
+                { "MOUSE5", new ButtonBinding("Mouse 5 (Forward)") },
+                { "MOUSESCROLLV", new ButtonBinding("Scroll Up/Down") },
+                { "MOUSESCROLLH", new ButtonBinding("Scroll Left/Right") },
+                { "MOUSESCROLLB", new ButtonBinding("Scroll Both") },
+                { "SCROLLUP", new ButtonBinding("Scroll One Up") },
+                { "SCROLLDOWN", new ButtonBinding("Scroll One Down") },
+                { "SCROLLLEFT", new ButtonBinding("Scroll One Left") },
+                { "SCROLLRIGHT", new ButtonBinding("Scroll One Right") },
             };
 
-            UpdateMouseActions();
+            multimediaBindings = new OrderedDictionary()
+            {
+                { "", new ButtonBinding("None") },
+                { "VOLUMEUP", new ButtonBinding("Volume Up") },
+                { "VOLUMEUP0.5", new ButtonBinding("Volume Up 0.5%") },
+                { "VOLUMEUP5.0", new ButtonBinding("Volume Up 5.0%") },
+                { "VOLUMEDOWN", new ButtonBinding("Volume Down") },
+                { "VOLUMEDOWN0.5", new ButtonBinding("Volume Down 0.5%") },
+                { "VOLUMEDOWN5.0", new ButtonBinding("Volume Down 5.0%") },
+                { "VOLUMEMUTE", new ButtonBinding("Volume Mute") },
+                { "VOLUMECONTROL", new ButtonBinding("Volume Control Up/Down") },
+                { "MEDIANEXT", new ButtonBinding("Media Next Track") },
+                { "MEDIAPREV", new ButtonBinding("Media Previous Track") },
+                { "MEDIASTOP", new ButtonBinding("Media Stop") },
+                { "MEDIAPLAY", new ButtonBinding("Media Play/Pause") },
+            };
+
+            UpdateBindings();
 
         }
 
@@ -78,34 +96,43 @@ namespace TabletDriverGUI
             // Tablet buttons don't need tip, barrel and eraser info
             if (!isPenButton)
             {
-                ((MouseAction)mouseActions["MOUSE1"]).Name = "Mouse 1 (Left)";
-                ((MouseAction)mouseActions["MOUSE2"]).Name = "Mouse 2 (Right)";
-                ((MouseAction)mouseActions["MOUSE3"]).Name = "Mouse 3 (Middle)";
-
-                // Disable mouse scroll
-                ((MouseAction)mouseActions["MOUSESCROLLV"]).Visible = false;
-                ((MouseAction)mouseActions["MOUSESCROLLH"]).Visible = false;
-                ((MouseAction)mouseActions["MOUSESCROLLB"]).Visible = false;
+                ((ButtonBinding)mouseBindings["MOUSE1"]).Name = "Mouse 1 (Left)";
+                ((ButtonBinding)mouseBindings["MOUSE2"]).Name = "Mouse 2 (Right)";
+                ((ButtonBinding)mouseBindings["MOUSE3"]).Name = "Mouse 3 (Middle)";
             }
-            UpdateMouseActions();
+            UpdateBindings();
 
             CheckKeyValue();
         }
 
 
         //
-        // Update mouse actions and combobox
+        // Update bindings and comboboxes
         //
-        private void UpdateMouseActions()
+        private void UpdateBindings()
         {
+
+            // Mouse
             comboBoxMouse.Items.Clear();
-            foreach (DictionaryEntry entry in mouseActions)
+            foreach (DictionaryEntry entry in mouseBindings)
             {
-                MouseAction mouseAction = (MouseAction)entry.Value;
-                mouseAction.Action = (string)entry.Key;
-                if (mouseAction.Visible)
+                ButtonBinding binding = (ButtonBinding)entry.Value;
+                binding.Key = (string)entry.Key;
+                if (binding.Visible)
                 {
-                    comboBoxMouse.Items.Add(mouseAction);
+                    comboBoxMouse.Items.Add(binding);
+                }
+            }
+
+            // Multimedia
+            comboBoxMultimedia.Items.Clear();
+            foreach (DictionaryEntry entry in multimediaBindings)
+            {
+                ButtonBinding binding = (ButtonBinding)entry.Value;
+                binding.Key = (string)entry.Key;
+                if (binding.Visible)
+                {
+                    comboBoxMultimedia.Items.Add(binding);
                 }
             }
 
@@ -118,19 +145,40 @@ namespace TabletDriverGUI
         public void CheckKeyValue()
         {
             string keys = button.Content.ToString().ToUpper().Trim();
+            comboBoxMouse.SelectedIndex = 0;
+            comboBoxMultimedia.SelectedIndex = 0;
 
-            if (mouseActions.Contains(keys))
+            // Mouse
+            if (mouseBindings.Contains(keys))
             {
-                foreach(var item in comboBoxMouse.Items)
+
+                foreach (var item in comboBoxMouse.Items)
                 {
-                    MouseAction mouseAction = (MouseAction)item;
-                    if(mouseAction.Action == keys)
+                    ButtonBinding binding = (ButtonBinding)item;
+                    if (binding.Key == keys)
                     {
                         comboBoxMouse.SelectedItem = item;
                         comboBoxMouse.Focus();
                     }
                 }
             }
+
+            // Multimedia
+            else if (multimediaBindings.Contains(keys))
+            {
+                comboBoxMultimedia.SelectedIndex = 0;
+                foreach (ButtonBinding item in comboBoxMultimedia.Items)
+                {
+                    //ButtonBinding binding = (ButtonBinding)item;
+                    if (item.Key == keys)
+                    {
+                        comboBoxMultimedia.SelectedItem = item;
+                        comboBoxMultimedia.Focus();
+                    }
+                }
+            }
+
+            // Keyboard
             else
             {
                 textKeyboard.Focus();
@@ -147,16 +195,30 @@ namespace TabletDriverGUI
         private void ComboBoxMouse_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!IsLoaded) return;
-            string key = "";
-
-            // Combobox item item to MouseAction
-            if(comboBoxMouse.SelectedIndex >= 0 && comboBoxMouse.SelectedItem != null)
+            if (comboBoxMouse.SelectedIndex >= 0 && comboBoxMouse.SelectedItem != null)
             {
-                MouseAction mouseAction = (MouseAction)comboBoxMouse.SelectedItem;
-                key = mouseAction.Action;
+                ButtonBinding binding = (ButtonBinding)comboBoxMouse.SelectedItem;
+                if (comboBoxMouse.SelectedIndex > 0)
+                    comboBoxMultimedia.SelectedIndex = 0;
+                textKeyboard.Text = binding.Key;
+                textCustom.Text = binding.Key;
             }
-            textKeyboard.Text = key;
-            textCustom.Text = key;
+        }
+
+        //
+        // Multimedia key changed
+        //
+        private void ComboBoxMultimedia_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded) return;
+            if (comboBoxMultimedia.SelectedIndex >= 0 && comboBoxMultimedia.SelectedItem is ButtonBinding)
+            {
+                ButtonBinding binding = (ButtonBinding)comboBoxMultimedia.SelectedItem;
+                if (comboBoxMultimedia.SelectedIndex > 0)
+                    comboBoxMouse.SelectedIndex = 0;
+                textKeyboard.Text = binding.Key;
+                textCustom.Text = binding.Key;
+            }
         }
 
 
@@ -275,5 +337,7 @@ namespace TabletDriverGUI
                 ButtonSet_Click(sender, null);
             }
         }
+
+
     }
 }

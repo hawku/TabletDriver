@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TabletDriverGUI"
         mc:Ignorable="d"
-        Title="Button Mapping" Height="260" Width="300">
+        Title="Button Mapping" Height="350" Width="350"
+        SizeToContent="WidthAndHeight">
   <Window.Resources>
     <Style TargetType="GroupBox">
       <Setter Property="HeaderTemplate">
@@ -17,53 +18,53 @@
       </Setter>
     </Style>
   </Window.Resources>
-  <Grid>
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="47*"/>
-      <ColumnDefinition Width="245*"/>
-    </Grid.ColumnDefinitions>
-    <StackPanel Orientation="Vertical" Margin="5" Grid.ColumnSpan="2">
-      <GroupBox Header="Mouse" Padding="2">
-        <ComboBox Name="comboBoxMouse"
+  <StackPanel Orientation="Vertical" Margin="5">
+    <GroupBox Header="Mouse" Padding="2">
+      <ComboBox Name="comboBoxMouse"
                   Padding="5"
                   KeyUp="OnEnterKeyUp"
                   SelectionChanged="ComboBoxMouse_SelectionChanged"
                   >
-          <ComboBoxItem IsSelected="True">None</ComboBoxItem>
-          <ComboBoxItem>Mouse 1 (Left / Tip)</ComboBoxItem>
-          <ComboBoxItem>Mouse 2 (Right / Barrel)</ComboBoxItem>
-          <ComboBoxItem>Mouse 3 (Middle / Eraser)</ComboBoxItem>
-          <ComboBoxItem>Mouse 4 (Back)</ComboBoxItem>
-          <ComboBoxItem>Mouse 5 (Forward)</ComboBoxItem>
-          <ComboBoxItem>Scroll Up/Down</ComboBoxItem>
-          <ComboBoxItem>Scroll Left/Right</ComboBoxItem>
-          <ComboBoxItem>Scroll Both</ComboBoxItem>
-          <ComboBoxItem>Scroll One Up</ComboBoxItem>
-          <ComboBoxItem>Scroll One Down</ComboBoxItem>
-          <ComboBoxItem>Scroll One Left</ComboBoxItem>
-          <ComboBoxItem>Scroll One Right</ComboBoxItem>
-        </ComboBox>
-      </GroupBox>
-      <GroupBox Header="Keyboard" Padding="2" Margin="0,5,0,5">
-        <TextBox Name="textKeyboard"
+        <ComboBoxItem IsSelected="True">None</ComboBoxItem>
+      </ComboBox>
+    </GroupBox>
+    <GroupBox Header="Keyboard" Padding="2" Margin="0,5,0,5">
+      <TextBox Name="textKeyboard"
                  BorderThickness="3"
                  BorderBrush="Black"
                  Padding="4"
                  FontWeight="Bold"
                  PreviewKeyDown="TextKeyboard_PreviewKeyDown"               
                  >CTRL+SHIFT+Z</TextBox>
-      </GroupBox>
-      <GroupBox Header="Custom" Padding="2">
-        <TextBox Grid.Column="1" Name="textCustom"
+    </GroupBox>
+
+    <GroupBox Header="Multimedia" Padding="2">
+      <ComboBox Name="comboBoxMultimedia"
+                  Padding="5"
+                  KeyUp="OnEnterKeyUp"
+                  SelectionChanged="ComboBoxMultimedia_SelectionChanged"
+                  >
+        <ComboBoxItem IsSelected="True">None</ComboBoxItem>
+      </ComboBox>
+    </GroupBox>
+
+    <GroupBox Header="Custom" Padding="2">
+      <TextBox Grid.Column="1" Name="textCustom"
                  KeyUp="OnEnterKeyUp"
                  Padding="2"
+               MinWidth="300"
                  >CTRL+SHIFT+Z</TextBox>
-      </GroupBox>
-      <Grid>
-        <Button Name="buttonSet" HorizontalAlignment="Left" Padding="3" Width="50" Margin="5" Click="ButtonSet_Click">Set</Button>
-        <Button Name="buttonClear" HorizontalAlignment="Center" Padding="3" Width="50" Margin="5" Click="ButtonClear_Click">Clear</Button>
-        <Button Name="buttonCancel" HorizontalAlignment="Right" Padding="3" Width="50" Margin="5" Click="ButtonCancel_Click">Cancel</Button>
-      </Grid>
-    </StackPanel>
-  </Grid>
+    </GroupBox>
+    <Grid Margin="0,0,0,10">
+      <Button Name="buttonSet" HorizontalAlignment="Left"
+              FontSize="14" FontWeight="Bold" Foreground="#363"
+              Padding="15,3" Margin="5" Click="ButtonSet_Click">Set</Button>
+      <Button Name="buttonClear" HorizontalAlignment="Center"
+              FontSize="14" FontWeight="Bold" Foreground="#336"
+              Padding="15,3" Margin="5" Click="ButtonClear_Click">Clear</Button>
+      <Button Name="buttonCancel" HorizontalAlignment="Right"
+              FontSize="14" FontWeight="Bold" Foreground="#633"
+              Padding="15,3" Margin="5" Click="ButtonCancel_Click">Cancel</Button>
+    </Grid>
+  </StackPanel>
 </Window>

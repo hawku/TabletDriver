@@ -13,6 +13,7 @@ public:
 	double inputVelocity;
 
 	unsigned char buttons;
+	unsigned char lastButtons;
 	Vector2D position;
 	double pressure;
 

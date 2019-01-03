@@ -86,6 +86,7 @@ public:
 		bool isValid;
 		bool isHandled;
 		USHORT buttons;
+		USHORT lastButtons;
 	};
 	TabletAuxState auxState;
 

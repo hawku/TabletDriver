@@ -46,6 +46,9 @@ int main(int argc, char**argv) {
 	// Init console
 	InitConsole();
 
+	// Initialize COM library (Volume control)
+	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
 	// Tablet handler
 	tabletHandler = new TabletHandler();
 

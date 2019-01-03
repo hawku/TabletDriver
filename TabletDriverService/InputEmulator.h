@@ -46,6 +46,7 @@ public:
 		MouseScrollVertical = 0x101,
 		MouseScrollHorizontal = 0x102,
 		MouseScrollBoth = 0x103,
+		MediaVolumeControl = 0x110,
 	};
 
 	class KeyMapValue {

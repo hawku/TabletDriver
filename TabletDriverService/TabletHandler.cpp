@@ -174,12 +174,13 @@ bool TabletHandler::IsButtonReleased(UINT32 buttons, UINT32 lastButtons, int but
 void TabletHandler::ProcessPenButtons(UINT32 *outButtons) {
 	ProcessButtons(outButtons, true);
 }
-void TabletHandler::ProcessAuxButtons() {
-	UINT32 tmpButtons = 0;
-	ProcessButtons(&tmpButtons, false);
+void TabletHandler::ProcessAuxButtons(UINT32 *outButtons) {
+	ProcessButtons(outButtons, false);
 }
 void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 {
+	UINT32 penButtons = 0;
+	UINT32 penLastButtons = 0;
 	UINT32 buttons;
 	UINT32 lastButtons;
 	int buttonCount;
@@ -188,11 +189,15 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 	bool isReleased;
 	bool hasBinding;
 	string key;
+	bool scrolled = false;
+	Vector2D scrollPosition;
 
 	// Pen buttons
+	penButtons = tablet->state.inputButtons;
+	penLastButtons = tablet->state.lastButtons;
 	if(isPen) {
-		buttons = tablet->state.inputButtons;
-		lastButtons = tablet->state.lastButtons;
+		buttons = penButtons;
+		lastButtons = penLastButtons;
 		buttonCount = tablet->settings.buttonCount;
 	}
 
@@ -202,7 +207,6 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 		lastButtons = tablet->auxState.lastButtons;
 		buttonCount = tablet->settings.auxButtonCount;
 	}
-
 
 	// Button state changed?
 	if(buttons > 0 || lastButtons > 0) {
@@ -286,16 +290,14 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 					mouseButton == InputEmulator::MediaVolumeControl
 				) {
 
-					// Scroll pen button down?
-					if(
-						isDown
+					// Scroll button down?
+					if(isDown
 						&&
-						// Scroll when tip is down
-						(!tablet->settings.scrollDrag || IsButtonDown(buttons, 0))
+						// Scroll when tip is down?
+						(!tablet->settings.scrollDrag || IsButtonDown(penButtons, 0))
 					) {
 
 						// Get rotated pen position
-						Vector2D scrollPosition;
 						scrollPosition.Set(tablet->state.position);
 						mapper->GetRotatedTabletPosition(&scrollPosition.x, &scrollPosition.y);
 
@@ -303,7 +305,7 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 						if(
 							isPressed
 							||
-							(tablet->settings.scrollDrag && IsButtonPressed(buttons, lastButtons, 0))
+							(tablet->settings.scrollDrag && IsButtonPressed(penButtons, penLastButtons, 0))
 						) {
 							lastScrollPosition.Set(scrollPosition);
 							scrollStartPosition.Set(tablet->state.position);
@@ -347,19 +349,19 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 						// Vertical Scroll
 						if(delta.y != 0 && (mouseButton & InputEmulator::MouseScrollVertical) == InputEmulator::MouseScrollVertical) {
 							inputEmulator.MouseScroll((int)delta.y, true);
-							lastScrollPosition.Set(scrollPosition);
+							scrolled = true;
 						}
 
 						// Horizontal scroll
 						if(delta.x != 0 && (mouseButton & InputEmulator::MouseScrollHorizontal) == InputEmulator::MouseScrollHorizontal) {
 							inputEmulator.MouseScroll((int)-delta.x, false);
-							lastScrollPosition.Set(scrollPosition);
+							scrolled = true;
 						}
 
 						// Media volume control
 						if(delta.y != 0 && mouseButton == InputEmulator::MediaVolumeControl) {
 							inputEmulator.VolumeChange(-(float)delta.y / 100.0f);
-							lastScrollPosition.Set(scrollPosition);
+							scrolled = true;
 						}
 
 						// Stop cursor
@@ -370,15 +372,14 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 					}
 				}
 			}
+
 		}
 
-		// Set last buttons
-		if(isPen) {
-			tablet->state.lastButtons = buttons;
+		// Update last scroll position
+		if(scrolled) {
+			lastScrollPosition.Set(scrollPosition);
 		}
-		else {
-			tablet->auxState.lastButtons = buttons;
-		}
+
 	}
 }
 
@@ -493,10 +494,9 @@ void TabletHandler::RunTabletInputThread() {
 		// Process buttons
 		outButtons = 0;
 		ProcessPenButtons(&outButtons);
+		ProcessAuxButtons(&outButtons);
+		tablet->state.lastButtons = tablet->state.inputButtons;
 		tablet->state.buttons = outButtons;
-
-		// Reprocess auxiliary buttons (for mouse scroll)
-		ProcessAuxButtons();
 
 		//
 		// Report filters
@@ -610,7 +610,9 @@ void TabletHandler::RunAuxInputThread()
 		if(logger.debugEnabled) {
 			LOG_DEBUG("Aux buttons: 0x%04X\n", auxState.buttons);
 		}
-		ProcessAuxButtons();
+		UINT32 tmpButtons = 0; 
+		ProcessAuxButtons(&tmpButtons);
+		tablet->auxState.lastButtons = tablet->auxState.buttons;
 
 	}
 

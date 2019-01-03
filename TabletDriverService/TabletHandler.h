@@ -9,7 +9,7 @@ private:
 	Vector2D lastScrollPosition;
 	Vector2D scrollStartPosition;
 	void ProcessPenButtons(UINT32 *outButtons);
-	void ProcessAuxButtons();
+	void ProcessAuxButtons(UINT32 *outButtons);
 	void ProcessButtons(UINT32 *outButtons, bool isPen);
 	bool IsButtonDown(UINT32 buttons, int buttonIndex);
 	bool IsButtonPressed(UINT32 buttons, UINT32 lastButtons, int buttonIndex);

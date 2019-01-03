@@ -75,7 +75,7 @@ int main(int argc, char**argv) {
 		// Unknown tablet
 		if(tablet == NULL) {
 			LOG_ERROR("Tablet not found!\n");
-			CleanupAndExit(1);
+			CleanupAndExit(0);
 		}
 
 		// Tablet init
@@ -84,7 +84,7 @@ int main(int argc, char**argv) {
 			LOG_ERROR("Possible fixes:\n");
 			LOG_ERROR("1) Uninstall other tablet drivers.\n");
 			LOG_ERROR("2) Stop other tablet driver services.\n");
-			CleanupAndExit(1);
+			CleanupAndExit(0);
 		}
 
 		// Set screen mapper tablet
@@ -140,7 +140,7 @@ int main(int argc, char**argv) {
 		LOG_ERROR("1) Install VMulti driver\n");
 		LOG_ERROR("2) Kill PentabletService.exe (XP Pen driver)\n");
 		LOG_ERROR("3) Uninstall other tablet drivers and reinstall VMulti driver\n");
-		CleanupAndExit(1);
+		CleanupAndExit(0);
 	}
 
 	// Output manager
@@ -209,6 +209,10 @@ int main(int argc, char**argv) {
 //
 void CleanupAndExit(int code) {
 
+	// Stop logger
+	LOGGER_STOP();
+
+
 	// PipeHandler
 	printf("Cleanup PipeHandler\n");
 	if(pipeHandler != NULL) {
@@ -237,9 +241,10 @@ void CleanupAndExit(int code) {
 	if(tablet != NULL)
 		delete tablet;
 	
-	// Logger
-	LOGGER_STOP();
-	Sleep(500);
+	// Uninitialize COM
+	CoUninitialize();
+
+	//Sleep(500);
 
 	//printf("Press enter to exit...");
 	//getchar();

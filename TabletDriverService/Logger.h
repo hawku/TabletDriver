@@ -60,6 +60,7 @@ private:
 	bool newMessage;
 	ofstream logFile;
 	bool logToFile;
+	bool isDebugOutputEnabled;
 
 public:
 	enum LogLevels {
@@ -94,9 +95,9 @@ public:
 	};
 	bool isRunning;
 	bool directPrint;
-	bool debugEnabled;
 	string logFilename = "";
 	HANDLE pipeHandle;
+	mutex lock;
 
 	void OutputMessage(LogItem *message);
 	void ProcessMessages();
@@ -109,6 +110,10 @@ public:
 	void Stop();
 	bool OpenLogFile(string filename);
 	bool CloseLogFile();
+
+	void SetDebugOutput(bool enabled);
+	bool IsDebugOutputEnabled();
+
 };
 extern Logger logger;
 

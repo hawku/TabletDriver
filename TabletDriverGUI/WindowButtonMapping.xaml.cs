@@ -79,6 +79,7 @@ namespace TabletDriverGUI
                 { "VOLUMEDOWN5.0", new ButtonBinding("Volume Down 5.0%") },
                 { "VOLUMEMUTE", new ButtonBinding("Volume Mute") },
                 { "VOLUMECONTROL", new ButtonBinding("Volume Control Up/Down") },
+                { "BALANCECONTROL", new ButtonBinding("Balance Control Left/Right") },
                 { "MEDIANEXT", new ButtonBinding("Media Next Track") },
                 { "MEDIAPREV", new ButtonBinding("Media Previous Track") },
                 { "MEDIASTOP", new ButtonBinding("Media Stop") },

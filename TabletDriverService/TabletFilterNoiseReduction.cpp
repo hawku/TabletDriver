@@ -99,7 +99,7 @@ void TabletFilterNoiseReduction::Update() {
 			}
 
 			// Debug message
-			if(logger.debugEnabled) {
+			if(logger.IsDebugOutputEnabled()) {
 				LOG_DEBUG("Threshold! D=%0.2f mm, R=%0.2f, V=%0.2f mm/s, V2=%0.2f mm/s\n",
 					distance,
 					distanceRatio,
@@ -112,7 +112,7 @@ void TabletFilterNoiseReduction::Update() {
 	}
 
 	// Debug message
-	if(logger.debugEnabled) {
+	if(logger.IsDebugOutputEnabled()) {
 		double distance = outputPosition->Distance(latestTarget);
 		double latency;
 		if(velocity <= 0) {

@@ -96,7 +96,7 @@ bool OutputSendInputAbsolute::Write() {
 		SendInput(1, &input, sizeof(INPUT));
 
 		// Debug message
-		if(logger.debugEnabled) {
+		if(logger.IsDebugOutputEnabled()) {
 			LOG_DEBUG("%0.0f,%0.0f | %0.0f,%0.0f | %0.0f,%0.0f | %ld, %ld -> %0.0f,%0.0f\n",
 				monitorInfo.virtualWidth, monitorInfo.virtualHeight,
 				monitorInfo.virtualX, monitorInfo.virtualY,

@@ -73,7 +73,7 @@ void TabletFilterTester::Run() {
 			position.y = cmd.GetDouble(2, 0);
 
 			// Debug message
-			if(logger.debugEnabled) {
+			if(logger.IsDebugOutputEnabled()) {
 				LOG_DEBUG("IN : %0.3f ms, %0.2f, %0.2f\n",
 					time,
 					position.x,
@@ -88,7 +88,7 @@ void TabletFilterTester::Run() {
 				outputState.position.Set(position);
 
 				// Debug message
-				if(logger.debugEnabled) {
+				if(logger.IsDebugOutputEnabled()) {
 					LOG_DEBUG("First report: %0.3f, %0.2f, %0.2f\n", time, position.x, position.y);
 				}
 
@@ -122,7 +122,7 @@ void TabletFilterTester::Run() {
 			*/
 
 			// Debug message
-			if(logger.debugEnabled) {
+			if(logger.IsDebugOutputEnabled()) {
 				LOG_DEBUG("OUT: %0.3f ms, %0.2f, %0.2f (%0.3f mm)\n",
 					time,
 					position.x,

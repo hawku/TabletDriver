@@ -149,9 +149,7 @@ void CommandHandler::CreateDeviceCommands() {
 		HIDDevice *hid = new HIDDevice();
 		hid->debugEnabled = true;
 		hid->OpenDevice(&hidHandle, 1, 1, 1, 1);
-		if(hidHandle > 0) {
-			CloseHandle(hidHandle);
-		}
+		SAFE_CLOSE_HANDLE(hidHandle);
 		delete hid;
 
 		return true;

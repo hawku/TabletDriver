@@ -110,7 +110,7 @@ bool OutputVMultiDigitizerRelative::Write()
 	if(vmulti->HasReportChanged()) {
 
 		// Debug message
-		if(logger.debugEnabled) {
+		if(logger.IsDebugOutputEnabled()) {
 			LOG_DEBUGBUFFER(&report, 10, "Report: ");
 		}
 

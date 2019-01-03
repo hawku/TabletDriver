@@ -39,6 +39,7 @@ public:
 	bool connectedOutput;
 	bool connectedState;
 
+	mutex lock;
 	bool isRunning;
 	bool isStateOutputEnabled;
 

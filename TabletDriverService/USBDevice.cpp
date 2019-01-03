@@ -89,8 +89,7 @@ bool USBDevice::OpenDevice(HANDLE *outDeviceHandle, WINUSB_INTERFACE_HANDLE *out
 				WinUsb_Initialize(deviceHandle, &usbHandle);
 				if(!usbHandle) {
 					LOG_ERROR("ERROR! Unable to initialize WinUSB!\n");
-					if(deviceHandle != INVALID_HANDLE_VALUE)
-						CloseHandle(deviceHandle);
+					SAFE_CLOSE_HANDLE(deviceHandle);
 					return false;
 				}
 
@@ -136,8 +135,7 @@ bool USBDevice::OpenDevice(HANDLE *outDeviceHandle, WINUSB_INTERFACE_HANDLE *out
 						WinUsb_Free(usbHandle);
 
 					// Free device file
-					if(deviceHandle && deviceHandle != INVALID_HANDLE_VALUE)
-						CloseHandle(deviceHandle);
+					SAFE_CLOSE_HANDLE(deviceHandle);
 				}
 			}
 		}
@@ -266,8 +264,7 @@ void USBDevice::CloseDevice() {
 	}
 	if(_deviceHandle != NULL && _deviceHandle != INVALID_HANDLE_VALUE) {
 		try {
-			CloseHandle(_deviceHandle);
-			_deviceHandle = NULL;
+			SAFE_CLOSE_HANDLE(_deviceHandle);
 		} catch(exception &e) {
 			LOG_ERROR("WinUSB CloseHandler ERROR! %s\n", e.what());
 		}

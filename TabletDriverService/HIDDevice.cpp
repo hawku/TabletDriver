@@ -204,7 +204,7 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 
 				// Close the HID handle if the device is incorrect
 				else {
-					CloseHandle(deviceHandle);
+					SAFE_CLOSE_HANDLE(deviceHandle);
 				}
 
 				// Free HID preparsed data
@@ -340,8 +340,7 @@ void HIDDevice::CloseDevice() {
 					0,
 					NULL);
 
-			CloseHandle(_deviceHandle);
-			_deviceHandle = NULL;
+			SAFE_CLOSE_HANDLE(_deviceHandle);
 		} catch(exception) {
 			_deviceHandle = NULL;
 		}

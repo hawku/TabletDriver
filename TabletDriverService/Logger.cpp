@@ -8,7 +8,7 @@ Logger::Logger() {
 	verbosity = LogLevelDebug;
 	newMessage = false;
 	directPrint = false;
-	debugEnabled = false;
+	isDebugOutputEnabled = false;
 	pipeHandle = NULL;
 }
 
@@ -296,6 +296,31 @@ bool Logger::CloseLogFile() {
 	}
 	return false;
 }
+
+
+//
+// Enable/disable debug output
+//
+void Logger::SetDebugOutput(bool enabled)
+{
+	lock.lock();
+	isDebugOutputEnabled = enabled;
+	lock.unlock();
+
+}
+
+//
+// Check if the debug output is enabled
+//
+bool Logger::IsDebugOutputEnabled()
+{
+	bool enabled = false;
+	lock.lock();
+	enabled = isDebugOutputEnabled;
+	lock.unlock();
+	return enabled;
+}
+
 
 
 //

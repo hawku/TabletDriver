@@ -485,7 +485,7 @@ bool Tablet::Read(void *buffer, int length) {
 	else if(hidDevice != NULL) {
 		status = hidDevice->Read(buffer, length);
 	}
-	if(logger.debugEnabled && status) {
+	if(logger.IsDebugOutputEnabled() && status) {
 		LOG_DEBUGBUFFER(buffer, length, "Read: ");
 	}
 	return status;
@@ -554,7 +554,7 @@ int Tablet::ReadAuxReport()
 		status = hidDeviceAux->Read(buffer, length);
 
 		// Debug message
-		if(logger.debugEnabled) {
+		if(logger.IsDebugOutputEnabled()) {
 			LOG_DEBUGBUFFER(buffer, length, "Aux read: ");
 		}
 

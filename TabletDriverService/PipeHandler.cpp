@@ -23,7 +23,6 @@ PipeHandler::PipeHandler(string pipeName)
 
 	isRunning = false;
 	isStateOutputEnabled = false;
-
 }
 
 
@@ -41,8 +40,14 @@ PipeHandler::~PipeHandler()
 //
 bool PipeHandler::Start()
 {
-	if(!isRunning) {
+	lock.lock();
+	bool running = isRunning;
+	lock.unlock();
+
+	if(!running) {
+		lock.lock();
 		isRunning = true;
+		lock.unlock();
 		threadInput = new thread(&PipeHandler::RunInputThread, this);
 		threadOutput = new thread(&PipeHandler::RunOutputThread, this);
 		threadState = new thread(&PipeHandler::RunStateThread, this);
@@ -56,13 +61,20 @@ bool PipeHandler::Start()
 // Stop
 //
 bool PipeHandler::Stop() {
-	if(isRunning) {
-		isRunning = false;
+
+	lock.lock();
+	bool running = isRunning;
+	lock.unlock();
+
+	if(running) {
+		lock.lock();
+		isRunning = true;
+		lock.unlock();
 
 		// Input
 		if(handleInput != NULL) {
 			if(connectedInput) {
-				CloseHandle(handleInput);
+				SAFE_CLOSE_HANDLE(handleInput);
 			}
 			TerminateThread(threadInput, 0);
 		}
@@ -70,7 +82,7 @@ bool PipeHandler::Stop() {
 		// Output
 		if(handleOutput != NULL) {
 			if(connectedOutput) {
-				CloseHandle(handleOutput);
+				SAFE_CLOSE_HANDLE(handleOutput);
 			}
 			TerminateThread(threadOutput, 0);
 		}
@@ -78,7 +90,7 @@ bool PipeHandler::Stop() {
 		// State
 		if(handleState != NULL) {
 			if(connectedState) {
-				CloseHandle(handleState);
+				SAFE_CLOSE_HANDLE(handleState);
 			}
 			TerminateThread(threadState, 0);
 		}
@@ -104,7 +116,16 @@ void PipeHandler::RunInputThread()
 	char bufferWrite[1024];
 	char bufferRead[1024];
 
-	while(isRunning) {
+	while(true) {
+
+		lock.lock();
+		if(!isRunning) {
+			lock.unlock();
+			break;
+		}
+		else {
+			lock.unlock();
+		}
 
 		connectedInput = false;
 
@@ -132,8 +153,7 @@ void PipeHandler::RunInputThread()
 		LOG_DEBUG("Input pipe connected: %d\n", result);
 
 		if(!result) {
-			if(handleInput != NULL)
-				CloseHandle(handleInput);
+			SAFE_CLOSE_HANDLE(handleInput);
 			continue;
 		}
 
@@ -147,7 +167,7 @@ void PipeHandler::RunInputThread()
 				if(!result || bytesRead == 0) {
 					if(GetLastError() == ERROR_BROKEN_PIPE) {
 						LOG_DEBUG("Input pipe broken! %d\n", GetLastError());
-						CloseHandle(handleInput);
+						SAFE_CLOSE_HANDLE(handleInput);
 						break;
 					}
 				}
@@ -185,7 +205,16 @@ void PipeHandler::RunOutputThread()
 	char bufferRead[1024];
 
 	// Connect loop
-	while(isRunning) {
+	while(true) {
+
+		lock.lock();
+		if(!isRunning) {
+			lock.unlock();
+			break;
+		}
+		else {
+			lock.unlock();
+		}
 
 		connectedOutput = false;
 
@@ -211,8 +240,7 @@ void PipeHandler::RunOutputThread()
 		LOG_DEBUG("Output pipe connected: %d\n", result);
 
 		if(!result) {
-			if(handleOutput != NULL)
-				CloseHandle(handleOutput);
+			SAFE_CLOSE_HANDLE(handleOutput);
 			logger.pipeHandle = NULL;
 			continue;
 		}
@@ -225,7 +253,7 @@ void PipeHandler::RunOutputThread()
 		// Read loop
 		while(true) {
 			if(logger.pipeHandle == NULL) {
-				CloseHandle(handleOutput);
+				SAFE_CLOSE_HANDLE(handleOutput);
 				break;
 			}
 			Sleep(100);
@@ -234,7 +262,7 @@ void PipeHandler::RunOutputThread()
 			if(!result || bytesRead == 0) {
 				if(GetLastError() == ERROR_BROKEN_PIPE) {
 					LOG_DEBUG("Output pipe broken! %d\n", GetLastError());
-					CloseHandle(handleOutput);
+					SAFE_CLOSE_HANDLE(handleOutput);
 					break;
 				}
 			}
@@ -258,8 +286,19 @@ void PipeHandler::RunStateThread()
 	char bufferRead[1024];
 	TabletState lastState;
 
+	bool outputEnabled = false;
+
 	// Connect loop
-	while(isRunning) {
+	while(true) {
+
+		lock.lock();
+		if(!isRunning) {
+			lock.unlock();
+			break;
+		}
+		else {
+			lock.unlock();
+		}
 
 		connectedState = false;
 
@@ -284,8 +323,7 @@ void PipeHandler::RunStateThread()
 		LOG_DEBUG("State pipe connected: %d\n", result);
 
 		if(!result) {
-			if(handleState != NULL)
-				CloseHandle(handleState);
+			SAFE_CLOSE_HANDLE(handleState);
 			logger.pipeHandle = NULL;
 			Sleep(1000);
 			continue;
@@ -298,7 +336,11 @@ void PipeHandler::RunStateThread()
 		// Write loop
 		while(true) {
 
-			if(tablet != NULL && tabletHandler != NULL && isStateOutputEnabled) {
+			lock.lock();
+			outputEnabled = isStateOutputEnabled;
+			lock.unlock();
+
+			if(tablet != NULL && tabletHandler != NULL && outputEnabled) {
 				if(tabletHandler->outputStateWrite.position.Distance(lastState.position) > 0) {
 
 					// Input

@@ -28,7 +28,7 @@ void CommandHandler::CreateTabletCommands() {
 			LOG_ERROR("Tablet not found!\n");
 			LOG_ERROR("Check the list of supported tablets from the GitHub page.\n");
 			LOG_ERROR("http://github.com/hawku/TabletDriver\n");
-			CleanupAndExit(1);
+			CleanupAndExit(0);
 			return false;
 		}
 		return true;

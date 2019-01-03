@@ -126,7 +126,7 @@ void TabletFilterAdvancedSmoothing::Update() {
 	outputState.pressure += deltaPressure * weight;
 
 	// Debug message
-	if(logger.debugEnabled) {
+	if(logger.IsDebugOutputEnabled()) {
 		LOG_DEBUG("TX=%0.2f TY=%0.2f TP=%0.2f OX=%0.2f OY=%0.2f OP=%0.2f DX=%0.2f DY=%0.2f DP=%0.2f D=%0.2f W=%0.3f V=%0.2f mm/s\n",
 			target.position.x,
 			target.position.y,

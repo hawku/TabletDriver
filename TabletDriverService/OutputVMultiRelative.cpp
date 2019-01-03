@@ -68,7 +68,7 @@ bool OutputVMultiRelative::Write() {
 
 	// Write report to VMulti device if report has changed
 	if(vmulti->HasReportChanged() || report.x != 0 || report.y != 0) {
-		if(logger.debugEnabled) {
+		if(logger.IsDebugOutputEnabled()) {
 			LOG_DEBUGBUFFER(&report, 10, "Report: ");
 		}
 		vmulti->WriteReport();

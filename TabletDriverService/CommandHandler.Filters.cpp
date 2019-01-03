@@ -16,6 +16,8 @@ void CommandHandler::CreateFilterCommands() {
 	//
 	AddAlias("Smoothing", "SmoothingFilter");
 	AddCommand(new Command("SmoothingFilter", [&](CommandLine *cmd) {
+
+		// Tablet valid?
 		if(!ExecuteCommand("TabletValid")) return false;
 
 		double latency = cmd->GetDouble(0, tablet->smoothing.GetLatency());
@@ -65,7 +67,10 @@ void CommandHandler::CreateFilterCommands() {
 	//
 	AddAlias("AdvancedSmoothing", "AdvancedSmoothingFilter");
 	AddCommand(new Command("AdvancedSmoothingFilter", [&](CommandLine *cmd) {
+
+		// Tablet valid?
 		if(!ExecuteCommand("TabletValid")) return false;
+
 		tablet->advancedSmoothing.isEnabled = cmd->GetBoolean(0, tablet->advancedSmoothing.isEnabled);
 		tablet->advancedSmoothing.ClearSettings();
 
@@ -85,6 +90,8 @@ void CommandHandler::CreateFilterCommands() {
 	// Sets advanced smoothing filter parameters
 	//
 	AddCommand(new Command("AdvancedSmoothingAdd", [&](CommandLine *cmd) {
+
+		// Tablet valid?
 		if(!ExecuteCommand("TabletValid")) return false;
 
 		if(cmd->valueCount >= 3) {
@@ -109,7 +116,9 @@ void CommandHandler::CreateFilterCommands() {
 	AddAlias("Gravity", "GravityFilter");
 	AddCommand(new Command("GravityFilter", [&](CommandLine *cmd) {
 
+		// Tablet valid?
 		if(!ExecuteCommand("TabletValid")) return false;
+
 		double gravity = cmd->GetDouble(0, tablet->gravityFilter.gravity);
 		double friction = cmd->GetDouble(1, 0);
 		double pressureGravity = cmd->GetDouble(2, 0);
@@ -157,7 +166,9 @@ void CommandHandler::CreateFilterCommands() {
 	AddAlias("Noise", "NoiseReduction");
 	AddCommand(new Command("NoiseReduction", [&](CommandLine *cmd) {
 
+		// Tablet valid?
 		if(!ExecuteCommand("TabletValid")) return false;
+
 		string stringValue = cmd->GetStringLower(0, "");
 
 		// Off / False
@@ -232,6 +243,9 @@ void CommandHandler::CreateFilterCommands() {
 	AddAlias("AntiSmoothing", "AntiSmoothingFilter");
 	AddAlias("Anti", "AntiSmoothingFilter");
 	AddCommand(new Command("AntiSmoothingFilter", [&](CommandLine *cmd) {
+		
+		// Tablet valid?
+		if(!ExecuteCommand("TabletValid")) return false;
 
 		string stringValue = cmd->GetStringLower(0, "");
 
@@ -292,6 +306,9 @@ void CommandHandler::CreateFilterCommands() {
 	AddAlias("AntiAdd", "AntiSmoothingAdd");
 	AddCommand(new Command("AntiSmoothingAdd", [&](CommandLine *cmd) {
 
+		// Tablet valid?
+		if(!ExecuteCommand("TabletValid")) return false;
+
 		double velocity = cmd->GetDouble(0, 0);
 		double shape = cmd->GetDouble(1, 0.5);
 		double compensation = cmd->GetDouble(2, 0);
@@ -322,6 +339,10 @@ void CommandHandler::CreateFilterCommands() {
 	AddAlias("Interval", "FilterTimerInterval");
 	AddAlias("TimerInterval", "FilterTimerInterval");
 	AddCommand(new Command("FilterTimerInterval", [&](CommandLine *cmd) {
+
+		// Tablet valid?
+		if(!ExecuteCommand("TabletValid")) return false;
+
 		if(tabletHandler == NULL) return true;
 		int oldInterval = (int)round(tabletHandler->timerInterval);
 
@@ -349,6 +370,9 @@ void CommandHandler::CreateFilterCommands() {
 	//
 	AddAlias("Tester", "FilterTester");
 	AddCommand(new Command("FilterTester", [&](CommandLine *cmd) {
+
+		// Tablet valid?
+		if(!ExecuteCommand("TabletValid")) return false;
 
 		string inputFilepath = cmd->GetString(0, "tester_input.txt");
 		string outputFilepath = cmd->GetString(1, "tester_output.txt");

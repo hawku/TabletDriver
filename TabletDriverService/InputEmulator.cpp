@@ -44,6 +44,7 @@ void InputEmulator::CreateKeyMap()
 
 	// Media volume control
 	AddKey("VOLUMECONTROL", "Media Volume Control", 0, MouseButtons::MediaVolumeControl);
+	AddKey("BALANCECONTROL", "Media Balance Control", 0, MouseButtons::MediaBalanceControl);
 
 	// Shift
 	AddKey("SHIFT", "Shift", VK_SHIFT);
@@ -619,6 +620,61 @@ void InputEmulator::VolumeSet(float volume)
 		if(volume < 0) volume = 0.0f;
 		else if(volume > 1) volume = 1.0f;
 		pAudioEndpointVolume->SetMasterVolumeLevelScalar(volume, &GUID_NULL);
+	}
+	ReleaseEndpointVolume();
+}
+
+//
+// Set main audio device left/right balance
+//
+void InputEmulator::VolumeBalance(float newBalance)
+{
+	UINT channelCount = 0;
+	float levelLeft = -1;
+	float levelRight = -1;
+
+	// Get endpoint volume
+	if(CreateEndpointVolume()) {
+
+		// Channel count
+		pAudioEndpointVolume->GetChannelCount(&channelCount);
+		if(channelCount >= 2) {
+
+			// Get channel levels
+			pAudioEndpointVolume->GetChannelVolumeLevelScalar(0, &levelLeft);
+			pAudioEndpointVolume->GetChannelVolumeLevelScalar(1, &levelRight);
+
+			// Levels valid?
+			if(levelLeft >= 0 || levelRight >= 0) {
+
+				// Calculate balance
+				float levelSum = levelLeft + levelRight;
+
+				// Limit resolution
+				newBalance = round(newBalance * 100.0f) / 100.0f;
+				if(newBalance < 0.0f) newBalance = 0.0f;
+				else if(newBalance > 1.0f) newBalance = 1.0f;
+
+				// Set channel level values
+				levelLeft = levelSum * newBalance;
+				levelRight = levelSum * (1 - newBalance);
+
+				// Limit levels
+				if(levelLeft < 0) levelLeft = 0;
+				else if(levelLeft > 1) levelLeft = 1;
+				if(levelRight < 0) levelRight = 0;
+				else if(levelRight > 1) levelRight = 1;
+
+				// Debug message
+				if(logger.IsDebugOutputEnabled()) {
+					LOG_DEBUG("Audio balance: Left %0.5f <- %0.3f -> %0.5f Right\n", levelLeft, newBalance, levelRight);
+				}
+
+				// Set endpoint volume channel levels
+				pAudioEndpointVolume->SetChannelVolumeLevelScalar(0, levelLeft, &GUID_NULL);
+				pAudioEndpointVolume->SetChannelVolumeLevelScalar(1, levelRight, &GUID_NULL);
+			}
+		}
 	}
 	ReleaseEndpointVolume();
 }

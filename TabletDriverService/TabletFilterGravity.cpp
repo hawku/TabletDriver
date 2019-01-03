@@ -99,7 +99,7 @@ void TabletFilterGravity::Update() {
 
 
 	// Debug message
-	if(logger.debugEnabled && distance > 0.0) {
+	if(logger.IsDebugOutputEnabled() && distance > 0.0) {
 		LOG_DEBUG("X=%0.2f Y=%0.2f DX=%0.2f DY=%0.2f VX=%0.2f VY=%0.2f\n",
 			outputPosition.x,
 			outputPosition.y,

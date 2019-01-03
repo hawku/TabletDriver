@@ -124,7 +124,7 @@ void TabletFilterSmoothing::Update() {
 	double velocity = sqrt(dx * dx + dy * dy) * (1000.0 / timerInterval);
 
 	// Debug message
-	if(logger.debugEnabled) {
+	if(logger.IsDebugOutputEnabled()) {
 		LOG_DEBUG("TXY=%0.2f,%0.2f TP=%0.2f OXY=%0.2f,%0.2f OP=%0.2f DXY=%0.2f,%0.2f DP=%0.2f D=%0.2f W=%0.3f V=%0.2f L=%0.2f\n",
 			target.position.x,
 			target.position.y,

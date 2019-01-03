@@ -329,7 +329,9 @@ void CommandHandler::CreateOtherCommands() {
 	//
 	AddCommand(new Command("StateOutput", [&](CommandLine *cmd) {
 		if(!ExecuteCommand("TabletValid")) return false;
+		pipeHandler->lock.lock();
 		pipeHandler->isStateOutputEnabled = cmd->GetBoolean(0, pipeHandler->isStateOutputEnabled);
+		pipeHandler->lock.unlock();
 		LOG_INFO("State output = %s\n", pipeHandler->isStateOutputEnabled ? "Enabled" : "Disabled");
 		return true;
 	}));
@@ -342,8 +344,9 @@ void CommandHandler::CreateOtherCommands() {
 	//
 	AddCommand(new Command("Debug", [&](CommandLine *cmd) {
 		if(!ExecuteCommand("TabletValid")) return false;
-		logger.debugEnabled = cmd->GetBoolean(0, logger.debugEnabled);
-		LOG_INFO("Debug logging = %s\n", logger.debugEnabled ? "True" : "False");
+		bool debugEnabled = cmd->GetBoolean(0, logger.IsDebugOutputEnabled());
+		logger.SetDebugOutput(debugEnabled);
+		LOG_INFO("Debug logging = %s\n", logger.IsDebugOutputEnabled() ? "True" : "False");
 		return true;
 	}));
 

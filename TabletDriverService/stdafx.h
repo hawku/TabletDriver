@@ -21,6 +21,9 @@
 // IntelliSense "fix"...
 //#define memcpy memcpy
 
+#define SAFE_CLOSE_HANDLE(handle) if(handle != NULL && handle != INVALID_HANDLE_VALUE) { CloseHandle(handle); handle = NULL; }
+
+
 // Global variables...
 extern VMulti *vmulti;
 extern CommandHandler *commandHandler;

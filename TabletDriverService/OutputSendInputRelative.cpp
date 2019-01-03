@@ -75,7 +75,7 @@ bool OutputSendInputRelative::Write() {
 		SendInput(1, &input, sizeof(INPUT));
 
 		// Debug message
-		if(logger.debugEnabled) {
+		if(logger.IsDebugOutputEnabled()) {
 			LOG_DEBUG("X: %d, Y: %d, Flags: %d\n",
 				input.mi.dx, input.mi.dy, input.mi.dwFlags
 			);

@@ -98,7 +98,7 @@ void TabletFilterAntiSmoothing::Update() {
 	//
 	if(timeDelta > 10) {
 
-		if(logger.debugEnabled) {
+		if(logger.IsDebugOutputEnabled()) {
 			LOG_DEBUG("INVALID! V=%0.2f mm/s, A=%0.0f mm/s^2, D=%0.2f ms\n",
 				velocity,
 				acceleration,
@@ -124,7 +124,7 @@ void TabletFilterAntiSmoothing::Update() {
 	// Skip invalid reports by setting the position as latest target
 	//
 	if(ignoreInvalidReports > 0) {
-		if(logger.debugEnabled) {
+		if(logger.IsDebugOutputEnabled()) {
 			LOG_DEBUG("IGNORE! V=%0.2f mm/s, A=%0.0f mm/s^2, D=%0.2f ms\n",
 				velocity,
 				acceleration,
@@ -217,7 +217,7 @@ void TabletFilterAntiSmoothing::Update() {
 	}
 
 	// Debug message
-	if(logger.debugEnabled) {
+	if(logger.IsDebugOutputEnabled()) {
 		double delta = outputPosition->Distance(latestTarget);
 		double pixelDensity = (mapper->primaryScreenArea->width / mapper->primaryTabletArea->width);
 		LOG_DEBUG(

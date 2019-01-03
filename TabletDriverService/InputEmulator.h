@@ -47,6 +47,7 @@ public:
 		MouseScrollHorizontal = 0x102,
 		MouseScrollBoth = 0x103,
 		MediaVolumeControl = 0x110,
+		MediaBalanceControl = 0x111,
 	};
 
 	class KeyMapValue {
@@ -84,6 +85,7 @@ public:
 	bool CreateEndpointVolume();
 	bool ReleaseEndpointVolume();
 	void VolumeSet(float volume);
+	void VolumeBalance(float leftRight);
 	float VolumeGet();
 	void VolumeChange(float delta);
 

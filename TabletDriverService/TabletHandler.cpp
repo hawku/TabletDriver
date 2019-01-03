@@ -98,7 +98,7 @@ void TabletHandler::ChangeTimerInterval(int newInterval) {
 	NtQueryTimerResolution(&timerMinimumResolution, &timerMaximumResolution, &timerCurrentResolution);
 
 	// Debug messages
-	if(logger.debugEnabled) {
+	if(logger.IsDebugOutputEnabled()) {
 		LOG_DEBUG("System timer resolution:\n");
 		LOG_DEBUG("  Minimum: %0.3f ms\n", (double)timerMinimumResolution / 10000.0);
 		LOG_DEBUG("  Maximum: %0.3f ms\n", (double)timerMaximumResolution / 10000.0);
@@ -127,7 +127,7 @@ void TabletHandler::ChangeTimerInterval(int newInterval) {
 		NtQueryTimerResolution(&timerMinimumResolution, &timerMaximumResolution, &timerCurrentResolution);
 
 		// Debug messages
-		if(logger.debugEnabled) {
+		if(logger.IsDebugOutputEnabled()) {
 			LOG_DEBUG("System timer resolution set to %0.3f ms\n", (double)timerResolution / 10000.0);
 			LOG_DEBUG("System timer resolution is now %0.3f ms\n", (double)timerCurrentResolution / 10000.0);
 		}
@@ -223,7 +223,7 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 			isDown = IsButtonDown(buttons, buttonIndex);
 			isPressed = IsButtonPressed(buttons, lastButtons, buttonIndex);
 			isReleased = IsButtonReleased(buttons, lastButtons, buttonIndex);
-			
+
 			// Pen button map
 			hasBinding = false;
 			if(isPen && tablet->settings.buttonMap[buttonIndex].size() > 0) {
@@ -288,6 +288,8 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 					mouseButton == InputEmulator::MouseScrollBoth
 					||
 					mouseButton == InputEmulator::MediaVolumeControl
+					||
+					mouseButton == InputEmulator::MediaBalanceControl
 				) {
 
 					// Scroll button down?
@@ -347,13 +349,21 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 
 
 						// Vertical Scroll
-						if(delta.y != 0 && (mouseButton & InputEmulator::MouseScrollVertical) == InputEmulator::MouseScrollVertical) {
+						if(delta.y != 0 && (
+							mouseButton == InputEmulator::MouseScrollVertical
+							||
+							mouseButton == InputEmulator::MouseScrollBoth
+							)) {
 							inputEmulator.MouseScroll((int)delta.y, true);
 							scrolled = true;
 						}
 
 						// Horizontal scroll
-						if(delta.x != 0 && (mouseButton & InputEmulator::MouseScrollHorizontal) == InputEmulator::MouseScrollHorizontal) {
+						if(delta.x != 0 && (
+							mouseButton == InputEmulator::MouseScrollHorizontal
+							||
+							mouseButton == InputEmulator::MouseScrollBoth
+							)) {
 							inputEmulator.MouseScroll((int)-delta.x, false);
 							scrolled = true;
 						}
@@ -361,6 +371,13 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 						// Media volume control
 						if(delta.y != 0 && mouseButton == InputEmulator::MediaVolumeControl) {
 							inputEmulator.VolumeChange(-(float)delta.y / 100.0f);
+							scrolled = true;
+						}
+
+						// Media balance control
+						if((delta.x != 0 || isPressed) && mouseButton == InputEmulator::MediaBalanceControl) {
+							double balance = 0.5 + ((scrollStartPosition.x - scrollPosition.x) * tablet->settings.scrollSensitivity) / 50.0f;
+							inputEmulator.VolumeBalance((float)balance);
 							scrolled = true;
 						}
 
@@ -444,7 +461,7 @@ void TabletHandler::RunTabletInputThread() {
 		// Reading failed
 		else {
 			LOG_ERROR("Tablet Read Error!\n");
-			CleanupAndExit(1);
+			CleanupAndExit(0);
 		}
 
 
@@ -473,7 +490,7 @@ void TabletHandler::RunTabletInputThread() {
 		}
 
 		// Debug messages
-		if(logger.debugEnabled) {
+		if(logger.IsDebugOutputEnabled()) {
 			double delta = (tablet->state.time - timeBegin).count() / 1000000.0;
 			LOG_DEBUG("InputState: T=%0.3f, B=%d, X=%0.3f, Y=%0.3f, P=%0.3f V=%0.2f Valid=%s\n",
 				delta,
@@ -607,10 +624,10 @@ void TabletHandler::RunAuxInputThread()
 		tablet->auxState.isValid = false;
 
 		// Process buttons
-		if(logger.debugEnabled) {
+		if(logger.IsDebugOutputEnabled()) {
 			LOG_DEBUG("Aux buttons: 0x%04X\n", auxState.buttons);
 		}
-		UINT32 tmpButtons = 0; 
+		UINT32 tmpButtons = 0;
 		ProcessAuxButtons(&tmpButtons);
 		tablet->auxState.lastButtons = tablet->auxState.buttons;
 
@@ -706,7 +723,7 @@ void TabletHandler::WriteOutputState(TabletState * outputState)
 	}
 
 	// Debug message
-	if(result && logger.debugEnabled) {
+	if(result && logger.IsDebugOutputEnabled()) {
 		double delta = (chrono::high_resolution_clock::now() - timeBegin).count() / 1000000.0;
 		LOG_DEBUG("OutputState: T=%0.3f, B=%d, X=%0.3f, Y=%0.3f, P=%0.3f V=%s\n",
 			delta,

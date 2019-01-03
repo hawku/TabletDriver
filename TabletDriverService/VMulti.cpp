@@ -72,7 +72,7 @@ int VMulti::WriteReport() {
 	memcpy(lastReportBuffer, reportBuffer, 65);
 
 	// Debug
-	if(logger.debugEnabled) {
+	if(logger.IsDebugOutputEnabled()) {
 		LOG_DEBUGBUFFER(reportBuffer, 12, "Write: ");
 	}
 

@@ -37,6 +37,11 @@ namespace TabletDriverGUI
         {
             CheckCultureInfo();
             val = 0;
+
+            // Replace commas with dots
+            str = str.Replace(',', '.');
+
+            // Parse
             if (double.TryParse(str, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, cultureInfo.NumberFormat, out double tmp))
             {
                 val = tmp;

@@ -9,7 +9,7 @@ Logger::Logger() {
 	newMessage = false;
 	directPrint = false;
 	isDebugOutputEnabled = false;
-	pipeHandle = NULL;
+	namedPipe = NULL;
 }
 
 
@@ -60,17 +60,15 @@ void Logger::OutputMessage(LogItem *message) {
 		cout.write(buffer, index);
 		cout.flush();
 	} catch(exception) {
-		exit(1);
 	}
 
 	// Write to output pipe
 	try {
-		if(pipeHandle != NULL) {
+		if(namedPipe != NULL) {
 			DWORD bytesWritten = 0;
-			WriteFile(pipeHandle, buffer, index, &bytesWritten, NULL);
+			namedPipe->Write(buffer, index);
 		}
 	} catch(exception) {
-		logger.pipeHandle = NULL;
 	}
 
 	// Write to log file
@@ -264,7 +262,7 @@ void Logger::run() {
 		}
 
 		// Shutdown the thread
-		if(!isRunning && !newMessage) break;
+		if(!IsRunning() && !newMessage) break;
 
 		// Sleep 10ms
 		Sleep(10);
@@ -327,8 +325,8 @@ bool Logger::IsDebugOutputEnabled()
 // Start logger thread
 //
 void Logger::Start() {
-	if(!isRunning) {
-		isRunning = true;
+	if(!IsRunning()) {
+		SetRunningState(true);
 		threadLog = thread([this] { this->run(); });
 	}
 }
@@ -337,8 +335,8 @@ void Logger::Start() {
 // Stop logger thread
 //
 void Logger::Stop() {
-	if(isRunning) {
-		isRunning = false;
+	if(IsRunning()) {
+		SetRunningState(false);
 		newMessage = true;
 		threadLog.join();
 		if(logFile && logFile.is_open()) {

@@ -329,10 +329,12 @@ void CommandHandler::CreateOtherCommands() {
 	//
 	AddCommand(new Command("StateOutput", [&](CommandLine *cmd) {
 		if(!ExecuteCommand("TabletValid")) return false;
-		pipeHandler->lock.lock();
-		pipeHandler->isStateOutputEnabled = cmd->GetBoolean(0, pipeHandler->isStateOutputEnabled);
-		pipeHandler->lock.unlock();
-		LOG_INFO("State output = %s\n", pipeHandler->isStateOutputEnabled ? "Enabled" : "Disabled");
+		bool isOutputEnabled = false;
+		pipeState->lock.lock();
+		pipeState->isStateOutputEnabled = cmd->GetBoolean(0, pipeState->isStateOutputEnabled);
+		isOutputEnabled = pipeState->isStateOutputEnabled;
+		pipeState->lock.unlock();
+		LOG_INFO("State output = %s\n", pipeState->isStateOutputEnabled ? "Enabled" : "Disabled");
 		return true;
 	}));
 
@@ -536,6 +538,24 @@ void CommandHandler::CreateOtherCommands() {
 
 
 	//
+	// Command: RequestSettings
+	//
+	AddCommand(new Command("RequestSettings", [&](CommandLine *cmd) {
+		LOG_STATUS("SETTINGS_REQUEST 1\n");
+		return true;
+	}));
+
+
+	//
+	// Command: RequestStartup
+	//
+	AddCommand(new Command("RequestStartup", [&](CommandLine *cmd) {
+		LOG_STATUS("STARTUP_REQUEST 1\n");
+		return true;
+	}));
+
+
+	//
 	// Command: Status
 	//
 	// Outputs driver infor as status messages
@@ -563,7 +583,7 @@ void CommandHandler::CreateOtherCommands() {
 		LOG_STATUS("MAX_PRESSURE %d\n", tablet->settings.maxPressure);
 		LOG_STATUS("AUX_BUTTONS %d\n", tablet->settings.auxButtonCount);
 		if(tabletHandler != NULL) {
-			LOG_STATUS("STARTED %d\n", tabletHandler->isRunning);
+			LOG_STATUS("STARTED %d\n", tabletHandler->IsRunning());
 		}
 
 		return true;
@@ -628,6 +648,8 @@ void CommandHandler::CreateOtherCommands() {
 	AddCommand(new Command("GetCommands", [&](CommandLine *cmd) {
 
 		string commandsString = "";
+
+		LOG_STATUS("COMMANDS_CLEAR 1\n");
 
 		for(pair<string, Command*> cmdPair : commands) {
 			string commandName = cmdPair.second->name;

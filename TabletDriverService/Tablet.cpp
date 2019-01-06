@@ -462,7 +462,7 @@ int Tablet::ReadState() {
 
 
 	// Tablet measurement update
-	if(measurement.isRunning) {
+	if(measurement.IsRunning()) {
 		state.buttons = reportData.buttons & 0x0F;
 		measurement.Update(state);
 		return Tablet::ReportInvalid;

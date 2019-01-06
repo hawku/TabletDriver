@@ -17,6 +17,7 @@
 #include <mutex>
 #include <condition_variable>
 
+#include "Runnable.h"
 
 #ifndef LOG_MODULE
 #define LOG_MODULE "Logger"
@@ -52,7 +53,7 @@
 
 using namespace std;
 
-class Logger {
+class Logger : public Runnable {
 private:
 	thread threadLog;
 	void run();
@@ -93,10 +94,9 @@ public:
 		"INFO",
 		"DEBUG"
 	};
-	bool isRunning;
 	bool directPrint;
 	string logFilename = "";
-	HANDLE pipeHandle;
+	NamedPipeServer *namedPipe;
 	mutex lock;
 
 	void OutputMessage(LogItem *message);

@@ -77,7 +77,8 @@
           <Separator/>
           <MenuItem Name="mainMenuResetToDefault" Header="_Reset to default" Click="MainMenuClick" />
           <Separator />
-          <MenuItem Name="mainMenuExit" Header="E_xit" Click="MainMenuClick" />
+          <MenuItem Name="mainMenuExitGUI" Header="Exit _GUI Only" Click="MainMenuClick" />
+          <MenuItem Name="mainMenuExit" Header="Shutdown and E_xit" Click="MainMenuClick" />          
         </MenuItem>
         <MenuItem Header="_Tools">
           <MenuItem Header="Show folder">

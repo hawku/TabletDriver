@@ -3,8 +3,9 @@
 #include <mutex>
 #include "Tablet.h"
 #include "InputEmulator.h"
+#include "Runnable.h"
 
-class TabletHandler {
+class TabletHandler : public Runnable {
 private:
 	Vector2D lastScrollPosition;
 	Vector2D scrollStartPosition;
@@ -28,7 +29,6 @@ public:
 	TabletState outputStateWrite;
 	InputEmulator inputEmulator;
 
-	bool isRunning;
 	bool isTimerTickRunning;
 
 	TabletHandler();

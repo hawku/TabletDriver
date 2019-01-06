@@ -16,7 +16,9 @@
 #include "ScreenMapper.h"
 #include "OutputManager.h"
 #include "CommandHandler.h"
-#include "PipeHandler.h"
+#include "NamedPipeServer.h"
+#include "NamedPipeInput.h"
+#include "NamedPipeState.h"
 
 // IntelliSense "fix"...
 //#define memcpy memcpy
@@ -31,7 +33,9 @@ extern Tablet *tablet;
 extern TabletHandler *tabletHandler;
 extern OutputManager *outputManager;
 extern ScreenMapper *mapper;
-extern PipeHandler *pipeHandler;
+extern NamedPipeInput *pipeInput;
+extern NamedPipeServer *pipeOutput;
+extern NamedPipeState *pipeState;
 extern void CleanupAndExit(int code);
 extern bool ProcessCommand(CommandLine *cmd);
 

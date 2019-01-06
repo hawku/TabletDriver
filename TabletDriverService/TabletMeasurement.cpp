@@ -50,14 +50,14 @@ void TabletMeasurement::Start(int reportCount) {
 
 	lastPointTime = 0;
 
-	isRunning = true;
+	SetRunningState(true);
 }
 
 //
 // Stop measurement
 //
 void TabletMeasurement::Stop() {
-	isRunning = false;
+	SetRunningState(false);
 }
 
 
@@ -69,7 +69,7 @@ void TabletMeasurement::Update(TabletState state) {
 	DWORD time;
 
 
-	if(isRunning) {
+	if(IsRunning()) {
 		if(reportCounter > 0 || reportCounter <= -1) {
 
 			// X Limits
@@ -98,7 +98,7 @@ void TabletMeasurement::Update(TabletState state) {
 			reportCounter--;
 		}
 		else {
-			isRunning = false;
+			SetRunningState(false);
 		}
 	}
 }

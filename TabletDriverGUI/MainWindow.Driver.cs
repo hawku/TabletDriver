@@ -426,9 +426,26 @@ namespace TabletDriverGUI
         {
 
             //
+            // Startup commands request
+            //
+            if(variableName == "startup_request")
+            {
+                SendStartupCommands();
+            }
+
+
+            //
+            // Settings request
+            //
+            else if (variableName == "settings_request")
+            {
+                SendSettingsToDriver();
+            }
+
+            //
             // Tablet Name
             //
-            if (variableName == "tablet")
+            else if (variableName == "tablet")
             {
                 string tabletName = parameters;
                 string title = "TabletDriverGUI - " + tabletName;
@@ -591,6 +608,11 @@ namespace TabletDriverGUI
         // Driver Started
         //
         private void OnDriverStarted(object sender, EventArgs e)
+        {
+          
+        }
+
+        private void SendStartupCommands()
         {
             // Debugging commands
             if (config.DebuggingEnabled)

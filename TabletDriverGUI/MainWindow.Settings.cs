@@ -1297,6 +1297,17 @@ namespace TabletDriverGUI
             }
 
             //
+            // Exit GUI only
+            //
+            else if (sender == mainMenuExitGUI)
+            {
+                driver.DoNotKill = true;
+                Close();
+            }
+
+
+
+            //
             // Exit
             //
             else if (sender == mainMenuExit)

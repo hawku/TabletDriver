@@ -79,6 +79,7 @@
     </ApplicationDefinition>
     <Compile Include="MainWindow.Areas.cs" />
     <Compile Include="MultimediaTimer.cs" />
+    <Compile Include="NamedPipeClient.cs" />
     <Compile Include="WindowTabletViewSettings.xaml.cs">
       <DependentUpon>WindowTabletViewSettings.xaml</DependentUpon>
     </Compile>

@@ -110,8 +110,7 @@ namespace TabletDriverGUI
             textConsoleInput.ScrollToEnd();
             try
             {
-                driver.SendPipeCommand(line);
-                //driver.SendCommand(line);
+                driver.SendCommand(line);
             }
             catch (Exception e)
             {

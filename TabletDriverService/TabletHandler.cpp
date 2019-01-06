@@ -12,7 +12,7 @@ TabletHandler::TabletHandler() {
 	tablet = NULL;
 	tabletInputThread = NULL;
 	auxInputThread = NULL;
-	isRunning = false;
+	SetRunningState(false);
 	timerInterval = 20;
 	isTimerTickRunning = false;
 }
@@ -23,7 +23,7 @@ TabletHandler::TabletHandler() {
 //
 TabletHandler::~TabletHandler() {
 	StopTimer();
-	isRunning = false;
+	SetRunningState(false);
 	if(tablet != NULL) {
 		tablet->isOpen = false;
 	}
@@ -36,7 +36,7 @@ TabletHandler::~TabletHandler() {
 bool TabletHandler::Start() {
 	if(tablet == NULL) return false;
 	ChangeTimerInterval((int)round(timerInterval));
-	isRunning = true;
+	SetRunningState(true);
 	tabletInputThread = new thread(&TabletHandler::RunTabletInputThread, this);
 	auxInputThread = new thread(&TabletHandler::RunAuxInputThread, this);
 	return true;
@@ -47,7 +47,7 @@ bool TabletHandler::Start() {
 //
 bool TabletHandler::Stop() {
 	if(tablet == NULL) return false;
-	isRunning = false;
+	SetRunningState(false);
 	return true;
 }
 
@@ -82,6 +82,7 @@ bool TabletHandler::StopTimer() {
 	}
 	return false;
 }
+
 
 //
 // Change timer interval 
@@ -421,7 +422,7 @@ void TabletHandler::RunTabletInputThread() {
 	//
 	// Tablet input main loop
 	//
-	while(isRunning) {
+	while(IsRunning()) {
 
 		//
 		// Read tablet position
@@ -579,7 +580,7 @@ void TabletHandler::RunTabletInputThread() {
 		WriteOutputState(&outputStateWrite);
 	}
 
-	isRunning = false;
+	SetRunningState(false);
 
 }
 
@@ -602,7 +603,7 @@ void TabletHandler::RunAuxInputThread()
 	//
 	// Auxiliary input main loop
 	//
-	while(isRunning) {
+	while(IsRunning()) {
 
 		// Read
 		reportStatus = tablet->ReadAuxReport();

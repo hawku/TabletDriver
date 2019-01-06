@@ -99,6 +99,13 @@ bool CommandHandler::IsValidCommand(string command) {
 bool CommandHandler::ExecuteCommand(string command) {
 	return ExecuteCommand(command, NULL);
 }
+bool CommandHandler::ExecuteCommandLock(string command) {
+	lock.lock();
+	bool result = ExecuteCommand(command);
+	lock.unlock();
+	return result;
+}
+
 
 //
 // Execute a command using command line
@@ -106,6 +113,13 @@ bool CommandHandler::ExecuteCommand(string command) {
 bool CommandHandler::ExecuteCommand(CommandLine *cmd) {
 	return ExecuteCommand(cmd->command, cmd);
 }
+bool CommandHandler::ExecuteCommandLock(CommandLine *cmd) {
+	lock.lock();
+	bool result = ExecuteCommand(cmd);
+	lock.unlock();
+	return result;
+}
+
 
 //
 // Execute a command using command and parameter string
@@ -116,6 +130,13 @@ bool CommandHandler::ExecuteCommand(string command, string parameters) {
 	delete cmd;
 	return result;
 }
+bool CommandHandler::ExecuteCommandLock(string command, string parameters) {
+	lock.lock();
+	bool result = ExecuteCommand(command, parameters);
+	lock.unlock();
+	return result;
+}
+
 
 //
 // Execute a command
@@ -130,6 +151,13 @@ bool CommandHandler::ExecuteCommand(string command, CommandLine * cmd) {
 	}
 	return false;
 }
+bool CommandHandler::ExecuteCommandLock(string command, CommandLine * cmd) {
+	lock.lock();
+	bool result = ExecuteCommand(command, cmd);
+	lock.unlock();
+	return result;
+}
+
 
 //
 // Execute commands from a file
@@ -145,7 +173,6 @@ bool CommandHandler::ExecuteFile(string filename) {
 	if(!file.is_open()) {
 		return false;
 	}
-
 
 	LOG_INFO("\\ Reading '%s'\n", filename.c_str());
 
@@ -177,7 +204,15 @@ bool CommandHandler::ExecuteFile(string filename) {
 		}
 		LOG_INFO(">> %s\n", cmd->line.c_str());
 
-		ExecuteCommand(cmd);
+		string command = cmd->command;
+		transform(command.begin(), command.end(), command.begin(), ::tolower);
+		if(aliases.count(command) > 0) {
+			command = aliases[command];
+		}
+		if(commands.count(command) > 0) {
+			commands[command]->Execute(cmd);
+		}
+		//ExecuteCommand(cmd);
 
 		delete cmd;
 	}

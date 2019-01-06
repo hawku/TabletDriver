@@ -2,6 +2,7 @@
 #include "Command.h"
 #include "TabletFilterTester.h"
 
+#include <mutex>
 #include <string>
 #include <map>
 
@@ -12,6 +13,8 @@ public:
 	map<string, string> aliases;
 	map<string, string> aliasNames;
 	map<string, string> help;
+
+	mutex lock;
 
 	CommandHandler();
 	~CommandHandler();
@@ -28,9 +31,13 @@ public:
 
 	bool IsValidCommand(string command);
 	bool ExecuteCommand(string command);
+	bool ExecuteCommandLock(string command);
 	bool ExecuteCommand(CommandLine *cmd);
+	bool ExecuteCommandLock(CommandLine * cmd);
 	bool ExecuteCommand(string command, string parameters);
+	bool ExecuteCommandLock(string command, string parameters);
 	bool ExecuteCommand(string command, CommandLine *cmd);
+	bool ExecuteCommandLock(string command, CommandLine * cmd);
 
 	bool ExecuteFile(string filename);
 

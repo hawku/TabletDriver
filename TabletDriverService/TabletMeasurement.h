@@ -2,8 +2,9 @@
 
 #include "Vector2D.h"
 #include "TabletState.h"
+#include "Runnable.h"
 
-class TabletMeasurement {
+class TabletMeasurement : public Runnable {
 public:
 	Vector2D minimum;
 	Vector2D maximum;
@@ -12,7 +13,6 @@ public:
 
 	int totalReports;
 	int reportCounter;
-	bool isRunning;
 
 	TabletState lastState;
 	DWORD lastPointTime;

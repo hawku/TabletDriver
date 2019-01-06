@@ -6,6 +6,7 @@
 #include "Tablet.h"
 #include "CommandLine.h"
 #include "DataFormatter.h"
+#include "NamedPipeInput.h"
 
 #define LOG_MODULE ""
 #include "Logger.h"
@@ -24,7 +25,11 @@ VMulti *vmulti;
 CommandHandler *commandHandler;
 OutputManager *outputManager;
 ScreenMapper *mapper;
-PipeHandler *pipeHandler;
+
+// Named pipes
+NamedPipeInput *pipeInput;
+NamedPipeServer *pipeOutput;
+NamedPipeState *pipeState;
 
 void InitConsole();
 bool ProcessCommand(CommandLine *cmd);
@@ -42,7 +47,7 @@ int main(int argc, char**argv) {
 	vmulti = NULL;
 	tablet = NULL;
 	tabletHandler = NULL;
-	
+
 	// Init console
 	InitConsole();
 
@@ -67,7 +72,7 @@ int main(int argc, char**argv) {
 	//
 	commandHandler->AddCommand(new Command("Start", [&](CommandLine *cmd) {
 
-		if(tabletHandler->isRunning) {
+		if(tabletHandler->IsRunning()) {
 			LOG_INFO("Driver is already started!\n");
 			return true;
 		}
@@ -115,14 +120,23 @@ int main(int argc, char**argv) {
 	LOGGER_START();
 
 
-	// Pipe handler
+	// Named pipes
 	if(argc > 2) {
-		pipeHandler = new PipeHandler(argv[2]);
+		pipeInput = new NamedPipeInput(string(argv[2]) + string("Input"));
+		pipeOutput = new NamedPipeServer(string(argv[2]) + string("Output"));
+		pipeState = new NamedPipeState(string(argv[2]) + string("State"));
 	}
 	else {
-		pipeHandler = new PipeHandler("TabletDriver");
+		pipeInput = new NamedPipeInput("TabletDriverInput");
+		pipeOutput = new NamedPipeServer("TabletDriverOutput");
+		pipeState = new NamedPipeState("TabletDriverState");
 	}
-	pipeHandler->Start();
+	pipeInput->Start();
+	pipeOutput->Start();
+	pipeState->Start();
+
+	// Logger output pipe
+	logger.namedPipe = pipeOutput;
 
 	// VMulti XP-Pen
 	vmulti = new VMulti(VMulti::TypeXPPen);
@@ -156,6 +170,8 @@ int main(int argc, char**argv) {
 		LOG_ERROR("Can't open '%s'\n", filename.c_str());
 	}
 
+	commandHandler->ExecuteCommandLock("RequestStartup");
+
 
 	//
 	// Main loop
@@ -163,13 +179,16 @@ int main(int argc, char**argv) {
 	while(true) {
 
 		// Broken pipe
-		if(!cin) break;
+		if(!cin) {
+			Sleep(100);
+		}
 
 		// Read line from the console
 		try {
 			getline(cin, line);
 		} catch(exception) {
-			break;
+			Sleep(100);
+			//break;
 		}
 
 		// Process valid lines
@@ -178,13 +197,8 @@ int main(int argc, char**argv) {
 			// Line to command line
 			cmd = new CommandLine(line);
 
-			// Process echo command directly
-			if(cmd->is("Echo")) {
-				commandHandler->ExecuteCommand(cmd);
-			}
-
 			// Hide console (for the service only mode)
-			else if(cmd->is("Hide")) {
+			if(cmd->is("Hide")) {
 				::ShowWindow(::GetConsoleWindow(), SW_HIDE);
 			}
 
@@ -213,12 +227,20 @@ void CleanupAndExit(int code) {
 	LOGGER_STOP();
 
 
-	// PipeHandler
-	printf("Cleanup PipeHandler\n");
-	if(pipeHandler != NULL) {
-		delete pipeHandler;
+	// Named pipes
+	printf("Cleanup Input Pipe\n");
+	if(pipeInput != NULL) {
+		delete pipeInput;
 	}
-	
+	printf("Cleanup Output Pipe\n");
+	if(pipeOutput != NULL) {
+		delete pipeOutput;
+	}
+	printf("Cleanup State Pipe\n");
+	if(pipeState != NULL) {
+		delete pipeState;
+	}
+
 	// TabletHandler
 	printf("Cleanup TabletHandler\n");
 	if(tabletHandler != NULL) {
@@ -235,12 +257,12 @@ void CleanupAndExit(int code) {
 	printf("Cleanup VMulti\n");
 	if(vmulti != NULL)
 		delete vmulti;
-	
+
 	// Tablet
 	printf("Cleanup Tablet\n");
 	if(tablet != NULL)
 		delete tablet;
-	
+
 	// Uninitialize COM
 	CoUninitialize();
 
@@ -259,7 +281,14 @@ bool ProcessCommand(CommandLine *cmd) {
 
 	bool logResult = false;
 
-	LOG_INFO(">> %s\n", cmd->line.c_str());
+
+	// Hide echo input
+	if(cmd->is("Echo")) {
+	}
+	else
+	{
+		LOG_INFO(">> %s\n", cmd->line.c_str());
+	}
 
 	//
 	// Execute command handler command
@@ -269,7 +298,7 @@ bool ProcessCommand(CommandLine *cmd) {
 		cmd->command.pop_back();
 	}
 	if(commandHandler->IsValidCommand(cmd->command)) {
-		bool result = commandHandler->ExecuteCommand(cmd->command, cmd);
+		bool result = commandHandler->ExecuteCommandLock(cmd->command, cmd);
 		if(logResult) {
 			LOG_INFO("Result: %s\n", result ? "True" : "False");
 		}

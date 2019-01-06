@@ -1,2 +1,2 @@
 cd ..
-"bin\TabletDriverService.exe" "config\serviceonly.cfg"
+"bin\TabletDriverService.exe" "config\serviceonly.cfg" "ServiceOnly"

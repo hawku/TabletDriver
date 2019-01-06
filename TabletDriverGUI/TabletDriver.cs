@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Timers;
-using System.IO.Pipes;
-using System.Windows;
 using System.Text;
 using System.Runtime.InteropServices;
 
@@ -48,14 +46,12 @@ namespace TabletDriverGUI
         private Dictionary<string, string> commands;
         public Dictionary<string, string> Commands { get { return commands; } }
 
-        // Pipe
-        System.Threading.Thread pipeInputThread = null;
-        System.Threading.Thread pipeOutputThread = null;
-        System.Threading.Thread pipeStateThread = null;
-
-        NamedPipeClientStream pipeStreamInput;
-        NamedPipeClientStream pipeStreamOutput;
-        NamedPipeClientStream pipeStreamState;
+        // Pipe stuff
+        NamedPipeClient pipeInput;
+        NamedPipeClient pipeOutput;
+        NamedPipeClient pipeState;
+        byte[] stateBytes;
+        StringBuilder messageBuilder;
 
 
         [StructLayout(LayoutKind.Sequential, Pack = 4, CharSet = CharSet.Unicode)]
@@ -84,6 +80,9 @@ namespace TabletDriverGUI
         private Timer timerWatchdog;
         private bool running;
         private readonly object locker = new object();
+
+        public bool DoNotKill;
+
         public bool IsRunning
         {
             get
@@ -108,7 +107,8 @@ namespace TabletDriverGUI
         public TabletDriver(string servicePath)
         {
             this.servicePath = servicePath;
-            this.processService = null;
+            processService = null;
+            DoNotKill = false;
             timerWatchdog = new Timer(2000);
             timerWatchdog.Elapsed += TimerWatchdog_Elapsed;
 
@@ -118,8 +118,30 @@ namespace TabletDriverGUI
 
             commands = new Dictionary<string, string>();
 
+            messageBuilder = new StringBuilder();
+
+            pipeInput = new NamedPipeClient("TabletDriverOutput");
+            pipeOutput = new NamedPipeClient("TabletDriverInput");
+            pipeState = new NamedPipeClient("TabletDriverState");
+
+            stateBytes = new byte[Marshal.SizeOf(typeof(TabletState))];
+            pipeInput.MessageReceived += PipeInput_MessageReceived;
+            pipeState.MessageReceived += PipeState_MessageReceived;
+
+            pipeInput.Connected += (snd, e) => { pipeInput.WriteMessage("\n"); };
+            pipeOutput.Connected += (snd, e) =>
+            {
+                pipeOutput.WriteMessage("\n");
+            };
+            pipeState.Connected += (snd, e) => { pipeState.WriteMessage("\n"); };
+
+
+            // Invoke driver started event
+            Started?.Invoke(this, new EventArgs());
+
 
         }
+
 
         //
         // Driver watchdog
@@ -154,25 +176,19 @@ namespace TabletDriverGUI
         //
         // Send command to the driver service
         //
-        public void SendCommand(string line)
-        {
-            if (IsRunning)
-            {
-                processService.StandardInput.WriteLine(line);
-            }
-        }
-
-        //
-        // Send command to the driver service through a named pipe
-        //
-        public void SendPipeCommand(string line)
+        public void SendCommand(string command)
         {
             if (IsRunning)
             {
 
-                byte[] buffer = Encoding.UTF8.GetBytes(line);
-                pipeStreamOutput.Write(buffer, 0, buffer.Length);
-                pipeStreamOutput.Flush();
+                if (pipeOutput.IsRunning)
+                {
+                    pipeOutput.WriteMessage(command);
+                }
+                else
+                {
+                    processService.StandardInput.WriteLine(command);
+                }
             }
         }
 
@@ -379,16 +395,100 @@ namespace TabletDriverGUI
             }
             else
             {
-                string line = e.Data;
+                //ProcessDriverMessage(e.Data);
+            }
+        }
 
-                // Status line?
-                if (line.Contains("[STATUS]"))
+
+        //
+        // Received input pipe message
+        //
+        private void PipeInput_MessageReceived(object sender, NamedPipeClient.NamedPipeEventArgs e)
+        {
+
+            string stringMessage = Encoding.UTF8.GetString(e.Message.Data, 0, e.Message.Length);
+            //ConsoleAddLine("Pipe: " + stringMessage);
+            ProcessDriverMessage(stringMessage);
+
+        }
+
+        //
+        // Received state pipe message
+        //
+        private void PipeState_MessageReceived(object sender, NamedPipeClient.NamedPipeEventArgs e)
+        {
+            GCHandle gcHandle;
+            TabletState readState;
+
+            // Convert bytes to TabletState
+            if (e.Message.Length == stateBytes.Length)
+            {
+                gcHandle = GCHandle.Alloc(e.Message.Data, GCHandleType.Pinned);
+                readState = (TabletState)Marshal.PtrToStructure(gcHandle.AddrOfPinnedObject(), typeof(TabletState));
+                gcHandle.Free();
+                tabletState = readState;
+            }
+        }
+
+
+        //
+        // Process driver message
+        //
+        private void ProcessDriverMessage(string messageData)
+        {
+            //ConsoleAddLine("Message data: '" + messageData + "'");
+
+            // Add message data to stringbuilder
+            messageBuilder.Append(messageData);
+
+
+            // Find a line
+            string line = "";
+            int index;
+            int startIndex = 0;
+            for (index = 0; index < messageBuilder.Length; index++)
+            {
+                char c = messageBuilder[index];
+                if (c == '\n')
                 {
+                    //ConsoleAddLine("New line at " + index);
+                    if (index > 0 && index > startIndex + 1)
+                    {
+                        line = messageBuilder.ToString(startIndex, index - startIndex + 1).Trim();
+                        ProcessDriverMessageLine(line);
+                        startIndex = index;
+                    }
+                }
+            }
 
-                    // Parse status variable and value
-                    Match match = Regex.Match(line, "^.+\\[STATUS\\] ([^ ]+) (.*?)$");
-                    if (!match.Success) return;
+            // Remove lines from stringbuilder
+            if (startIndex < messageBuilder.Length)
+            {
+                messageBuilder.Remove(0, startIndex + 1);
+            }
+            else
+            {
+                messageBuilder.Clear();
+            }
 
+
+        }
+
+        //
+        // Process driver message line
+        //
+        private void ProcessDriverMessageLine(string line)
+        {
+            //ConsoleAddLine("Message line: '" + line + "'");
+
+            // Status line?
+            if (line.Contains("[STATUS]"))
+            {
+
+                // Parse status variable and value
+                Match match = Regex.Match(line, "^.+\\[STATUS\\] ([^ ]+) (.*?)$");
+                if (match.Success)
+                {
                     string variableName = match.Groups[1].ToString().ToLower();
                     string parameters = match.Groups[2].ToString();
 
@@ -413,209 +513,11 @@ namespace TabletDriverGUI
                     }
 
                     StatusReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Status, variableName, parameters));
-
                 }
-
-
-                //ConsoleAddLine(e.Data);
-                MessageReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Message, e.Data, ""));
-            }
-        }
-
-
-        //
-        // Pipe input thread
-        //
-        private void RunPipeInputThread()
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-            byte[] buffer = new byte[1024];
-
-
-            while (IsRunning)
-            {
-                pipeStreamInput = new NamedPipeClientStream(".", "TabletDriverOutput", PipeDirection.InOut, PipeOptions.Asynchronous);
-
-                Console.WriteLine("Input pipe connecting...");
-                try { pipeStreamInput.Connect(); }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Input pipe connect error! " + ex.Message);
-                    break;
-                }
-                Console.WriteLine("Input pipe connected!");
-
-                //
-                // Input thread read loop
-                //
-                while (IsRunning && pipeStreamInput.IsConnected)
-                {
-                    //Console.WriteLine("Input pipe read!");
-                    int bytesRead = 0;
-                    try
-                    {
-                        bytesRead = pipeStreamInput.Read(buffer, 0, buffer.Length);
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("Can't read input pipe!");
-                        break;
-                    }
-                    //Console.WriteLine("Input pipe read length: " + bytesRead);
-                    if (bytesRead == 0) continue;
-
-                    for (int i = 0; i < bytesRead; i++)
-                    {
-                        char c = (char)buffer[i];
-                        if (c == '\n' || c == '\r' || c == 0)
-                        {
-                            if (stringBuilder.Length > 0)
-                            {
-                                ConsoleAddLine(stringBuilder.ToString());
-                            }
-                            stringBuilder.Clear();
-                        }
-                        else
-                        {
-                            stringBuilder.Append(c);
-                        }
-                    }
-
-                }
-
-                Console.WriteLine("Input pipe disconnected!");
-                ConsoleAddLine("Input pipe disconnected!");
-
-                // Close input stream
-                try
-                {
-                    pipeStreamInput.Close();
-                    pipeStreamInput.Dispose();
-                    pipeStreamInput = null;
-                }
-                catch (Exception) { }
-
             }
 
-        }
-
-
-        //
-        // Pipe input thread
-        //
-        private void RunPipeOutputThread()
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-            char[] buffer = new char[1024];
-
-
-            while (IsRunning)
-            {
-                pipeStreamOutput = new NamedPipeClientStream(".", "TabletDriverInput", PipeDirection.InOut, PipeOptions.Asynchronous);
-
-                Console.WriteLine("Output pipe connecting...");
-                try { pipeStreamOutput.Connect(); }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Output pipe connect error! " + ex.Message);
-                    break;
-                }
-                Console.WriteLine("Output pipe connected!");
-
-                // Wait for pipe to disconnect
-                while (IsRunning && pipeStreamOutput.IsConnected)
-                {
-                    System.Threading.Thread.Sleep(100);
-                }
-
-                Console.WriteLine("Output pipe disconnected!");
-
-                // Close output stream
-                try
-                {
-                    pipeStreamOutput.Close();
-                    pipeStreamOutput.Dispose();
-                    pipeStreamOutput = null;
-                }
-                catch (Exception) { }
-
-            }
-
-        }
-
-
-        //
-        // Pipe state thread
-        //
-        private void RunPipeStateThread()
-        {
-            int size = 0;
-            byte[] bytes;
-            GCHandle gcHandle;
-            TabletState readState;
-            size = Marshal.SizeOf(typeof(TabletState));
-            bytes = new byte[Marshal.SizeOf(typeof(TabletState))];
-
-
-            while (IsRunning)
-            {
-                pipeStreamState = new NamedPipeClientStream(".", "TabletDriverState", PipeDirection.InOut, PipeOptions.Asynchronous);
-
-                Console.WriteLine("State pipe connecting...");
-                try
-                {
-                    pipeStreamState.Connect();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("State pipe connection error! " + ex.Message);
-                    break;
-                }
-                Console.WriteLine("State pipe connected!");
-
-
-                //
-                // State pipe read loop
-                //
-                while (IsRunning && pipeStreamState.IsConnected)
-                {
-                    //Console.WriteLine("Reading state pipe!");
-                    try
-                    {
-                        // Read
-                        if (pipeStreamState.Read(bytes, 0, bytes.Length) == size)
-                        {
-
-                            // Convert bytes to TabletState
-                            gcHandle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-                            readState = (TabletState)Marshal.PtrToStructure(gcHandle.AddrOfPinnedObject(), typeof(TabletState));
-                            gcHandle.Free();
-                            tabletState = readState;
-
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Can't read state pipe! " + ex.Message);
-                        size = 0;
-                        break;
-                    }
-
-
-                }
-
-                Console.WriteLine("State pipe disconnected!");
-
-                // Close state stream
-                try
-                {
-                    pipeStreamState.Close();
-                    pipeStreamState.Dispose();
-                    pipeStreamState = null;
-                }
-                catch (Exception) { }
-
-            }
+            ConsoleAddLine(line);
+            MessageReceived?.Invoke(this, new DriverEventArgs(DriverEventType.Message, line, ""));
         }
 
 
@@ -674,20 +576,11 @@ namespace TabletDriverGUI
                     IsRunning = true;
                     timerWatchdog.Start();
 
-                    // Pipe input thread
-                    pipeInputThread = new System.Threading.Thread(new System.Threading.ThreadStart(RunPipeInputThread));
-                    pipeInputThread.Start();
+                    // Named pipes
+                    pipeInput.Start();
+                    pipeOutput.Start();
+                    pipeState.Start();
 
-                    // Pipe output thread
-                    pipeOutputThread = new System.Threading.Thread(new System.Threading.ThreadStart(RunPipeOutputThread));
-                    pipeOutputThread.Start();
-
-                    // Pipe state thread
-                    pipeStateThread = new System.Threading.Thread(new System.Threading.ThreadStart(RunPipeStateThread));
-                    pipeStateThread.Start();
-
-
-                    Started?.Invoke(this, new EventArgs());
                 }
 
                 // Start failed
@@ -714,81 +607,22 @@ namespace TabletDriverGUI
             timerWatchdog.Stop();
             IsRunning = false;
 
-
-            // Close pipe input stream
-            Console.WriteLine("Closing input pipe stream");
-            try
-            {
-                if (pipeStreamInput != null)
-                {
-                    pipeStreamInput.Close();
-                    pipeStreamInput.Dispose();
-                }
-            }
-            catch (Exception e) { Console.WriteLine("Pipe input stream error! " + e.Message); }
-
-
-            // Close pipe output stream
-            Console.WriteLine("Closing output pipe stream");
-            try
-            {
-                if (pipeStreamOutput != null)
-                {
-                    pipeStreamOutput.Close();
-                    pipeStreamOutput.Dispose();
-                }
-            }
-            catch (Exception e) { Console.WriteLine("Pipe output stream error! " + e.Message); }
-
-
-            // Close pipe state stream
-            Console.WriteLine("Closing state pipe stream");
-            try
-            {
-                if (pipeStreamState != null)
-                {
-                    pipeStreamState.Close();
-                    pipeStreamState.Dispose();
-                }
-            }
-            catch (Exception e) { Console.WriteLine("Pipe state stream error! " + e.Message); }
-
-            // Close input pipe thread
-            Console.WriteLine("Closing input pipe thread");
-            try
-            {
-                pipeInputThread.Abort();
-                pipeInputThread.Join(1000);
-            }
-            catch (Exception e) { Console.WriteLine("Pipe input thread error! " + e.Message); }
-
-
-            // Close output pipe thread
-            Console.WriteLine("Closing output pipe thread");
-            try
-            {
-                pipeOutputThread.Abort();
-                pipeOutputThread.Join(1000);
-            }
-            catch (Exception e) { Console.WriteLine("Pipe output thread error! " + e.Message); }
-
-            // Close pipe state thread
-            Console.WriteLine("Closing state pipe thread");
-            try
-            {
-                pipeStateThread.Abort();
-                pipeStateThread.Join(1000);
-            }
-            catch (Exception e) { Console.WriteLine("Pipe state thread error! " + e.Message); }
+            // Stop named pipe clients
+            pipeInput.Stop();
+            pipeOutput.Stop();
+            pipeState.Stop();
 
 
             // Kill service process
             Console.WriteLine("Killing TabletDriverService");
             try
             {
-                processService.CancelOutputRead();
-                processService.Kill();
-                processService.Dispose();
+                if (!DoNotKill)
+                {
+                    processService.CancelOutputRead();
+                    processService.Kill();
+                    processService.Dispose();
+                }
             }
             catch (Exception e)
             {
@@ -796,7 +630,6 @@ namespace TabletDriverGUI
             }
 
             Stopped?.Invoke(this, new EventArgs());
-
 
             System.Threading.Thread.Sleep(10);
 

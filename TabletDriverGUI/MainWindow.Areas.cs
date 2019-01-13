@@ -908,18 +908,19 @@ namespace TabletDriverGUI
 
             // Screen area
             labelScreenAreaInfo.Content = areaText +
-                "" + Utils.GetNumberString(config.SelectedScreenArea.Width / config.SelectedScreenArea.Height, "0.000") + ":1" +
-                " | " + Utils.GetNumberString(config.SelectedScreenArea.Width * config.SelectedScreenArea.Height, "0") + " pixels";
+                Utils.GetNumberString(config.SelectedScreenArea.Width / config.SelectedScreenArea.Height, "0.000") + ":1 | " +
+                Utils.GetNumberString(config.SelectedScreenArea.Width * config.SelectedScreenArea.Height, "0") + " pixels";
 
             // Tablet area
             labelTabletAreaInfo.Content = areaText +
-                "" + Utils.GetNumberString(config.SelectedTabletArea.Width / config.SelectedTabletArea.Height, "0.000") + ":1" +
-                " | " + Utils.GetNumberString(config.SelectedTabletArea.Width * config.SelectedTabletArea.Height, "0") + " mm²" +
-                " " + Utils.GetNumberString(
+                Utils.GetNumberString(config.SelectedTabletArea.Width / config.SelectedTabletArea.Height, "0.000") + ":1 | " +
+                Utils.GetNumberString(config.SelectedTabletArea.Width * config.SelectedTabletArea.Height, "0") + " mm² " +
+                Utils.GetNumberString(
                     config.SelectedTabletArea.Width * config.SelectedTabletArea.Height /
                     (config.TabletFullArea.Width * config.TabletFullArea.Height) * 100.0
-                    , "0") + "%" +
-                " | " + Utils.GetNumberString(config.SelectedScreenArea.Width / config.SelectedTabletArea.Width, "0.0") + " x " +
+                    , "0") + "% of " +
+                Utils.GetNumberString(config.TabletFullArea.Width) + "x" + Utils.GetNumberString(config.TabletFullArea.Height) + " mm | " +
+                Utils.GetNumberString(config.SelectedScreenArea.Width / config.SelectedTabletArea.Width, "0.0") + "x" +
                 Utils.GetNumberString(config.SelectedScreenArea.Height / config.SelectedTabletArea.Height, "0.0") + " px/mm";
 
         }
@@ -995,7 +996,7 @@ namespace TabletDriverGUI
             canvasTabletArea.ReleaseMouseCapture();
 
             // Focus
-            if(sender == canvasScreenMap)
+            if (sender == canvasScreenMap)
                 canvasScreenMap.Focus();
             else if (sender == canvasTabletArea)
                 canvasTabletArea.Focus();

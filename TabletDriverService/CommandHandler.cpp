@@ -16,6 +16,10 @@ CommandHandler::CommandHandler() {
 // Destructor
 //
 CommandHandler::~CommandHandler() {
+
+	// Wait locked commands to finish
+	lock.lock();
+	lock.unlock();
 }
 
 
@@ -26,7 +30,7 @@ CommandHandler::~CommandHandler() {
 bool CommandHandler::AddCommand(Command *command) {
 	string name = command->name;
 	transform(name.begin(), name.end(), name.begin(), ::tolower);
-	if(commands.count(name) <= 0) {
+	if (commands.count(name) <= 0) {
 		commands.insert(pair<string, Command*>(name, command));
 		return true;
 	}
@@ -42,7 +46,7 @@ bool CommandHandler::AddAlias(string alias, string commandName) {
 	transform(aliasLowerCase.begin(), aliasLowerCase.end(), aliasLowerCase.begin(), ::tolower);
 	transform(commandName.begin(), commandName.end(), commandName.begin(), ::tolower);
 
-	if(aliases.count(aliasLowerCase) <= 0) {
+	if (aliases.count(aliasLowerCase) <= 0) {
 		aliases.insert(pair<string, string>(aliasLowerCase, commandName));
 		aliasNames.insert(pair<string, string>(aliasLowerCase, alias));
 		return true;
@@ -57,7 +61,7 @@ bool CommandHandler::AddAlias(string alias, string commandName) {
 bool CommandHandler::AddHelp(string commandName, string line) {
 	transform(commandName.begin(), commandName.end(), commandName.begin(), ::tolower);
 	line.append("\n");
-	if(help.count(commandName) < 0) {
+	if (help.count(commandName) < 0) {
 		help.insert(pair<string, string>(commandName, line));
 	}
 	else {
@@ -84,10 +88,10 @@ void CommandHandler::CreateCommands() {
 //
 bool CommandHandler::IsValidCommand(string command) {
 	transform(command.begin(), command.end(), command.begin(), ::tolower);
-	if(aliases.count(command) > 0) {
+	if (aliases.count(command) > 0) {
 		command = aliases[command];
 	}
-	if(commands.count(command) > 0) {
+	if (commands.count(command) > 0) {
 		return true;
 	}
 	return false;
@@ -100,10 +104,8 @@ bool CommandHandler::ExecuteCommand(string command) {
 	return ExecuteCommand(command, NULL);
 }
 bool CommandHandler::ExecuteCommandLock(string command) {
-	lock.lock();
-	bool result = ExecuteCommand(command);
-	lock.unlock();
-	return result;
+	std::unique_lock<std::mutex> mlock(lock);
+	return ExecuteCommand(command);
 }
 
 
@@ -114,10 +116,8 @@ bool CommandHandler::ExecuteCommand(CommandLine *cmd) {
 	return ExecuteCommand(cmd->command, cmd);
 }
 bool CommandHandler::ExecuteCommandLock(CommandLine *cmd) {
-	lock.lock();
-	bool result = ExecuteCommand(cmd);
-	lock.unlock();
-	return result;
+	std::unique_lock<std::mutex> mlock(lock);
+	return ExecuteCommand(cmd);
 }
 
 
@@ -131,10 +131,8 @@ bool CommandHandler::ExecuteCommand(string command, string parameters) {
 	return result;
 }
 bool CommandHandler::ExecuteCommandLock(string command, string parameters) {
-	lock.lock();
-	bool result = ExecuteCommand(command, parameters);
-	lock.unlock();
-	return result;
+	std::unique_lock<std::mutex> mlock(lock);
+	return ExecuteCommand(command, parameters);
 }
 
 
@@ -143,19 +141,17 @@ bool CommandHandler::ExecuteCommandLock(string command, string parameters) {
 //
 bool CommandHandler::ExecuteCommand(string command, CommandLine * cmd) {
 	transform(command.begin(), command.end(), command.begin(), ::tolower);
-	if(aliases.count(command) > 0) {
+	if (aliases.count(command) > 0) {
 		command = aliases[command];
 	}
-	if(commands.count(command) > 0) {
+	if (commands.count(command) > 0) {
 		return commands[command]->Execute(cmd);
 	}
 	return false;
 }
 bool CommandHandler::ExecuteCommandLock(string command, CommandLine * cmd) {
-	lock.lock();
-	bool result = ExecuteCommand(command, cmd);
-	lock.unlock();
-	return result;
+	std::unique_lock<std::mutex> mlock(lock);
+	return ExecuteCommand(command, cmd);
 }
 
 
@@ -170,22 +166,22 @@ bool CommandHandler::ExecuteFile(string filename) {
 
 	// Open file
 	file.open(filename);
-	if(!file.is_open()) {
+	if (!file.is_open()) {
 		return false;
 	}
 
 	LOG_INFO("\\ Reading '%s'\n", filename.c_str());
 
 	// Loop through lines
-	while(!file.eof()) {
+	while (!file.eof()) {
 		getline(file, line);
-		if(line.length() == 0) continue;
+		if (line.length() == 0) continue;
 		cmd = new CommandLine(line);
 
 		//
 		// Do not redefine tablet if one is already open
 		//
-		if(
+		if (
 			(
 				cmd->is("Tablet")
 				||
@@ -196,7 +192,7 @@ bool CommandHandler::ExecuteFile(string filename) {
 			&&
 			tablet != NULL &&
 			tablet->IsConfigured()
-		) {
+			) {
 			LOG_INFO(">> %s\n", cmd->line.c_str());
 			LOG_INFO("Tablet is already defined!\n");
 			delete cmd;
@@ -206,10 +202,10 @@ bool CommandHandler::ExecuteFile(string filename) {
 
 		string command = cmd->command;
 		transform(command.begin(), command.end(), command.begin(), ::tolower);
-		if(aliases.count(command) > 0) {
+		if (aliases.count(command) > 0) {
 			command = aliases[command];
 		}
-		if(commands.count(command) > 0) {
+		if (commands.count(command) > 0) {
 			commands[command]->Execute(cmd);
 		}
 		//ExecuteCommand(cmd);
@@ -221,4 +217,10 @@ bool CommandHandler::ExecuteFile(string filename) {
 	LOG_INFO("/ End of '%s'\n", filename.c_str());
 
 	return true;
+}
+
+bool CommandHandler::ExecuteFileLock(string filename)
+{
+	std::unique_lock<std::mutex> mlock(lock);
+	return ExecuteFile(filename);
 }

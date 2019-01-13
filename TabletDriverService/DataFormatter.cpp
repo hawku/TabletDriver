@@ -25,7 +25,7 @@ bool DataFormatter::Format(void * targetBuffer, void * sourceBuffer)
 	unsigned int byte;
 
 	// Loop through instructions
-	for(int i = 0; i < instructionCount; i++) {
+	for (int i = 0; i < instructionCount; i++) {
 		instruction = &instructions[i];
 
 		// Get source byte
@@ -41,7 +41,7 @@ bool DataFormatter::Format(void * targetBuffer, void * sourceBuffer)
 		byte &= instruction->targetBitMask;
 
 		// Write target byte
-		switch(instruction->writeMode) {
+		switch (instruction->writeMode) {
 		case DataInstruction::WriteModeOR: target[instruction->targetByte] |= byte & 0xFF;  break;
 		case DataInstruction::WriteModeAND: target[instruction->targetByte] &= byte & 0xFF;  break;
 		case DataInstruction::WriteModeSet: target[instruction->targetByte] = byte & 0xFF;  break;
@@ -64,11 +64,11 @@ bool DataFormatter::Format(void * targetBuffer, void * sourceBuffer)
 
 bool DataFormatter::AddInstruction(int targetByte, int targetBitMask, int sourceByte, int sourceBitMask, int sourceBitShift, int writeMode)
 {
-	if(instructionCount >= 128) return false;
+	if (instructionCount >= 128) return false;
 
 	// Lengths
-	if(targetByte >= targetLength) targetLength = targetByte + 1;
-	if(sourceByte >= sourceLength) sourceLength = sourceByte + 1;
+	if (targetByte >= targetLength) targetLength = targetByte + 1;
+	if (sourceByte >= sourceLength) sourceLength = sourceByte + 1;
 
 	instructions[instructionCount].targetByte = targetByte;
 	instructions[instructionCount].targetBitMask = targetBitMask;

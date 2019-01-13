@@ -17,11 +17,11 @@ void CommandHandler::CreateDeviceCommands() {
 	AddCommand(new Command("USBTablet", [&](CommandLine *cmd) {
 
 		// 
-		if(cmd->valueCount >= 1) {
+		if (cmd->valueCount >= 1) {
 			string guid = cmd->GetString(0, "");
-			if(tablet == NULL) {
+			if (tablet == NULL) {
 				tablet = new Tablet(guid);
-				if(tablet->isOpen) {
+				if (tablet->isOpen) {
 					LOG_INFO("WinUSB tablet found! Manufacturer = '%s', Product = '%s', Serial = '%s'\n",
 						tablet->GetDeviceManufacturerName().c_str(),
 						tablet->GetDeviceProductName().c_str(),
@@ -41,8 +41,8 @@ void CommandHandler::CreateDeviceCommands() {
 
 		// Show USB tablet info
 		else {
-			if(tablet != NULL) {
-				if(tablet->usbDevice != NULL) {
+			if (tablet != NULL) {
+				if (tablet->usbDevice != NULL) {
 					USBDevice *usb = tablet->usbDevice;
 					LOG_INFO("USBTablet = \"%s\"\n",
 						usb->guid.c_str()
@@ -66,21 +66,21 @@ void CommandHandler::CreateDeviceCommands() {
 	AddCommand(new Command("HIDTablet", [&](CommandLine *cmd) {
 
 		//
-		if(cmd->valueCount >= 4) {
+		if (cmd->valueCount >= 4) {
 			USHORT vendorID = cmd->GetInt(0, 0);
 			USHORT productID = cmd->GetInt(1, 0);
 			USHORT usagePage = cmd->GetInt(2, 0);
 			USHORT usage = cmd->GetInt(3, 0);
 			bool isExclusive = false;
-			for(int i = 4; i < cmd->valueCount; i += 2) {
+			for (int i = 4; i < cmd->valueCount; i += 2) {
 				string parameter = cmd->GetStringLower(i, "");
-				if(parameter == "exclusive") {
+				if (parameter == "exclusive") {
 					isExclusive = cmd->GetBoolean(i + 1, false);
 				}
 			}
-			if(tablet == NULL) {
+			if (tablet == NULL) {
 				tablet = new Tablet(vendorID, productID, usagePage, usage, isExclusive);
-				if(tablet->isOpen) {
+				if (tablet->isOpen) {
 					LOG_INFO("Tablet found! Manufacturer='%s', Product='%s', Serial='%s'\n",
 						tablet->GetDeviceManufacturerName().c_str(),
 						tablet->GetDeviceProductName().c_str(),
@@ -102,8 +102,8 @@ void CommandHandler::CreateDeviceCommands() {
 
 		// Show HID tablet info
 		else {
-			if(tablet != NULL) {
-				if(tablet->hidDevice != NULL) {
+			if (tablet != NULL) {
+				if (tablet->hidDevice != NULL) {
 					HIDDevice *hid = tablet->hidDevice;
 					LOG_INFO("HIDTablet = [Vendor=0x%04X, Product=0x%04X, UsagePage=0x%04X, Usage=0x%04X, Exclusive=%s]\n",
 						hid->vendorId,
@@ -127,7 +127,7 @@ void CommandHandler::CreateDeviceCommands() {
 	// Command: CloseTablet
 	//
 	AddCommand(new Command("CloseTablet", [&](CommandLine *cmd) {
-		if(tablet != NULL) {
+		if (tablet != NULL) {
 			delete tablet;
 			tablet = NULL;
 			LOG_INFO("Tablet closed!\n");
@@ -163,11 +163,11 @@ void CommandHandler::CreateDeviceCommands() {
 	//
 	AddAlias("Feature", "SetFeature");
 	AddCommand(new Command("SetFeature", [&](CommandLine *cmd) {
-		if(cmd->valueCount <= 1) return false;
-		if(tablet == NULL) return false;
-		if(tablet->hidDevice == NULL) return false;
+		if (cmd->valueCount <= 1) return false;
+		if (tablet == NULL) return false;
+		if (tablet->hidDevice == NULL) return false;
 		BYTE *buffer = new BYTE[cmd->valueCount];
-		for(int i = 0; i < cmd->valueCount; i++) {
+		for (int i = 0; i < cmd->valueCount; i++) {
 			buffer[i] = cmd->GetInt(i, 0);
 		}
 		LOG_INFOBUFFER(buffer, cmd->valueCount, "Set Feature Report (%d): ", cmd->valueCount);
@@ -184,12 +184,12 @@ void CommandHandler::CreateDeviceCommands() {
 	// Requests a HID feature report from the device
 	//
 	AddCommand(new Command("GetFeature", [&](CommandLine *cmd) {
-		if(cmd->valueCount <= 1) return false;
-		if(tablet == NULL) return false;
-		if(tablet->hidDevice == NULL) return false;
+		if (cmd->valueCount <= 1) return false;
+		if (tablet == NULL) return false;
+		if (tablet->hidDevice == NULL) return false;
 		int length = cmd->GetInt(0, 1);
 		BYTE *buffer = new BYTE[length];
-		for(int i = 0; i < length; i++) {
+		for (int i = 0; i < length; i++) {
 			buffer[i] = cmd->GetInt(i + 1, 0);
 		}
 		LOG_INFOBUFFER(buffer, length, "Get Feature Report (%d): ", length);
@@ -207,11 +207,11 @@ void CommandHandler::CreateDeviceCommands() {
 	//
 	AddAlias("Report", "OutputReport");
 	AddCommand(new Command("OutputReport", [&](CommandLine *cmd) {
-		if(cmd->valueCount <= 1) return false;
-		if(tablet == NULL) return false;
-		if(tablet->hidDevice == NULL) return false;
+		if (cmd->valueCount <= 1) return false;
+		if (tablet == NULL) return false;
+		if (tablet->hidDevice == NULL) return false;
 		BYTE *buffer = new BYTE[cmd->valueCount];
-		for(int i = 0; i < cmd->valueCount; i++) {
+		for (int i = 0; i < cmd->valueCount; i++) {
 			buffer[i] = cmd->GetInt(i, 0);
 		}
 		LOG_INFOBUFFER(buffer, cmd->valueCount, "Sending HID Report: ");
@@ -228,14 +228,14 @@ void CommandHandler::CreateDeviceCommands() {
 	// Writes to WinUSB device
 	//
 	AddCommand(new Command("USBWrite", [&](CommandLine *cmd) {
-		if(cmd->valueCount <= 1) return false;
+		if (cmd->valueCount <= 1) return false;
 
-		if(tablet == NULL) return false;
-		if(tablet->usbDevice == NULL) return false;
+		if (tablet == NULL) return false;
+		if (tablet->usbDevice == NULL) return false;
 		int pipeId = cmd->GetInt(0, 0x80);
 		int length = cmd->valueCount - 1;
 		BYTE *buffer = new BYTE[length];
-		for(int i = 0; i < length; i++) {
+		for (int i = 0; i < length; i++) {
 			buffer[i] = cmd->GetInt(i + 1, 0);
 		}
 		LOG_INFOBUFFER(buffer, length, "Write to USB: ");
@@ -254,26 +254,26 @@ void CommandHandler::CreateDeviceCommands() {
 	AddAlias("GetStrings", "GetDeviceStrings");
 	AddAlias("GetString", "GetDeviceStrings");
 	AddCommand(new Command("GetDeviceStrings", [&](CommandLine *cmd) {
-		if(cmd->valueCount <= 0) return false;
-		if(tablet == NULL) return false;
+		if (cmd->valueCount <= 0) return false;
+		if (tablet == NULL) return false;
 
 		string stringName = cmd->GetStringLower(0, "");
 		string deviceString;
 
 		// Manufacturer
-		if(stringName.compare(0, 3, "man") == 0) {
+		if (stringName.compare(0, 3, "man") == 0) {
 			LOG_INFO("  Manufacturer string = '%s'\n", tablet->GetDeviceManufacturerName().c_str());
 			return true;
 		}
 
 		// Product name
-		else if(stringName.compare(0, 3, "pro") == 0) {
+		else if (stringName.compare(0, 3, "pro") == 0) {
 			LOG_INFO("  Product string = '%s'\n", tablet->GetDeviceProductName().c_str());
 			return true;
 		}
 
 		// Serial number
-		else if(stringName.compare(0, 3, "ser") == 0) {
+		else if (stringName.compare(0, 3, "ser") == 0) {
 			LOG_INFO("  Serial number string = '%s'\n", tablet->GetDeviceSerialNumber().c_str());
 			return true;
 		}
@@ -282,20 +282,20 @@ void CommandHandler::CreateDeviceCommands() {
 		int stringIdMax = cmd->GetInt(1, stringIdMin);
 
 		// Limits
-		if(stringIdMin < 1) stringIdMin = 1;
-		else if(stringIdMin > 256) stringIdMin = 256;
-		if(stringIdMax < 1) stringIdMax = 1;
-		else if(stringIdMax > 256) stringIdMax = 256;
+		if (stringIdMin < 1) stringIdMin = 1;
+		else if (stringIdMin > 256) stringIdMin = 256;
+		if (stringIdMax < 1) stringIdMax = 1;
+		else if (stringIdMax > 256) stringIdMax = 256;
 
 		// Min > Max
-		if(stringIdMin > stringIdMax) {
+		if (stringIdMin > stringIdMax) {
 			int tmp = stringIdMax;
 			stringIdMax = stringIdMin;
 			stringIdMin = tmp;
 		}
 
 		// Multiple ids
-		if(stringIdMin != stringIdMax) {
+		if (stringIdMin != stringIdMax) {
 			LOG_INFO("Requesting string ids from %d to %d:\n", stringIdMin, stringIdMax);
 		}
 
@@ -305,11 +305,12 @@ void CommandHandler::CreateDeviceCommands() {
 		}
 
 		// Loop through string ids
-		for(int stringId = stringIdMin; stringId <= stringIdMax; stringId++) {
+		for (int stringId = stringIdMin; stringId <= stringIdMax; stringId++) {
 			try {
 				string deviceString = tablet->GetDeviceString(stringId);
 				LOG_INFO("  String (%d) = '%s'\n", stringId, deviceString.c_str());
-			} catch(const exception &e) {
+			}
+			catch (const exception &e) {
 				LOG_ERROR("%s\n", e.what());
 				break;
 			}
@@ -333,11 +334,11 @@ void CommandHandler::CreateDeviceCommands() {
 	AddHelp("CheckDeviceString", "  CheckDeviceString Product \"<match>\"");
 	AddHelp("CheckDeviceString", "  CheckDeviceString SerialNumber \"<match>\"");
 	AddCommand(new Command("CheckDeviceString", [&](CommandLine *cmd) {
-		if(cmd->valueCount <= 1) {
+		if (cmd->valueCount <= 1) {
 			ExecuteCommand("Help", "CheckDeviceString");
 			return false;
 		}
-		if(tablet == NULL) return false;
+		if (tablet == NULL) return false;
 
 		int stringId = cmd->GetInt(0, 0);
 		string stringName = cmd->GetStringLower(0, "");
@@ -346,19 +347,19 @@ void CommandHandler::CreateDeviceCommands() {
 		string deviceString = "";
 
 		// Manufacturer
-		if(stringName.compare(0, 3, "man") == 0) {
+		if (stringName.compare(0, 3, "man") == 0) {
 			stringName = "Manufacturer";
 			deviceString = tablet->GetDeviceManufacturerName();
 		}
 
 		// Product name
-		else if(stringName.compare(0, 3, "pro") == 0) {
+		else if (stringName.compare(0, 3, "pro") == 0) {
 			stringName = "Product";
 			deviceString = tablet->GetDeviceProductName();
 		}
 
 		// Serial number
-		else if(stringName.compare(0, 3, "ser") == 0) {
+		else if (stringName.compare(0, 3, "ser") == 0) {
 			stringName = "SerialNumber";
 			deviceString = tablet->GetDeviceSerialNumber();
 		}
@@ -366,19 +367,20 @@ void CommandHandler::CreateDeviceCommands() {
 		// Request device string 
 		else {
 			stringName = to_string(stringId);
-			if(stringId == 0) {
+			if (stringId == 0) {
 				LOG_ERROR("Invalid string id!\n");
 				return false;
 			}
 			try {
 				deviceString = tablet->GetDeviceString(stringId);
-			} catch(exception&e) {
+			}
+			catch (exception&e) {
 				LOG_ERROR("%s\n", e.what());
 			}
 		}
 
 		// Does the string match?
-		if(deviceString.size() >= matchString.size() && deviceString.compare(0, matchString.size(), matchString) == 0) {
+		if (deviceString.size() >= matchString.size() && deviceString.compare(0, matchString.size(), matchString) == 0) {
 			LOG_INFO("Device string (%s) '%s' matches with '%s'\n",
 				stringName.c_str(),
 				deviceString.c_str(),

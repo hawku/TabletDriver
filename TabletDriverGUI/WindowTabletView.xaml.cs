@@ -153,13 +153,13 @@ namespace TabletDriverGUI
 
                 // Rects
                 rectInputPressure =
-                    new Rect(135, 54, 200, 20);
+                    new Rect(120, 60, 200, 20);
                 rectInputPressureBorder =
-                    new Rect(135, 54, 200, 20);
+                    new Rect(120, 60, 200, 20);
                 rectOutputPressure =
-                    new Rect(135, 84, 200, 20);
+                    new Rect(120, 90, 200, 20);
                 rectOutputPressureBorder =
-                    new Rect(135, 84, 200, 20);
+                    new Rect(120, 90, 200, 20);
 
                 // Offset pressure bars
                 rectInputPressure.X += config.TabletView.OffsetPressure.X;
@@ -312,6 +312,10 @@ namespace TabletDriverGUI
         //
         public WindowTabletView(Configuration config, TabletDriver driver)
         {
+            if(config.TabletView.Borderless)
+            {
+                WindowStyle = WindowStyle.None;
+            }
             InitializeComponent();
 
             this.config = config;
@@ -399,12 +403,14 @@ namespace TabletDriverGUI
             Closing += WindowTabletView_Closing;
             KeyDown += WindowTabletView_KeyDown;
 
+            MouseDown += WindowTabletView_MouseDown;
+            MouseUp += WindowTabletView_MouseUp;
+
 
             // Set GC mode to low latency
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         }
-
 
         //
         // Update/draw timer tick
@@ -630,5 +636,29 @@ namespace TabletDriverGUI
             GC.Collect(10, GCCollectionMode.Forced);
         }
 
+        //
+        // Window mouse down
+        //
+        private void WindowTabletView_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+
+            // Drag move with left mouse button in borderless mode
+            if (config.TabletView.Borderless && e.LeftButton == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
+        }
+
+        //
+        // Window mouse up
+        //
+        private void WindowTabletView_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            // Close window with right click in borderless mode
+            if (config.TabletView.Borderless && e.ChangedButton == MouseButton.Right && e.RightButton == MouseButtonState.Released)
+            {
+                Close();
+            }
+        }
     }
 }

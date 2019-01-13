@@ -18,7 +18,7 @@ void CommandHandler::CreateFilterCommands() {
 	AddCommand(new Command("SmoothingFilter", [&](CommandLine *cmd) {
 
 		// Tablet valid?
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		double latency = cmd->GetDouble(0, tablet->smoothing.GetLatency());
 		bool onlyWhenButtonsDown = cmd->GetBoolean(1, tablet->smoothing.onlyWhenButtonsDown);
@@ -26,13 +26,13 @@ void CommandHandler::CreateFilterCommands() {
 		string stringValue = cmd->GetStringLower(0, "");
 
 		// Off / False
-		if(stringValue == "off" || stringValue == "false") {
+		if (stringValue == "off" || stringValue == "false") {
 			latency = 0;
 		}
 
 		// Limits
-		if(latency < 0) latency = 1;
-		if(latency > 1000) latency = 1000;
+		if (latency < 0) latency = 1;
+		if (latency > 1000) latency = 1000;
 
 		// Set smoothing filter latency
 		tablet->smoothing.SetLatency(latency);
@@ -41,7 +41,7 @@ void CommandHandler::CreateFilterCommands() {
 		tablet->smoothing.onlyWhenButtonsDown = onlyWhenButtonsDown;
 
 		// Print output
-		if(tablet->smoothing.weight < 1.0) {
+		if (tablet->smoothing.weight < 1.0) {
 			tablet->smoothing.isEnabled = true;
 			LOG_INFO("Smoothing = %0.2f ms to reach %0.0f%% (weight = %f), OnlyWhenButtonDown=%s\n",
 				latency,
@@ -69,12 +69,12 @@ void CommandHandler::CreateFilterCommands() {
 	AddCommand(new Command("AdvancedSmoothingFilter", [&](CommandLine *cmd) {
 
 		// Tablet valid?
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		tablet->advancedSmoothing.isEnabled = cmd->GetBoolean(0, tablet->advancedSmoothing.isEnabled);
 		tablet->advancedSmoothing.ClearSettings();
 
-		if(tablet->advancedSmoothing.isEnabled) {
+		if (tablet->advancedSmoothing.isEnabled) {
 			LOG_INFO("Advanced smoothing = enabled\n");
 		}
 		else {
@@ -92,9 +92,9 @@ void CommandHandler::CreateFilterCommands() {
 	AddCommand(new Command("AdvancedSmoothingAdd", [&](CommandLine *cmd) {
 
 		// Tablet valid?
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
-		if(cmd->valueCount >= 3) {
+		if (cmd->valueCount >= 3) {
 			double velocity = cmd->GetDouble(0, 0);
 			bool dragging = cmd->GetBoolean(1, false);
 			double latency = cmd->GetDouble(2, 0);
@@ -117,7 +117,7 @@ void CommandHandler::CreateFilterCommands() {
 	AddCommand(new Command("GravityFilter", [&](CommandLine *cmd) {
 
 		// Tablet valid?
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		double gravity = cmd->GetDouble(0, tablet->gravityFilter.gravity);
 		double friction = cmd->GetDouble(1, 0);
@@ -126,12 +126,12 @@ void CommandHandler::CreateFilterCommands() {
 
 
 		// Limits
-		if(gravity < 0) gravity = 0.0;
-		if(gravity > 100) gravity = 100;
-		if(friction < 0.1) friction = 0.1;
-		if(friction > 1000) friction = 1000;
+		if (gravity < 0) gravity = 0.0;
+		if (gravity > 100) gravity = 100;
+		if (friction < 0.1) friction = 0.1;
+		if (friction > 1000) friction = 1000;
 
-		if(gravity > 0.1) {
+		if (gravity > 0.1) {
 			tablet->gravityFilter.isEnabled = true;
 			tablet->gravityFilter.gravity = gravity;
 			tablet->gravityFilter.friction = friction;
@@ -167,12 +167,12 @@ void CommandHandler::CreateFilterCommands() {
 	AddCommand(new Command("NoiseReduction", [&](CommandLine *cmd) {
 
 		// Tablet valid?
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		string stringValue = cmd->GetStringLower(0, "");
 
 		// Off / False
-		if(stringValue == "off" || stringValue == "false") {
+		if (stringValue == "off" || stringValue == "false") {
 			tablet->noiseFilter.isEnabled = false;
 			LOG_INFO("Noise Reduction = off\n");
 
@@ -195,19 +195,19 @@ void CommandHandler::CreateFilterCommands() {
 			int iterations = cmd->GetInt(3, tablet->noiseFilter.iterations);
 
 			// Limits
-			if(length < 0) length = 0;
-			else if(length > 50) length = 50;
+			if (length < 0) length = 0;
+			else if (length > 50) length = 50;
 
-			if(distanceThreshold < 0.0) distanceThreshold = 0.0;
-			else if(distanceThreshold > 1000) distanceThreshold = 1000;
+			if (distanceThreshold < 0.0) distanceThreshold = 0.0;
+			else if (distanceThreshold > 1000) distanceThreshold = 1000;
 
-			if(distanceMaximum < 0.1) distanceMaximum = 0.1;
-			else if(distanceMaximum > 1000) distanceMaximum = 1000;
+			if (distanceMaximum < 0.1) distanceMaximum = 0.1;
+			else if (distanceMaximum > 1000) distanceMaximum = 1000;
 
-			if(distanceThreshold > distanceMaximum) distanceThreshold = distanceMaximum;
+			if (distanceThreshold > distanceMaximum) distanceThreshold = distanceMaximum;
 
-			if(iterations < 1) iterations = 1;
-			else if(iterations > 100) iterations = 100;
+			if (iterations < 1) iterations = 1;
+			else if (iterations > 100) iterations = 100;
 
 			// Set noise filter values
 			tablet->noiseFilter.buffer.SetLength(length);
@@ -216,7 +216,7 @@ void CommandHandler::CreateFilterCommands() {
 			tablet->noiseFilter.iterations = iterations;
 
 			// Enable filter
-			if(tablet->noiseFilter.buffer.length > 0) {
+			if (tablet->noiseFilter.buffer.length > 0) {
 				tablet->noiseFilter.isEnabled = true;
 				LOG_INFO("Noise Reduction = [\n");
 				LOG_INFO("  %d samples\n", length);
@@ -243,14 +243,14 @@ void CommandHandler::CreateFilterCommands() {
 	AddAlias("AntiSmoothing", "AntiSmoothingFilter");
 	AddAlias("Anti", "AntiSmoothingFilter");
 	AddCommand(new Command("AntiSmoothingFilter", [&](CommandLine *cmd) {
-		
+
 		// Tablet valid?
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		string stringValue = cmd->GetStringLower(0, "");
 
 		// Off / False
-		if(stringValue == "off") {
+		if (stringValue == "off") {
 			tablet->antiSmoothing.isEnabled = false;
 			LOG_INFO("Anti-smoothing = off\n");
 
@@ -265,18 +265,18 @@ void CommandHandler::CreateFilterCommands() {
 
 			// Workaround for VEIKK S640
 			double defaultTargetReportRate = 0;
-			if(
+			if (
 				tablet != NULL &&
 				tablet->hidDevice != NULL &&
 				tablet->hidDevice->vendorId == 0x2FEB &&
 				tablet->hidDevice->vendorId == 0x0001
-			) {
+				) {
 				defaultTargetReportRate = 250;
 			}
 			double targetReportRate = cmd->GetDouble(2, defaultTargetReportRate);
 
 
-			if(cmd->valueCount == 0) {
+			if (cmd->valueCount == 0) {
 				LOG_INFO("Usage: %s <only on hover> <drag multiplier> <target report rate>\n", cmd->command.c_str());
 			}
 			else {
@@ -307,14 +307,14 @@ void CommandHandler::CreateFilterCommands() {
 	AddCommand(new Command("AntiSmoothingAdd", [&](CommandLine *cmd) {
 
 		// Tablet valid?
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		double velocity = cmd->GetDouble(0, 0);
 		double shape = cmd->GetDouble(1, 0.5);
 		double compensation = cmd->GetDouble(2, 0);
 
 
-		if(cmd->valueCount < 3) {
+		if (cmd->valueCount < 3) {
 			LOG_INFO("Usage: %s <velocity> <shape> <compensation>\n", cmd->command.c_str());
 		}
 		else {
@@ -341,18 +341,18 @@ void CommandHandler::CreateFilterCommands() {
 	AddCommand(new Command("FilterTimerInterval", [&](CommandLine *cmd) {
 
 		// Tablet valid?
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
-		if(tabletHandler == NULL) return true;
+		if (tabletHandler == NULL) return true;
 		int oldInterval = (int)round(tabletHandler->timerInterval);
 
 		int interval = cmd->GetInt(0, oldInterval);
 
 		// 10 Hz
-		if(interval > 100) interval = 100;
+		if (interval > 100) interval = 100;
 
 		// 1000 Hz
-		if(interval < 1) interval = 1;
+		if (interval < 1) interval = 1;
 
 		// Change interval
 		tabletHandler->ChangeTimerInterval(interval);
@@ -372,7 +372,7 @@ void CommandHandler::CreateFilterCommands() {
 	AddCommand(new Command("FilterTester", [&](CommandLine *cmd) {
 
 		// Tablet valid?
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		string inputFilepath = cmd->GetString(0, "tester_input.txt");
 		string outputFilepath = cmd->GetString(1, "tester_output.txt");
@@ -384,10 +384,10 @@ void CommandHandler::CreateFilterCommands() {
 		int settingsStringIndex = 0;
 
 		// Anti-smoothing
-		if(tablet->antiSmoothing.isEnabled) {
+		if (tablet->antiSmoothing.isEnabled) {
 			filterAntiSmoothing = new TabletFilterAntiSmoothing();
 			filterAntiSmoothing->settingCount = tablet->antiSmoothing.settingCount;
-			for(int i = 0; i < filterAntiSmoothing->settingCount; i++) {
+			for (int i = 0; i < filterAntiSmoothing->settingCount; i++) {
 				filterAntiSmoothing->settings[i].velocity = tablet->antiSmoothing.settings[i].velocity;
 				filterAntiSmoothing->settings[i].shape = tablet->antiSmoothing.settings[i].shape;
 				filterAntiSmoothing->settings[i].compensation = tablet->antiSmoothing.settings[i].compensation;
@@ -404,7 +404,7 @@ void CommandHandler::CreateFilterCommands() {
 		}
 
 		// Noise reduction
-		if(tablet->noiseFilter.isEnabled) {
+		if (tablet->noiseFilter.isEnabled) {
 			filterNoise = new TabletFilterNoiseReduction();
 			filterNoise->buffer.SetLength(tablet->noiseFilter.buffer.length);
 			filterNoise->distanceThreshold = tablet->noiseFilter.distanceThreshold;
@@ -418,19 +418,19 @@ void CommandHandler::CreateFilterCommands() {
 				tablet->noiseFilter.iterations
 			);
 		}
-		if(filterAntiSmoothing != NULL || filterNoise != NULL) {
+		if (filterAntiSmoothing != NULL || filterNoise != NULL) {
 			LOG_INFO("Filter test starting!\n");
 
 			tester = new TabletFilterTester(inputFilepath, outputFilepath);
 
 			// Add filters
-			if(filterAntiSmoothing != NULL)
+			if (filterAntiSmoothing != NULL)
 				tester->AddFilter(filterAntiSmoothing);
-			if(filterNoise != NULL)
+			if (filterNoise != NULL)
 				tester->AddFilter(filterNoise);
 
 			bool result = tester->Open();
-			if(!result) {
+			if (!result) {
 				LOG_ERROR("Filter tester can't open files!\n");
 				return false;
 			}
@@ -443,15 +443,15 @@ void CommandHandler::CreateFilterCommands() {
 			LOG_INFO("No report filters enabled!\n");
 		}
 
-		if(filterAntiSmoothing != NULL) {
+		if (filterAntiSmoothing != NULL) {
 			delete filterAntiSmoothing;
 		}
 
-		if(filterNoise != NULL) {
+		if (filterNoise != NULL) {
 			delete filterNoise;
 		}
 
-		if(tester != NULL) {
+		if (tester != NULL) {
 			delete tester;
 		}
 

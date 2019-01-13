@@ -69,6 +69,7 @@ void TabletFilterSmoothing::OnTimerIntervalChange(double oldInterval, double new
 	timerInterval = newInterval;
 
 	// TODO: Find a better way to calculate this...
+	//threshold = 0.90;
 	threshold = 0.63;
 
 	SetLatency(latency);

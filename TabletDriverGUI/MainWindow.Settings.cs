@@ -1402,17 +1402,6 @@ namespace TabletDriverGUI
 
 
             //
-            // Fit window to content
-            //
-            else if (sender == mainMenuFitToContent)
-            {
-                SizeToContent = SizeToContent.WidthAndHeight;
-                UpdateLayout();
-                SizeToContent = SizeToContent.Manual;
-            }
-
-
-            //
             // Update desktop image
             //
             else if (sender == mainMenuUpdateDesktopImage)
@@ -1433,6 +1422,15 @@ namespace TabletDriverGUI
             }
 
 
+            //
+            // Fit window to content
+            //
+            else if (sender == mainMenuFitToContent)
+            {
+                SizeToContent = SizeToContent.WidthAndHeight;
+                UpdateLayout();
+                SizeToContent = SizeToContent.Manual;
+            }
 
         }
 

@@ -1,16 +1,13 @@
 #pragma once
 
 #include <map>
+#include <mutex>
 
 #include <psapi.h>
 #include <mmdeviceapi.h>
 #include <audiopolicy.h>
 #include <audioendpoints.h>
 #include <endpointvolume.h>
-
-extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
-extern "C" NTSYSAPI NTSTATUS NTAPI NtQueryTimerResolution(OUT PULONG MinimumResolution, OUT PULONG MaximumResolution, OUT PULONG ActualResolution);
-
 
 #define SAFE_RELEASE(resource) \
 	if ((resource) != NULL) { \
@@ -32,6 +29,7 @@ private:
 	IAudioEndpointVolume *pAudioEndpointVolume = NULL;
 	IMMDeviceEnumerator *pDeviceEnumerator = NULL;
 	IMMDevice *pDefaultAudioDevice = NULL;
+	mutex lockAudio;
 public:
 	enum MouseButtons {
 		Mouse1 = 1,

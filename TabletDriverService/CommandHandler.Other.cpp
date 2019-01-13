@@ -15,12 +15,12 @@ void CommandHandler::CreateOtherCommands() {
 	// Sets the monitor mapping
 	//
 	AddCommand(new Command("ScreenArea", [&](CommandLine *cmd) {
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		int index = cmd->GetInt(4, 0);
 
 		// Validate map index
-		if(index >= sizeof(mapper->screenMaps) / sizeof(ScreenMapper::ScreenMap)) {
+		if (index >= sizeof(mapper->screenMaps) / sizeof(ScreenMapper::ScreenMap)) {
 			LOG_ERROR("Invalid map index!\n");
 			return false;
 		}
@@ -49,7 +49,7 @@ void CommandHandler::CreateOtherCommands() {
 	// Sets the screen mapper map count
 	//
 	AddCommand(new Command("ScreenMapCount", [&](CommandLine *cmd) {
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		mapper->screenMapCount = cmd->GetInt(0, mapper->screenMapCount);
 		LOG_INFO("Screen map count = %d\n", mapper->screenMapCount);
@@ -66,7 +66,7 @@ void CommandHandler::CreateOtherCommands() {
 	//
 	AddAlias("Desktop", "DesktopSize");
 	AddCommand(new Command("DesktopSize", [&](CommandLine *cmd) {
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 		mapper->virtualScreen.width = cmd->GetDouble(0, mapper->virtualScreen.width);
 		mapper->virtualScreen.height = cmd->GetDouble(1, mapper->virtualScreen.height);
 		LOG_INFO("Desktop size = (%0.2f px x %0.2f px)\n",
@@ -88,26 +88,26 @@ void CommandHandler::CreateOtherCommands() {
 		string mode = cmd->GetStringLower(0, "");
 
 		// Absolute mouse
-		if(mode.compare(0, 3, "abs") == 0) {
+		if (mode.compare(0, 3, "abs") == 0) {
 			outputManager->SetOutputMode(OutputManager::ModeVMultiAbsolute);
 			LOG_INFO("Output Mode = Absolute\n");
 		}
 
 		// Relative mouse
-		else if(mode.compare(0, 3, "rel") == 0) {
+		else if (mode.compare(0, 3, "rel") == 0) {
 			outputManager->SetOutputMode(OutputManager::ModeVMultiRelative);
 			LOG_INFO("Output Mode = Relative\n");
 		}
 
 		// Digitizer Absolute
-		else if(mode.compare(0, 12, "digitizerabs") == 0) {
+		else if (mode.compare(0, 12, "digitizerabs") == 0) {
 
 			outputManager->SetOutputMode(OutputManager::ModeVMultiDigitizer);
 			LOG_INFO("Output Mode = Digitizer Absolute\n");
 		}
 
 		// Digitizer Absolute
-		else if(mode.compare(0, 12, "digitizerrel") == 0) {
+		else if (mode.compare(0, 12, "digitizerrel") == 0) {
 
 			outputManager->SetOutputMode(OutputManager::ModeVMultiDigitizerRelative);
 			LOG_INFO("Output Mode = Digitizer Relative\n");
@@ -116,19 +116,19 @@ void CommandHandler::CreateOtherCommands() {
 
 
 		// SendInput Absolute
-		else if(mode.compare(0, 12, "sendinputabs") == 0) {
+		else if (mode.compare(0, 12, "sendinputabs") == 0) {
 			outputManager->SetOutputMode(OutputManager::ModeSendInputAbsolute);
 			LOG_INFO("Output Mode = SendInput Absolute\n");
 		}
 
 		// SendInput Relative
-		else if(mode.compare(0, 12, "sendinputrel") == 0) {
+		else if (mode.compare(0, 12, "sendinputrel") == 0) {
 			outputManager->SetOutputMode(OutputManager::ModeSendInputRelative);
 			LOG_INFO("Output Mode = SendInput Relative\n");
 		}
 
 		// Dummy
-		else if(mode == "dummy") {
+		else if (mode == "dummy") {
 			outputManager->SetOutputMode(OutputManager::ModeDummy);
 			LOG_INFO("Output Mode = Dummy\n");
 		}
@@ -147,18 +147,18 @@ void CommandHandler::CreateOtherCommands() {
 	AddAlias("Bench", "Benchmark");
 	AddCommand(new Command("Benchmark", [&](CommandLine *cmd) {
 
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		int timeLimit;
 		int reportCount = cmd->GetInt(0, 200);
 
 		// Limit report count
-		if(reportCount < 10) reportCount = 10;
-		if(reportCount > 1000) reportCount = 1000;
+		if (reportCount < 10) reportCount = 10;
+		if (reportCount > 1000) reportCount = 1000;
 
 		// Time limit
 		timeLimit = reportCount * 10;
-		if(timeLimit < 1000) timeLimit = 1000;
+		if (timeLimit < 1000) timeLimit = 1000;
 
 		// Log
 		LOG_INFO("Tablet benchmark starting in 3 seconds!\n");
@@ -170,11 +170,11 @@ void CommandHandler::CreateOtherCommands() {
 		tablet->measurement.Start(reportCount);
 
 		// Wait for the benchmark to finish
-		for(int i = 0; i < timeLimit / 100; i++) {
+		for (int i = 0; i < timeLimit / 100; i++) {
 			Sleep(100);
 
 			// Benchmark results
-			if(tablet->measurement.reportCounter <= 0) {
+			if (tablet->measurement.reportCounter <= 0) {
 
 				double width = tablet->measurement.maximum.x - tablet->measurement.minimum.x;
 				double height = tablet->measurement.maximum.y - tablet->measurement.minimum.y;
@@ -210,7 +210,7 @@ void CommandHandler::CreateOtherCommands() {
 		tablet->measurement.Stop();
 
 		// Benchmark failed
-		if(tablet->measurement.reportCounter > 0) {
+		if (tablet->measurement.reportCounter > 0) {
 			LOG_ERROR("Benchmark failed!\n");
 			LOG_ERROR("Not enough reports captured in %0.2f seconds!\n",
 				timeLimit / 1000.0
@@ -226,14 +226,14 @@ void CommandHandler::CreateOtherCommands() {
 	//
 	AddCommand(new Command("Measure", [&](CommandLine *cmd) {
 
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		int timeLimit = 30000;
 		int pointCount = cmd->GetInt(0, 1);
 
 		// Limits
-		if(pointCount < 1) pointCount = 1;
-		if(pointCount > 10) pointCount = 10;
+		if (pointCount < 1) pointCount = 1;
+		if (pointCount > 10) pointCount = 10;
 
 		// Log
 		LOG_INFO("Measurement started!\n");
@@ -242,11 +242,11 @@ void CommandHandler::CreateOtherCommands() {
 		tablet->measurement.Start();
 
 		// Wait for the measurement to finish
-		for(int i = 0; i < timeLimit / 100; i++) {
+		for (int i = 0; i < timeLimit / 100; i++) {
 			Sleep(100);
 
 			// Result
-			if(tablet->measurement.pointCount >= pointCount) {
+			if (tablet->measurement.pointCount >= pointCount) {
 				double distance = 0;
 				double lastX = 0;
 				double lastY = 0;
@@ -259,15 +259,15 @@ void CommandHandler::CreateOtherCommands() {
 
 				LOG_INFO("\n");
 				LOG_INFO("Measurement results:\n");
-				for(int pointIndex = 0; pointIndex < tablet->measurement.pointCount; pointIndex++) {
+				for (int pointIndex = 0; pointIndex < tablet->measurement.pointCount; pointIndex++) {
 
 					point.Set(tablet->measurement.points[pointIndex]);
 
 					// Limits
-					if(point.x < minimum.x) minimum.x = point.x;
-					if(point.x > maximum.x) maximum.x = point.x;
-					if(point.y < minimum.y) minimum.y = point.y;
-					if(point.y > maximum.y) maximum.y = point.y;
+					if (point.x < minimum.x) minimum.x = point.x;
+					if (point.x > maximum.x) maximum.x = point.x;
+					if (point.y < minimum.y) minimum.y = point.y;
+					if (point.y > maximum.y) maximum.y = point.y;
 
 					LOG_INFO(
 						"  #%d: X = %0.2f mm, Y = %0.2f mm\n",
@@ -277,13 +277,13 @@ void CommandHandler::CreateOtherCommands() {
 					);
 
 					// Distance calculation
-					if(pointIndex > 0) {
+					if (pointIndex > 0) {
 						distance += point.Distance(lastPoint);
 					}
 					lastPoint.Set(point);
 
 				}
-				if(tablet->measurement.pointCount > 1) {
+				if (tablet->measurement.pointCount > 1) {
 					LOG_INFO("  Distance: %0.2f mm\n", distance);
 					LOG_INFO("  Maximum area: %0.2f mm x %0.2f mm\n",
 						maximum.x - minimum.x, maximum.y - minimum.y
@@ -295,7 +295,7 @@ void CommandHandler::CreateOtherCommands() {
 				char pointStringIndex = 0;
 
 				// Build point string
-				for(int pointIndex = 0; pointIndex < tablet->measurement.pointCount; pointIndex++) {
+				for (int pointIndex = 0; pointIndex < tablet->measurement.pointCount; pointIndex++) {
 					point.Set(tablet->measurement.points[pointIndex]);
 					pointStringIndex += sprintf_s(pointString + pointStringIndex, 1024 - pointStringIndex, "%0.3f %0.3f ", point.x, point.y);
 				}
@@ -313,7 +313,7 @@ void CommandHandler::CreateOtherCommands() {
 		tablet->measurement.Stop();
 
 		// Measurement failed
-		if(tablet->measurement.pointCount < pointCount) {
+		if (tablet->measurement.pointCount < pointCount) {
 			LOG_ERROR("Measurement failed! No enough points detected in %0.0f seconds!\n", timeLimit / 1000.0);
 			LOG_STATUS("MEASUREMENT 0\n");
 		}
@@ -328,12 +328,12 @@ void CommandHandler::CreateOtherCommands() {
 	// Enable/disable state output
 	//
 	AddCommand(new Command("StateOutput", [&](CommandLine *cmd) {
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 		bool isOutputEnabled = false;
-		pipeState->lock.lock();
+		pipeState->lockServer.lock();
 		pipeState->isStateOutputEnabled = cmd->GetBoolean(0, pipeState->isStateOutputEnabled);
 		isOutputEnabled = pipeState->isStateOutputEnabled;
-		pipeState->lock.unlock();
+		pipeState->lockServer.unlock();
 		LOG_INFO("State output = %s\n", pipeState->isStateOutputEnabled ? "Enabled" : "Disabled");
 		return true;
 	}));
@@ -345,7 +345,7 @@ void CommandHandler::CreateOtherCommands() {
 	// Enable/disable debugging output
 	//
 	AddCommand(new Command("Debug", [&](CommandLine *cmd) {
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 		bool debugEnabled = cmd->GetBoolean(0, logger.IsDebugOutputEnabled());
 		logger.SetDebugOutput(debugEnabled);
 		LOG_INFO("Debug logging = %s\n", logger.IsDebugOutputEnabled() ? "True" : "False");
@@ -360,11 +360,11 @@ void CommandHandler::CreateOtherCommands() {
 	//
 	AddCommand(new Command("Log", [&](CommandLine *cmd) {
 		string logPath = cmd->GetString(0, "log.txt");
-		if(!cmd->GetBoolean(0, true)) {
+		if (!cmd->GetBoolean(0, true)) {
 			logger.CloseLogFile();
 			LOG_INFO("Log file '%s' closed.\n", logger.logFilename.c_str());
 		}
-		else if(logger.OpenLogFile(logPath)) {
+		else if (logger.OpenLogFile(logPath)) {
 			LOG_INFO("Log file '%s' opened.\n", logPath.c_str());
 		}
 		else {
@@ -388,7 +388,7 @@ void CommandHandler::CreateOtherCommands() {
 	// Command: Echo
 	//
 	commandHandler->AddCommand(new Command("Echo", [&](CommandLine *cmd) {
-		if(cmd->valueCount > 0) {
+		if (cmd->valueCount > 0) {
 			LOG_INFO("%s\n", cmd->line.c_str() + 5);
 		}
 		else {
@@ -404,9 +404,9 @@ void CommandHandler::CreateOtherCommands() {
 	// Enables/disables direct logging without queuing the messages.
 	//
 	AddCommand(new Command("LogDirect", [&](CommandLine *cmd) {
-		logger.ProcessMessages();
+		logger.ProcessQueue();
 		logger.directPrint = cmd->GetBoolean(0, logger.directPrint);
-		logger.ProcessMessages();
+		logger.ProcessQueue();
 
 		LOG_INFO("Log direct print = %s\n", logger.directPrint ? "True" : "False");
 		return true;
@@ -433,7 +433,7 @@ void CommandHandler::CreateOtherCommands() {
 	AddAlias("Info", "Information");
 	AddCommand(new Command("Information", [&](CommandLine *cmd) {
 
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		char stringBuffer[1024];
 		int maxLength = sizeof(stringBuffer) - 1;
@@ -442,7 +442,7 @@ void CommandHandler::CreateOtherCommands() {
 		LOG_INFO("\n");
 
 		// VMulti type
-		switch(vmulti->type) {
+		switch (vmulti->type) {
 		case VMulti::TypeXPPen: LOG_INFO("VMulti: XP-Pen\n"); break;
 		case VMulti::TypeVEIKK: LOG_INFO("VMulti: VEIKK\n"); break;
 		default: break;
@@ -468,15 +468,15 @@ void CommandHandler::CreateOtherCommands() {
 
 
 		// Pen buttons
-		for(int i = 0; i < tablet->settings.buttonCount; i++) {
+		for (int i = 0; i < tablet->settings.buttonCount; i++) {
 			stringIndex += sprintf_s(stringBuffer + stringIndex, maxLength - stringIndex, "'%s' ", tablet->settings.buttonMap[i].c_str());
 		}
 		LOG_INFO("  Pen button map = %s\n", stringBuffer);
 
 		// Aux buttons
-		if(tablet->settings.auxButtonCount > 0) {
+		if (tablet->settings.auxButtonCount > 0) {
 			stringIndex = 0;
-			for(int i = 0; i < tablet->settings.auxButtonCount; i++) {
+			for (int i = 0; i < tablet->settings.auxButtonCount; i++) {
 				stringIndex += sprintf_s(stringBuffer + stringIndex, maxLength - stringIndex, "'%s' ", tablet->settings.auxButtonMap[i].c_str());
 			}
 			LOG_INFO("  Aux button map = %s\n", stringBuffer);
@@ -485,24 +485,24 @@ void CommandHandler::CreateOtherCommands() {
 
 
 		// Init strings
-		if(tablet->initStrings.size() > 0) {
+		if (tablet->initStrings.size() > 0) {
 			string stringIds = "";
-			for(int stringId : tablet->initStrings) {
+			for (int stringId : tablet->initStrings) {
 				stringIds += to_string(stringId) + " ";
 			}
 			LOG_INFO("  Init string ids: %s\n", stringIds.c_str());
 		}
 
 		// Init feature reports
-		if(tablet->initFeatureReports.size() > 0) {
-			for(Tablet::InitReport *report : tablet->initFeatureReports) {
+		if (tablet->initFeatureReports.size() > 0) {
+			for (Tablet::InitReport *report : tablet->initFeatureReports) {
 				LOG_INFOBUFFER(report->data, report->length, "  Init feature report: ");
 			}
 		}
 
 		// Init output reports
-		if(tablet->initOutputReports.size() > 0) {
-			for(Tablet::InitReport *report : tablet->initOutputReports) {
+		if (tablet->initOutputReports.size() > 0) {
+			for (Tablet::InitReport *report : tablet->initOutputReports) {
 				LOG_INFOBUFFER(report->data, report->length, "  Init output report: ");
 			}
 		}
@@ -541,7 +541,19 @@ void CommandHandler::CreateOtherCommands() {
 	// Command: RequestSettings
 	//
 	AddCommand(new Command("RequestSettings", [&](CommandLine *cmd) {
-		LOG_STATUS("SETTINGS_REQUEST 1\n");
+
+		// Wait for a connection
+		for (int i = 0; i < 20; i++) {
+			if (pipeOutput == NULL) return false;
+			if (pipeOutput != NULL && pipeOutput->IsRunning() && pipeOutput->IsClientConnected()) {
+				break;
+			}
+			Sleep(100);
+		}
+		if (pipeOutput != NULL && pipeOutput->IsRunning()) {
+			LOG_STATUS("SETTINGS_REQUEST 1\n");
+		}
+
 		return true;
 	}));
 
@@ -550,7 +562,19 @@ void CommandHandler::CreateOtherCommands() {
 	// Command: RequestStartup
 	//
 	AddCommand(new Command("RequestStartup", [&](CommandLine *cmd) {
-		LOG_STATUS("STARTUP_REQUEST 1\n");
+
+		// Wait for a connection
+		for (int i = 0; i < 20; i++) {
+			if (pipeOutput == NULL) return false;
+			if (pipeOutput != NULL && pipeOutput->IsRunning() && pipeOutput->IsClientConnected()) {
+				break;
+			}
+			Sleep(100);
+		}
+		if (pipeOutput != NULL && pipeOutput->IsRunning()) {
+			LOG_STATUS("STARTUP_REQUEST 1\n");
+		}
+
 		return true;
 	}));
 
@@ -561,11 +585,11 @@ void CommandHandler::CreateOtherCommands() {
 	// Outputs driver infor as status messages
 	//
 	AddCommand(new Command("Status", [&](CommandLine *cmd) {
-		if(!ExecuteCommand("TabletValid")) return false;
+		if (!ExecuteCommand("TabletValid")) return false;
 
 		LOG_STATUS("TABLET %s\n", tablet->name.c_str());
 
-		if(tablet->hidDevice != NULL) {
+		if (tablet->hidDevice != NULL) {
 			LOG_STATUS("HID %04X %04X %04X %04X\n",
 				tablet->hidDevice->vendorId,
 				tablet->hidDevice->productId,
@@ -573,7 +597,7 @@ void CommandHandler::CreateOtherCommands() {
 				tablet->hidDevice->usage
 			);
 		}
-		else if(tablet->usbDevice != NULL) {
+		else if (tablet->usbDevice != NULL) {
 			LOG_STATUS("USB %s\n", tablet->usbDevice->guid.c_str());
 		}
 		LOG_STATUS("WIDTH %0.5f\n", tablet->settings.width);
@@ -582,7 +606,7 @@ void CommandHandler::CreateOtherCommands() {
 		LOG_STATUS("MAX_Y %d\n", tablet->settings.maxY);
 		LOG_STATUS("MAX_PRESSURE %d\n", tablet->settings.maxPressure);
 		LOG_STATUS("AUX_BUTTONS %d\n", tablet->settings.auxButtonCount);
-		if(tabletHandler != NULL) {
+		if (tabletHandler != NULL) {
 			LOG_STATUS("STARTED %d\n", tabletHandler->IsRunning());
 		}
 
@@ -597,12 +621,12 @@ void CommandHandler::CreateOtherCommands() {
 	//
 	AddCommand(new Command("Include", [&](CommandLine *cmd) {
 		string filename = cmd->GetString(0, "");
-		if(filename == "") {
+		if (filename == "") {
 			LOG_ERROR("Invalid filename '%s'!\n", filename.c_str());
 			return false;
 		}
 		else {
-			if(ExecuteFile(filename)) {
+			if (ExecuteFile(filename)) {
 			}
 			else {
 				LOG_ERROR("Can't open file '%s'\n", filename.c_str());
@@ -622,14 +646,14 @@ void CommandHandler::CreateOtherCommands() {
 	AddCommand(new Command("ListCommands", [&](CommandLine *cmd) {
 
 		LOG_INFO("Commands: \n");
-		for(pair<string, Command*> cmdPair : commands) {
+		for (pair<string, Command*> cmdPair : commands) {
 			string commandName = cmdPair.second->name;
 			string lowerCaseName = commandName;
 			transform(lowerCaseName.begin(), lowerCaseName.end(), lowerCaseName.begin(), ::tolower);
 
 			string aliasString = "";
-			for(pair<string, string> aliasPair : aliases) {
-				if(aliasPair.second == lowerCaseName) {
+			for (pair<string, string> aliasPair : aliases) {
+				if (aliasPair.second == lowerCaseName) {
 					aliasString += ", " + aliasNames[aliasPair.first];
 				}
 			}
@@ -651,7 +675,7 @@ void CommandHandler::CreateOtherCommands() {
 
 		LOG_STATUS("COMMANDS_CLEAR 1\n");
 
-		for(pair<string, Command*> cmdPair : commands) {
+		for (pair<string, Command*> cmdPair : commands) {
 			string commandName = cmdPair.second->name;
 			string lowerCaseName = commandName;
 			transform(lowerCaseName.begin(), lowerCaseName.end(), lowerCaseName.begin(), ::tolower);
@@ -659,18 +683,18 @@ void CommandHandler::CreateOtherCommands() {
 			commandsString += commandName + " ";
 
 			string aliasString = "";
-			for(pair<string, string> aliasPair : aliases) {
-				if(aliasPair.second == lowerCaseName) {
+			for (pair<string, string> aliasPair : aliases) {
+				if (aliasPair.second == lowerCaseName) {
 					commandsString += aliasNames[aliasPair.first] + " ";
 				}
 			}
 
-			if(commandsString.size() > 80) {
+			if (commandsString.size() > 80) {
 				LOG_STATUS("COMMANDS %s\n", commandsString.c_str());
 				commandsString = "";
 			}
 		}
-		if(commandsString.size() > 0) {
+		if (commandsString.size() > 0) {
 			LOG_STATUS("COMMANDS %s\n", commandsString.c_str());
 		}
 
@@ -685,8 +709,8 @@ void CommandHandler::CreateOtherCommands() {
 	AddCommand(new Command("ListKeys", [&](CommandLine *cmd) {
 
 		LOG_INFO("Keys:\n");
-		for(string key : tabletHandler->inputEmulator.keys) {
-			if(tabletHandler->inputEmulator.keyMap.count(key) > 0) {
+		for (string key : tabletHandler->inputEmulator.keys) {
+			if (tabletHandler->inputEmulator.keyMap.count(key) > 0) {
 				string name = tabletHandler->inputEmulator.keyMap[key]->name;
 				LOG_INFO("  % -20s %s\n", key.c_str(), name.c_str());
 			}
@@ -704,10 +728,10 @@ void CommandHandler::CreateOtherCommands() {
 	AddHelp("Help", "...");
 	AddCommand(new Command("Help", [&](CommandLine *cmd) {
 		string commandName = cmd->GetStringLower(0, "");
-		if(aliases.count(commandName) > 0) {
+		if (aliases.count(commandName) > 0) {
 			commandName = aliases[commandName];
 		}
-		if(help.count(commandName)) {
+		if (help.count(commandName)) {
 			string helpText = help[commandName];
 			LOG_INFO("Help:\n\n%s\n", helpText.c_str());
 		}

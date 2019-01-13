@@ -141,6 +141,9 @@
     <ClInclude Include="Runnable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BufferQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -282,6 +285,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Runnable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -5,6 +5,10 @@
 #define LOG_MODULE "TabletHandler"
 #include "Logger.h"
 
+extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
+extern "C" NTSYSAPI NTSTATUS NTAPI NtQueryTimerResolution(OUT PULONG MinimumResolution, OUT PULONG MaximumResolution, OUT PULONG ActualResolution);
+
+
 //
 // Constructor
 //
@@ -15,6 +19,7 @@ TabletHandler::TabletHandler() {
 	SetRunningState(false);
 	timerInterval = 20;
 	isTimerTickRunning = false;
+	_isTimerStopping = false;
 }
 
 
@@ -22,11 +27,46 @@ TabletHandler::TabletHandler() {
 // Destructor
 //
 TabletHandler::~TabletHandler() {
-	StopTimer();
+
+	// Set running state
 	SetRunningState(false);
-	if(tablet != NULL) {
-		tablet->isOpen = false;
+
+	// Timer
+	lockTimer.lock();
+	StopTimer();
+	lockTimer.unlock();
+
+	// Close tablet devices
+	if (tablet != NULL) {
+		tablet->CloseDevice();
 	}
+
+	// Wait tablet input thread to exit
+	if (tabletInputThread != NULL) {
+		printf("Join tablet thread\n");
+		try {
+			tabletInputThread->join();
+		}
+		catch (exception &e) {
+			printf("Tablet input thread exception: %s\n", e.what());
+		}
+	}
+
+	// Wait auxiliary input thread to exit
+	if (auxInputThread != NULL) {
+
+		// Notify aux state change
+		tablet->conditionAuxState.notify_all();
+
+		printf("Join aux thread\n");
+		try {
+			auxInputThread->join();
+		}
+		catch (exception &e) {
+			printf("Aux input thread exception: %s\n", e.what());
+		}
+	}
+
 }
 
 
@@ -34,11 +74,17 @@ TabletHandler::~TabletHandler() {
 // Start tablet handler
 //
 bool TabletHandler::Start() {
-	if(tablet == NULL) return false;
-	ChangeTimerInterval((int)round(timerInterval));
+	if (tablet == NULL) return false;
+
 	SetRunningState(true);
+
+	// Timer
+	ChangeTimerInterval((int)round(timerInterval));
+
+	// Threads
 	tabletInputThread = new thread(&TabletHandler::RunTabletInputThread, this);
 	auxInputThread = new thread(&TabletHandler::RunAuxInputThread, this);
+
 	return true;
 }
 
@@ -46,7 +92,7 @@ bool TabletHandler::Start() {
 // Stop tablet handler
 //
 bool TabletHandler::Stop() {
-	if(tablet == NULL) return false;
+	if (tablet == NULL) return false;
 	SetRunningState(false);
 	return true;
 }
@@ -56,17 +102,43 @@ bool TabletHandler::Stop() {
 // Start filter timer
 //
 bool TabletHandler::StartTimer() {
-	BOOL result = CreateTimerQueueTimer(
-		&timer,
-		NULL, TimerCallback,
-		this,
-		0,
-		(int)timerInterval,
-		WT_EXECUTEDEFAULT
-	);
-	if(!result) return false;
+
+	isTimerTickRunning = false;
+	_isTimerStopping = false;
+
+	if (timer == NULL) {
+		BOOL result = CreateTimerQueueTimer(
+			&timer,
+			NULL,
+			TimerCallback,
+			this,
+			0,
+			(int)timerInterval,
+			WT_EXECUTEDEFAULT
+		);
+
+		if (!result) return false;
+	}
+	else {
+		return false;
+	}
 
 	return true;
+}
+
+
+//
+// Change timer interval
+//
+bool TabletHandler::ChangeTimer(int interval) {
+
+	if (timer != NULL) {
+		BOOL result = ChangeTimerQueueTimer(NULL, timer, 0, interval);
+		if (!result) return false;
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -74,13 +146,26 @@ bool TabletHandler::StartTimer() {
 // Stop filter timer
 //
 bool TabletHandler::StopTimer() {
-	if(timer == NULL) return true;
-	bool result = DeleteTimerQueueTimer(NULL, timer, NULL);
-	if(result) {
-		timer = NULL;
-		return true;
+	if (timer == NULL) return true;
+	if (_isTimerStopping) return false;
+
+	_isTimerStopping = true;
+
+	// Wait timer tick to finish
+	for (int i = 0; i < 100 + timerInterval; i++) {
+		if (!isTimerTickRunning) break;
+		Sleep(1);
 	}
-	return false;
+	if (isTimerTickRunning) {
+		LOG_ERROR("Timer did not stop!\n");
+		return false;
+	}
+
+	bool result = DeleteTimerQueueTimer(NULL, timer, NULL);
+	if (result) {
+		timer = NULL;
+	}
+	return true;
 }
 
 
@@ -99,7 +184,7 @@ void TabletHandler::ChangeTimerInterval(int newInterval) {
 	NtQueryTimerResolution(&timerMinimumResolution, &timerMaximumResolution, &timerCurrentResolution);
 
 	// Debug messages
-	if(logger.IsDebugOutputEnabled()) {
+	if (logger.IsDebugOutputEnabled()) {
 		LOG_DEBUG("System timer resolution:\n");
 		LOG_DEBUG("  Minimum: %0.3f ms\n", (double)timerMinimumResolution / 10000.0);
 		LOG_DEBUG("  Maximum: %0.3f ms\n", (double)timerMaximumResolution / 10000.0);
@@ -107,16 +192,16 @@ void TabletHandler::ChangeTimerInterval(int newInterval) {
 	}
 
 	// Check if current resolution is double the timer interval
-	if(timerCurrentResolution > timerInterval * 5000.0)
+	if (timerCurrentResolution > timerInterval * 5000.0)
 	{
 		ULONG timerResolution = (ULONG)(timerInterval * 5000.0);
 		ULONG currentResolution;
 
 		// Limits
-		if(timerResolution > timerMinimumResolution) {
+		if (timerResolution > timerMinimumResolution) {
 			timerResolution = timerMinimumResolution;
 		}
-		else if(timerResolution < timerMaximumResolution) {
+		else if (timerResolution < timerMaximumResolution) {
 			timerResolution = timerMaximumResolution;
 		}
 
@@ -128,7 +213,7 @@ void TabletHandler::ChangeTimerInterval(int newInterval) {
 		NtQueryTimerResolution(&timerMinimumResolution, &timerMaximumResolution, &timerCurrentResolution);
 
 		// Debug messages
-		if(logger.IsDebugOutputEnabled()) {
+		if (logger.IsDebugOutputEnabled()) {
 			LOG_DEBUG("System timer resolution set to %0.3f ms\n", (double)timerResolution / 10000.0);
 			LOG_DEBUG("System timer resolution is now %0.3f ms\n", (double)timerCurrentResolution / 10000.0);
 		}
@@ -136,21 +221,37 @@ void TabletHandler::ChangeTimerInterval(int newInterval) {
 
 	// Tell the new interval to timed filters
 	filtersEnabled = false;
-	if(tablet != NULL) {
-		for(int i = 0; i < tablet->filterTimedCount; i++) {
+	if (tablet != NULL) {
+		for (int i = 0; i < tablet->filterTimedCount; i++) {
 			tablet->filterTimed[i]->OnTimerIntervalChange(oldInterval, newInterval);
 
 			// Filter enabled?
-			if(tablet->filterTimed[i]->isEnabled) {
+			if (tablet->filterTimed[i]->isEnabled) {
 				filtersEnabled = true;
 			}
 		}
 	}
 
-	// Stop the timer and restart if a filter is enabled
-	if(StopTimer() && filtersEnabled) {
+	// Lock timer
+	lockTimer.lock();
+
+	// Stop the timer when filters are disabled and timer is running
+	if (!filtersEnabled && timer != NULL) {
+		StopTimer();
+	}
+
+	// Start the timer when filters are enabled and timer is not running
+	else if (filtersEnabled && timer == NULL) {
 		StartTimer();
 	}
+
+	// Start timer interval when filters are enabled and timer is running
+	else if(filtersEnabled) {
+		ChangeTimer((int)newInterval);
+	}
+
+	// Unlock timer
+	lockTimer.unlock();
 }
 
 
@@ -196,7 +297,7 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 	// Pen buttons
 	penButtons = tablet->state.inputButtons;
 	penLastButtons = tablet->state.lastButtons;
-	if(isPen) {
+	if (isPen) {
 		buttons = penButtons;
 		lastButtons = penLastButtons;
 		buttonCount = tablet->settings.buttonCount;
@@ -210,13 +311,13 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 	}
 
 	// Button state changed?
-	if(buttons > 0 || lastButtons > 0) {
+	if (buttons > 0 || lastButtons > 0) {
 
 		// Loop through buttons
-		for(int buttonIndex = 0; buttonIndex < buttonCount; buttonIndex++) {
+		for (int buttonIndex = 0; buttonIndex < buttonCount; buttonIndex++) {
 
 			// Button is not down, pressed or released?
-			if((buttons & (1 << buttonIndex)) == 0 && (lastButtons & (1 << buttonIndex)) == 0) {
+			if ((buttons & (1 << buttonIndex)) == 0 && (lastButtons & (1 << buttonIndex)) == 0) {
 				continue;
 			}
 
@@ -227,23 +328,23 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 
 			// Pen button map
 			hasBinding = false;
-			if(isPen && tablet->settings.buttonMap[buttonIndex].size() > 0) {
+			if (isPen && tablet->settings.buttonMap[buttonIndex].size() > 0) {
 				key = tablet->settings.buttonMap[buttonIndex];
-				if(inputEmulator.keyMap.count(key) > 0) {
+				if (inputEmulator.keyMap.count(key) > 0) {
 					hasBinding = true;
 				}
 			}
 
 			// Auxiliary button map
-			else if(!isPen && tablet->settings.auxButtonMap[buttonIndex].size() > 0) {
+			else if (!isPen && tablet->settings.auxButtonMap[buttonIndex].size() > 0) {
 				key = tablet->settings.auxButtonMap[buttonIndex];
-				if(inputEmulator.keyMap.count(key) > 0) {
+				if (inputEmulator.keyMap.count(key) > 0) {
 					hasBinding = true;
 				}
 			}
 
 			// Button has a binding?
-			if(hasBinding) {
+			if (hasBinding) {
 
 				InputEmulator::KeyMapValue *keyMapValue = inputEmulator.keyMap[key];
 
@@ -253,35 +354,23 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 				//
 				// Mouse buttons
 				//
-				if(mouseButton >= InputEmulator::Mouse1 && mouseButton <= InputEmulator::Mouse5) {
+				if (mouseButton >= InputEmulator::Mouse1 && mouseButton <= InputEmulator::Mouse5) {
 
 					// Pen button
-					if(isPen && isDown) {
+					if (isPen && isDown) {
 						*outButtons |= (1 << (mouseButton - 1));
 					}
 
 					// Auxiliary button
-					else if(isPressed || isReleased) {
+					else if (isPressed || isReleased) {
 						inputEmulator.MouseSet(mouseButton, isDown);
-					}
-				}
-
-				//
-				// Keyboard key
-				//
-				if(virtualKey > 0) {
-					if(isPressed) {
-						inputEmulator.SetKeyState(virtualKey, true);
-					}
-					else if(isReleased) {
-						inputEmulator.SetKeyState(virtualKey, false);
 					}
 				}
 
 				//
 				// Mouse scroll
 				//
-				if(
+				else if (
 					mouseButton == InputEmulator::MouseScrollVertical
 					||
 					mouseButton == InputEmulator::MouseScrollHorizontal
@@ -291,32 +380,32 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 					mouseButton == InputEmulator::MediaVolumeControl
 					||
 					mouseButton == InputEmulator::MediaBalanceControl
-				) {
+					) {
 
 					// Scroll button down?
-					if(isDown
+					if (isDown
 						&&
 						// Scroll when tip is down?
 						(!tablet->settings.scrollDrag || IsButtonDown(penButtons, 0))
-					) {
+						) {
 
 						// Get rotated pen position
 						scrollPosition.Set(tablet->state.position);
 						mapper->GetRotatedTabletPosition(&scrollPosition.x, &scrollPosition.y);
 
 						// Reset last scroll position and set the scroll start position
-						if(
+						if (
 							isPressed
 							||
 							(tablet->settings.scrollDrag && IsButtonPressed(penButtons, penLastButtons, 0))
-						) {
+							) {
 							lastScrollPosition.Set(scrollPosition);
 							scrollStartPosition.Set(tablet->state.position);
 
 							//
 							// Move normal mouse to digitizer position
 							//
-							if(outputManager->mode == OutputManager::ModeVMultiDigitizer) {
+							if (outputManager->mode == OutputManager::ModeVMultiDigitizer) {
 								TabletState tmpState;
 								tmpState.position.Set(tablet->state.position);
 								outputManager->sendInputAbsolute.Set(&tmpState);
@@ -326,7 +415,7 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 						}
 
 						// Disable mouse tip button when using drag scroll
-						if(tablet->settings.scrollDrag) {
+						if (tablet->settings.scrollDrag) {
 							*outButtons &= ~1;
 						}
 
@@ -337,20 +426,20 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 						);
 
 						// X Acceleration
-						if(delta.x > 0)
+						if (delta.x > 0)
 							delta.x = round(pow(delta.x, tablet->settings.scrollAcceleration));
 						else
 							delta.x = -round(pow(-delta.x, tablet->settings.scrollAcceleration));
 
 						// Y Acceleration
-						if(delta.y > 0)
+						if (delta.y > 0)
 							delta.y = round(pow(delta.y, tablet->settings.scrollAcceleration));
 						else
 							delta.y = -round(pow(-delta.y, tablet->settings.scrollAcceleration));
 
 
 						// Vertical Scroll
-						if(delta.y != 0 && (
+						if (delta.y != 0 && (
 							mouseButton == InputEmulator::MouseScrollVertical
 							||
 							mouseButton == InputEmulator::MouseScrollBoth
@@ -360,7 +449,7 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 						}
 
 						// Horizontal scroll
-						if(delta.x != 0 && (
+						if (delta.x != 0 && (
 							mouseButton == InputEmulator::MouseScrollHorizontal
 							||
 							mouseButton == InputEmulator::MouseScrollBoth
@@ -370,31 +459,58 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 						}
 
 						// Media volume control
-						if(delta.y != 0 && mouseButton == InputEmulator::MediaVolumeControl) {
+						if (delta.y != 0 && mouseButton == InputEmulator::MediaVolumeControl) {
 							inputEmulator.VolumeChange(-(float)delta.y / 100.0f);
 							scrolled = true;
 						}
 
 						// Media balance control
-						if((delta.x != 0 || isPressed) && mouseButton == InputEmulator::MediaBalanceControl) {
+						if ((delta.x != 0 || isPressed) && mouseButton == InputEmulator::MediaBalanceControl) {
 							double balance = 0.5 + ((scrollStartPosition.x - scrollPosition.x) * tablet->settings.scrollSensitivity) / 50.0f;
 							inputEmulator.VolumeBalance((float)balance);
 							scrolled = true;
 						}
 
 						// Stop cursor
-						if(tablet->settings.scrollStopCursor) {
+						if (tablet->settings.scrollStopCursor) {
 							tablet->state.position.Set(scrollStartPosition);
 						}
 
 					}
+
+				}
+
+
+				//
+				// Keyboard key
+				//
+				else if (virtualKey > 0) {
+					if (isPressed) {
+						inputEmulator.SetKeyState(virtualKey, true);
+					}
+					else if (isReleased) {
+						inputEmulator.SetKeyState(virtualKey, false);
+					}
+				}
+
+			}
+
+			//
+			// Multiple inputs
+			//
+			else {
+				if (isPressed) {
+					inputEmulator.SetInputStates(key, true);
+				}
+				else if (isReleased) {
+					inputEmulator.SetInputStates(key, false);
 				}
 			}
 
 		}
 
 		// Update last scroll position
-		if(scrolled) {
+		if (scrolled) {
 			lastScrollPosition.Set(scrollPosition);
 		}
 
@@ -422,29 +538,29 @@ void TabletHandler::RunTabletInputThread() {
 	//
 	// Tablet input main loop
 	//
-	while(IsRunning()) {
+	while (IsRunning()) {
 
 		//
 		// Read tablet position
 		//
 		status = tablet->ReadState();
 
-		if(!tablet->isOpen) break;
+		if (!tablet->isOpen) break;
 
 		// Position OK
-		if(status == Tablet::ReportValid) {
+		if (status == Tablet::ReportValid) {
 			isResent = false;
 		}
 
 		// Invalid report id
-		else if(status == Tablet::ReportInvalid) {
+		else if (status == Tablet::ReportInvalid) {
 			tablet->state.isValid = false;
 			continue;
 		}
 
 		// Valid report but position is not in-range or invalid
-		else if(status == Tablet::ReportPositionInvalid) {
-			if(!isResent && tablet->state.isValid) {
+		else if (status == Tablet::ReportPositionInvalid) {
+			if (!isResent && tablet->state.isValid) {
 				isResent = true;
 				tablet->state.isValid = false;
 				outputState.isValid = false;
@@ -455,7 +571,7 @@ void TabletHandler::RunTabletInputThread() {
 		}
 
 		// Ignore report
-		else if(status == Tablet::ReportIgnore) {
+		else if (status == Tablet::ReportIgnore) {
 			continue;
 		}
 
@@ -463,13 +579,14 @@ void TabletHandler::RunTabletInputThread() {
 		else {
 			LOG_ERROR("Tablet Read Error!\n");
 			CleanupAndExit(0);
+			return;
 		}
 
 
 		//
 		// Don't use first report
 		//
-		if(isFirstReport) {
+		if (isFirstReport) {
 			isFirstReport = false;
 			continue;
 		}
@@ -477,9 +594,9 @@ void TabletHandler::RunTabletInputThread() {
 		//
 		// Velocity calculation
 		//
-		if(oldState.isValid) {
+		if (oldState.isValid) {
 			double timeDelta = (tablet->state.time - oldState.time).count() / 1000000.0;
-			if(timeDelta >= 1 && timeDelta <= 10) {
+			if (timeDelta >= 1 && timeDelta <= 10) {
 				tablet->state.inputVelocity = oldState.inputPosition.Distance(tablet->state.inputPosition) * (1000.0 / timeDelta);
 			}
 			else {
@@ -491,21 +608,22 @@ void TabletHandler::RunTabletInputThread() {
 		}
 
 		// Debug messages
-		if(logger.IsDebugOutputEnabled()) {
+		if (logger.IsDebugOutputEnabled()) {
 			double delta = (tablet->state.time - timeBegin).count() / 1000000.0;
-			LOG_DEBUG("InputState: T=%0.3f, B=%d, X=%0.3f, Y=%0.3f, P=%0.3f V=%0.2f Valid=%s\n",
+			LOG_DEBUG("InputState: T=%0.3f, B=%d, X=%0.3f, Y=%0.3f, P=%0.3f H=%0.2f V=%0.2f Valid=%s\n",
 				delta,
 				tablet->state.inputButtons,
 				tablet->state.inputPosition.x,
 				tablet->state.inputPosition.y,
 				tablet->state.inputPressure,
+				tablet->state.inputHeight,
 				tablet->state.inputVelocity,
 				tablet->state.isValid ? "True" : "False"
 			);
 		}
 
 		// Set output values
-		if(status == Tablet::ReportPositionInvalid) {
+		if (status == Tablet::ReportPositionInvalid) {
 			tablet->state.buttons = 0;
 		}
 
@@ -520,20 +638,20 @@ void TabletHandler::RunTabletInputThread() {
 		// Report filters
 		//
 		// Are there any filters?
-		if(tablet->filterReportCount > 0) {
+		if (tablet->filterReportCount > 0) {
 
 			// Copy input state values to filter state
 			memcpy(&filterState, &tablet->state, sizeof(TabletState));
 
 
 			// Loop through filters
-			for(int filterIndex = 0; filterIndex < tablet->filterReportCount; filterIndex++) {
+			for (int filterIndex = 0; filterIndex < tablet->filterReportCount; filterIndex++) {
 
 				// Filter
 				filter = tablet->filterReport[filterIndex];
 
 				// Enabled?
-				if(filter != NULL && filter->isEnabled) {
+				if (filter != NULL && filter->isEnabled) {
 
 					// Process
 					filter->SetTarget(&filterState);
@@ -561,8 +679,8 @@ void TabletHandler::RunTabletInputThread() {
 
 		// Timed filter enabled?
 		filterTimedEnabled = false;
-		for(int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
-			if(tablet->filterTimed[filterIndex]->isEnabled)
+		for (int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
+			if (tablet->filterTimed[filterIndex]->isEnabled)
 				filterTimedEnabled = true;
 		}
 
@@ -571,7 +689,7 @@ void TabletHandler::RunTabletInputThread() {
 		memcpy(&oldState, &tablet->state, sizeof(TabletState));
 
 		// Do not write report when timed filter is enabled
-		if(filterTimedEnabled) {
+		if (filterTimedEnabled) {
 			continue;
 		}
 
@@ -596,36 +714,36 @@ void TabletHandler::RunAuxInputThread()
 	Tablet::TabletAuxState auxState;
 
 	// No aux device or not aux report id set
-	if(tablet->hidDeviceAux == NULL && tablet->usbDevice == NULL && tablet->settings.auxReports[0].reportId <= 0) {
+	if (tablet->hidDeviceAux == NULL && tablet->usbDevice == NULL && tablet->settings.auxReports[0].reportId <= 0) {
 		return;
 	}
 
 	//
 	// Auxiliary input main loop
 	//
-	while(IsRunning()) {
+	while (IsRunning()) {
 
 		// Read
 		reportStatus = tablet->ReadAuxReport();
 
 		// Read error
-		if(reportStatus == Tablet::AuxReportReadError) {
+		if (reportStatus == Tablet::AuxReportReadError) {
 			LOG_ERROR("Auxiliary device read error!\n");
 			break;
 		}
 
 		// Aux state invalid or ignored
-		if(reportStatus == Tablet::AuxReportInvalid || reportStatus == Tablet::AuxReportIgnore) {
+		if (reportStatus == Tablet::AuxReportInvalid || reportStatus == Tablet::AuxReportIgnore) {
 			continue;
 		}
 
 		// Skip invalid state
-		if(!tablet->auxState.isValid) continue;
+		if (!tablet->auxState.isValid) continue;
 		memcpy(&auxState, &tablet->auxState, sizeof(Tablet::TabletAuxState));
 		tablet->auxState.isValid = false;
 
 		// Process buttons
-		if(logger.IsDebugOutputEnabled()) {
+		if (logger.IsDebugOutputEnabled()) {
 			LOG_DEBUG("Aux buttons: 0x%04X\n", auxState.buttons);
 		}
 		UINT32 tmpButtons = 0;
@@ -641,41 +759,45 @@ void TabletHandler::RunAuxInputThread()
 // Timer tick
 //
 void TabletHandler::OnTimerTick() {
-	if(tablet == NULL) return;
+	if (tablet == NULL) return;
+	if (timer == NULL) return;
+	if (_isTimerStopping) return;
+
 	TabletFilter *filter;
 	TabletState filterState;
 	bool filtersEnabled = false;
 
-
-	if(isTimerTickRunning) {
+	// Detect performance problems
+	if (isTimerTickRunning) {
 
 		// Limit error logging rate
 		double timeDelta = (chrono::high_resolution_clock::now() - timeLastTimerProblem).count() / 1000000.0;
-		if(timeDelta > 2000.0) {
-			LOG_ERROR("Filter performance problem detected! Use lower filter rate or disable the smoothing filter.\n");
+		if (timeDelta > 2000.0) {
+			LOG_WARNING("Filter performance problem detected! Use lower filter rate or disable the smoothing filter.\n");
 			timeLastTimerProblem = chrono::high_resolution_clock::now();
 		}
 		return;
 	}
+
 	isTimerTickRunning = true;
 
 	// Loop through filters
-	for(int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
+	for (int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
 
 		// Filter
 		filter = tablet->filterTimed[filterIndex];
 
 		// Filter enabled?
-		if(filter->isEnabled) {
+		if (filter->isEnabled) {
 
 			// Copy current input state values when a enabled filter is found
-			if(!filtersEnabled) {
+			if (!filtersEnabled) {
 				lock.lock();
 				memcpy(&filterState, &outputState, sizeof(TabletState));
 				lock.unlock();
 
 				// State valid?
-				if(!filterState.isValid) {
+				if (!filterState.isValid) {
 					isTimerTickRunning = false;
 					return;
 				}
@@ -699,7 +821,7 @@ void TabletHandler::OnTimerTick() {
 	}
 
 	// Do not write to output if no filters are enabled
-	if(!filtersEnabled) {
+	if (!filtersEnabled) {
 		isTimerTickRunning = false;
 		return;
 	}
@@ -719,12 +841,12 @@ void TabletHandler::WriteOutputState(TabletState * outputState)
 {
 	bool result;
 	result = outputManager->Set(outputState);
-	if(result) {
+	if (result) {
 		result = outputManager->Write();
 	}
 
 	// Debug message
-	if(result && logger.IsDebugOutputEnabled()) {
+	if (result && logger.IsDebugOutputEnabled()) {
 		double delta = (chrono::high_resolution_clock::now() - timeBegin).count() / 1000000.0;
 		LOG_DEBUG("OutputState: T=%0.3f, B=%d, X=%0.3f, Y=%0.3f, P=%0.3f V=%s\n",
 			delta,

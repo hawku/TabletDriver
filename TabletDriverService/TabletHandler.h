@@ -1,6 +1,7 @@
 #pragma once
 #include <thread>
 #include <mutex>
+#include <atomic>
 #include "Tablet.h"
 #include "InputEmulator.h"
 #include "Runnable.h"
@@ -22,6 +23,9 @@ public:
 	thread *auxInputThread;
 	HANDLE timer;
 	double timerInterval;
+
+	atomic<bool> _isTimerStopping;
+	mutex lockTimer;
 	mutex lock;
 	chrono::high_resolution_clock::time_point timeBegin;
 	chrono::high_resolution_clock::time_point timeLastTimerProblem;
@@ -37,6 +41,7 @@ public:
 	bool Start();
 	bool Stop();
 	bool StartTimer();
+	bool ChangeTimer(int interval);
 	bool StopTimer();
 	void ChangeTimerInterval(int newInterval);
 	void RunTabletInputThread();

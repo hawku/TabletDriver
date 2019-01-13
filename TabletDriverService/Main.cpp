@@ -33,6 +33,8 @@ NamedPipeState *pipeState;
 
 void InitConsole();
 bool ProcessCommand(CommandLine *cmd);
+bool cleanupStarted = false;
+void RunCleanupAndExit(int code);
 
 
 //
@@ -72,24 +74,26 @@ int main(int argc, char**argv) {
 	//
 	commandHandler->AddCommand(new Command("Start", [&](CommandLine *cmd) {
 
-		if(tabletHandler->IsRunning()) {
+		if (tabletHandler->IsRunning()) {
 			LOG_INFO("Driver is already started!\n");
 			return true;
 		}
 
 		// Unknown tablet
-		if(tablet == NULL) {
+		if (tablet == NULL) {
 			LOG_ERROR("Tablet not found!\n");
 			CleanupAndExit(0);
+			return false;
 		}
 
 		// Tablet init
-		if(!tablet->Init()) {
+		if (!tablet->Init()) {
 			LOG_ERROR("Tablet init failed!\n");
 			LOG_ERROR("Possible fixes:\n");
 			LOG_ERROR("1) Uninstall other tablet drivers.\n");
 			LOG_ERROR("2) Stop other tablet driver services.\n");
 			CleanupAndExit(0);
+			return false;
 		}
 
 		// Set screen mapper tablet
@@ -121,7 +125,7 @@ int main(int argc, char**argv) {
 
 
 	// Named pipes
-	if(argc > 2) {
+	if (argc > 2) {
 		pipeInput = new NamedPipeInput(string(argv[2]) + string("Input"));
 		pipeOutput = new NamedPipeServer(string(argv[2]) + string("Output"));
 		pipeState = new NamedPipeState(string(argv[2]) + string("State"));
@@ -136,25 +140,31 @@ int main(int argc, char**argv) {
 	pipeState->Start();
 
 	// Logger output pipe
-	logger.namedPipe = pipeOutput;
+	logger.writeCallback = [&](void *buffer, int length) {
+		if (pipeOutput != NULL && pipeOutput->IsRunning()) {
+			pipeOutput->Write(buffer, length);
+		}
+	};
+	//logger.namedPipe = pipeOutput;
 
 	// VMulti XP-Pen
 	vmulti = new VMulti(VMulti::TypeXPPen);
 
 	// VMulti VEIKK
-	if(!vmulti->isOpen) {
+	if (!vmulti->isOpen) {
 		LOG_ERROR("Can't open XP-Pen's VMulti! Trying VEIKK's VMulti!\n");
 		delete vmulti;
 		vmulti = new VMulti(VMulti::TypeVEIKK);
 	}
 
-	if(!vmulti->isOpen) {
+	if (!vmulti->isOpen) {
 		LOG_ERROR("Can't open VMulti device!\n\n");
 		LOG_ERROR("Possible fixes:\n");
 		LOG_ERROR("1) Install VMulti driver\n");
 		LOG_ERROR("2) Kill PentabletService.exe (XP Pen driver)\n");
 		LOG_ERROR("3) Uninstall other tablet drivers and reinstall VMulti driver\n");
-		CleanupAndExit(0);
+		RunCleanupAndExit(0);
+		return 0;
 	}
 
 	// Output manager
@@ -163,42 +173,48 @@ int main(int argc, char**argv) {
 	// Read init file
 	filename = "init.cfg";
 
-	if(argc > 1) {
+	if (argc > 1) {
 		filename = argv[1];
 	}
-	if(!commandHandler->ExecuteFile(filename)) {
+	if (!commandHandler->ExecuteFileLock(filename)) {
 		LOG_ERROR("Can't open '%s'\n", filename.c_str());
 	}
 
-	commandHandler->ExecuteCommandLock("RequestStartup");
+	if (tablet != NULL) {
+		commandHandler->ExecuteCommandLock("RequestStartup");
+	}
+	else {
+		commandHandler->ExecuteCommandLock("CheckTablet");
+	}
 
 
 	//
 	// Main loop
 	//
-	while(true) {
+	while (true) {
 
 		// Broken pipe
-		if(!cin) {
+		if (!cin) {
 			Sleep(100);
 		}
 
 		// Read line from the console
 		try {
 			getline(cin, line);
-		} catch(exception) {
+		}
+		catch (exception) {
 			Sleep(100);
 			//break;
 		}
 
 		// Process valid lines
-		if(line.length() > 0) {
+		if (line.length() > 0) {
 
 			// Line to command line
 			cmd = new CommandLine(line);
 
 			// Hide console (for the service only mode)
-			if(cmd->is("Hide")) {
+			if (cmd->is("Hide")) {
 				::ShowWindow(::GetConsoleWindow(), SW_HIDE);
 			}
 
@@ -209,10 +225,9 @@ int main(int argc, char**argv) {
 
 			delete cmd;
 		}
-
 	}
 
-	CleanupAndExit(0);
+	RunCleanupAndExit(0);
 	return 0;
 }
 
@@ -221,57 +236,77 @@ int main(int argc, char**argv) {
 //
 // Cleanup and exit
 //
-void CleanupAndExit(int code) {
+void RunCleanupAndExit(int code) {
+
+	printf("Cleanup and exit %d\n", code);
+
+	// Wait commands to go through
+	printf("Cleanup CommandHandler\n");
+	if(commandHandler != NULL)
+		delete commandHandler;
+		
+	// Wait for named pipe writes
+	Sleep(100);
 
 	// Stop logger
+	printf("Cleanup Logger\n");
+	logger.writeCallback = NULL;
 	LOGGER_STOP();
-
 
 	// Named pipes
 	printf("Cleanup Input Pipe\n");
-	if(pipeInput != NULL) {
+	if (pipeInput != NULL) {
 		delete pipeInput;
 	}
 	printf("Cleanup Output Pipe\n");
-	if(pipeOutput != NULL) {
+	if (pipeOutput != NULL) {
 		delete pipeOutput;
 	}
 	printf("Cleanup State Pipe\n");
-	if(pipeState != NULL) {
+	if (pipeState != NULL) {
 		delete pipeState;
 	}
 
 	// TabletHandler
 	printf("Cleanup TabletHandler\n");
-	if(tabletHandler != NULL) {
+	if (tabletHandler != NULL) {
 		delete tabletHandler;
 	}
 
 	// OutputManager
 	printf("Cleanup OutputManager\n");
-	if(outputManager != NULL) {
+	if (outputManager != NULL) {
 		delete outputManager;
 	}
 
 	// VMulti
 	printf("Cleanup VMulti\n");
-	if(vmulti != NULL)
+	if (vmulti != NULL)
 		delete vmulti;
 
 	// Tablet
 	printf("Cleanup Tablet\n");
-	if(tablet != NULL)
+	if (tablet != NULL)
 		delete tablet;
 
 	// Uninitialize COM
 	CoUninitialize();
 
-	//Sleep(500);
+	Sleep(500);
 
 	//printf("Press enter to exit...");
 	//getchar();
 	exit(code);
 }
+
+// Cleanup thread
+void CleanupAndExit(int code) {
+	if (cleanupStarted) return;
+	cleanupStarted = true;
+
+	thread *t = new thread(RunCleanupAndExit, code);
+}
+
 
 
 //
@@ -279,35 +314,33 @@ void CleanupAndExit(int code) {
 //
 bool ProcessCommand(CommandLine *cmd) {
 
-	bool logResult = false;
-
+	// Invalid command
+	if (!cmd->isValid) return false;
 
 	// Hide echo input
-	if(cmd->is("Echo")) {
-	}
-	else
-	{
-		LOG_INFO(">> %s\n", cmd->line.c_str());
-	}
+	if (cmd->is("Echo")) {}
+	else { LOG_INFO(">> %s\n", cmd->line.c_str()); }
 
 	//
 	// Execute command handler command
 	//
-	if(cmd->command.back() == '?') {
+	bool logResult = false;
+	if (cmd->command.back() == '?') {
 		logResult = true;
 		cmd->command.pop_back();
 	}
-	if(commandHandler->IsValidCommand(cmd->command)) {
+
+	// Command is valid?
+	if (commandHandler->IsValidCommand(cmd->command)) {
 		bool result = commandHandler->ExecuteCommandLock(cmd->command, cmd);
-		if(logResult) {
+		if (logResult) {
 			LOG_INFO("Result: %s\n", result ? "True" : "False");
 		}
 		return result;
 
 	}
-
 	// Unknown
-	else if(cmd->isValid) {
+	else if (cmd->isValid) {
 		LOG_WARNING("Unknown command: %s\n", cmd->line.c_str());
 	}
 

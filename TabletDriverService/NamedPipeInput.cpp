@@ -14,13 +14,30 @@ NamedPipeInput::~NamedPipeInput()
 {
 }
 
-int NamedPipeInput::ProcessData(int clientId, char *buffer, int length, char * bufferOutput)
+
+void NamedPipeInput::ProcessData(int clientId, BYTE *buffer, int length)
 {
-	buffer[length] = 0;
-	//LOG_DEBUG("PipeInput data: %s\n", buffer);
-	CommandLine *cmd = new CommandLine(buffer);
-	ProcessCommand(cmd);
+	if (!IsRunning()) return;
+	if (_isStopping) return;
+
+	// Copy buffer to char array
+	char *cmdBuffer = new char[length + 1];
+	memcpy(cmdBuffer, buffer, length);
+
+	// Terminate char array
+	cmdBuffer[length] = 0;
+
+	// Create command string
+	string commandText = "";
+	commandText.append(cmdBuffer);
+	delete cmdBuffer;
+
+	// Process command
+	CommandLine *cmd = new CommandLine(commandText);
+	if (cmd->isValid) {
+		ProcessCommand(cmd);
+	}
 	delete cmd;
 
-	return 0;
+
 }

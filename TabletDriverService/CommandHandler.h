@@ -40,6 +40,7 @@ public:
 	bool ExecuteCommandLock(string command, CommandLine * cmd);
 
 	bool ExecuteFile(string filename);
+	bool ExecuteFileLock(string filename);
 
 };
 

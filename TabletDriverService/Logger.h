@@ -7,12 +7,12 @@
 #include <cstring>
 #include <ctime>
 
-
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <queue>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -26,7 +26,7 @@
 #define LOGGER_FILE(file) logger.OpenLogFile(file)
 #define LOGGER_START(...) logger.Start()
 #define LOGGER_STOP(...) logger.Stop()
-#define LOGGER_PROCESS(...) logger.ProcessMessages()
+#define LOGGER_PROCESS(...) logger.ProcessQueue()
 #define LOGGER_DIRECT logger.directPrint
 
 #define LOG_DIE(...)  (logger.LogMessage(logger.LogLevelCritical, LOG_MODULE,  __VA_ARGS__), LOGGER_PROCESS(); exit(1))
@@ -57,8 +57,9 @@ class Logger : public Runnable {
 private:
 	thread threadLog;
 	void run();
-	mutex lockMessages;
-	bool newMessage;
+	mutex lockQueue;
+	mutex lockNewItem;
+	condition_variable conditionNewItem;
 	ofstream logFile;
 	bool logToFile;
 	bool isDebugOutputEnabled;
@@ -80,9 +81,10 @@ public:
 		SYSTEMTIME systemTime;
 		int level;
 		string module;
-		string text;
+		string message;
 	} LogItem;
-	vector<LogItem> messages;
+	queue<LogItem*> logQueue;
+
 	string levelNames[9] = {
 		"",
 		"",
@@ -96,16 +98,18 @@ public:
 	};
 	bool directPrint;
 	string logFilename = "";
-	NamedPipeServer *namedPipe;
+	function<void(void *buffer, int length)> writeCallback = NULL;
 	mutex lock;
 
-	void OutputMessage(LogItem *message);
-	void ProcessMessages();
+	void OutputItem(LogItem *item);
+	void ProcessQueue();
 	void LogMessage(int level, string module, const char *fmt, ...);
 	void LogBuffer(int level, string module, void *buffer, int length, const char *fmt, ...);
 	int verbosity;
 	Logger();
-	void AddMessage(LogItem *message);
+	void AddQueue(LogItem *item);
+	void NotifyNewItem();
+	void WaitNewItem();
 	void Start();
 	void Stop();
 	bool OpenLogFile(string filename);

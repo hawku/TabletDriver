@@ -6,7 +6,7 @@ public:
 	NamedPipeInput(string pipeName);
 	~NamedPipeInput();
 
-	int ProcessData(int clientId, char *bufferInput, int length, char *bufferOutput) override;
+	void ProcessData(int clientId, BYTE *bufferInput, int length) override;
 
 };
 

@@ -27,6 +27,7 @@ public:
 	int maxX;
 	int maxY;
 	int maxPressure;
+	int maxHeight;
 	int clickPressure;
 	int keepTipDown;
 	double width;

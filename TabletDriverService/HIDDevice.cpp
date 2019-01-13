@@ -10,7 +10,7 @@ HIDDevice::HIDDevice(USHORT VendorId, USHORT ProductId, USHORT UsagePage, USHORT
 	this->usagePage = UsagePage;
 	this->usage = Usage;
 	this->isExclusive = IsExclusive;
-	if(this->OpenDevice(&this->_deviceHandle, this->vendorId, this->productId, this->usagePage, this->usage, this->isExclusive)) {
+	if (this->OpenDevice(&this->_deviceHandle, this->vendorId, this->productId, this->usagePage, this->usage, this->isExclusive)) {
 		isOpen = true;
 	}
 	isReading = false;
@@ -38,25 +38,28 @@ bool GetHIDStrings(HANDLE deviceHandle, string *manufacturerName, string *produc
 	int i;
 
 	// HID manufacturer string
-	if(HidD_GetManufacturerString(deviceHandle, &buffer, sizeof(buffer))) {
-		for(i = 0; i < (int)sizeof(buffer); i += 2) {
-			if(buffer[i]) manufacturerName->push_back(buffer[i]);
+	memset(buffer, 0, sizeof(buffer));
+	if (HidD_GetManufacturerString(deviceHandle, &buffer, sizeof(buffer))) {
+		for (i = 0; i < (int)sizeof(buffer); i += 2) {
+			if (buffer[i]) manufacturerName->push_back(buffer[i]);
 			else break;
 		}
 	}
 
 	// HID product string
-	if(HidD_GetProductString(deviceHandle, &buffer, sizeof(buffer))) {
-		for(i = 0; i < (int)sizeof(buffer); i += 2) {
-			if(buffer[i]) productName->push_back(buffer[i]);
+	memset(buffer, 0, sizeof(buffer));
+	if (HidD_GetProductString(deviceHandle, &buffer, sizeof(buffer))) {
+		for (i = 0; i < (int)sizeof(buffer); i += 2) {
+			if (buffer[i]) productName->push_back(buffer[i]);
 			else break;
 		}
 	}
 
 	// HID serial number
-	if(HidD_GetSerialNumberString(deviceHandle, &buffer, sizeof(buffer))) {
-		for(i = 0; i < (int)sizeof(buffer); i += 2) {
-			if(buffer[i]) serialNumber->push_back(buffer[i]);
+	memset(buffer, 0, sizeof(buffer));
+	if (HidD_GetSerialNumberString(deviceHandle, &buffer, sizeof(buffer))) {
+		for (i = 0; i < (int)sizeof(buffer); i += 2) {
+			if (buffer[i]) serialNumber->push_back(buffer[i]);
 			else break;
 		}
 	}
@@ -90,7 +93,7 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 
 	// Setup device info
 	deviceInfo = SetupDiGetClassDevs(&hidGuid, NULL, 0, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT);
-	if(deviceInfo == INVALID_HANDLE_VALUE) {
+	if (deviceInfo == INVALID_HANDLE_VALUE) {
 		LOG_ERROR("Invalid device info!\n");
 		return false;
 	}
@@ -99,7 +102,7 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 	deviceInterfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
 	dwMemberIdx = 0;
 	SetupDiEnumDeviceInterfaces(deviceInfo, NULL, &hidGuid, dwMemberIdx, &deviceInterfaceData);
-	while(GetLastError() != ERROR_NO_MORE_ITEMS) {
+	while (GetLastError() != ERROR_NO_MORE_ITEMS) {
 		deviceInfoData.cbSize = sizeof(deviceInfoData);
 
 		// Get the required buffer size for device interface detail data
@@ -110,10 +113,10 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 		deviceInterfaceDetailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
 		// Get interface detail
-		if(SetupDiGetDeviceInterfaceDetail(deviceInfo, &deviceInterfaceData, deviceInterfaceDetailData, dwSize, &dwSize, &deviceInfoData)) {
+		if (SetupDiGetDeviceInterfaceDetail(deviceInfo, &deviceInterfaceData, deviceInterfaceDetailData, dwSize, &dwSize, &deviceInfoData)) {
 
 			// Open HID in exclusive mode
-			if(exclusive) {
+			if (exclusive) {
 				deviceHandle = CreateFile(
 					deviceInterfaceDetailData->DevicePath,
 					GENERIC_READ | GENERIC_WRITE,
@@ -137,7 +140,7 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 			}
 
 			// HID handle valid?
-			if(deviceHandle != INVALID_HANDLE_VALUE) {
+			if (deviceHandle != INVALID_HANDLE_VALUE) {
 
 				// HID Attributes
 				HidD_GetAttributes(deviceHandle, &hidAttributes);
@@ -149,7 +152,7 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 				HidP_GetCaps(hidPreparsedData, &hidCapabilities);
 
 				// Debug logging
-				if(this->debugEnabled) {
+				if (this->debugEnabled) {
 
 					manufacturerName = "";
 					productName = "";
@@ -179,12 +182,12 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 				}
 
 				// Set the result handle if this is the correct device
-				if(!resultHandle &&
+				if (!resultHandle &&
 					hidAttributes.VendorID == vendorId &&
 					hidAttributes.ProductID == productId &&
 					hidCapabilities.UsagePage == usagePage &&
 					hidCapabilities.Usage == usage
-				) {
+					) {
 					GetHIDStrings(deviceHandle, &_manufacturerName, &_productName, &_serialNumber);
 
 					// Set timeouts
@@ -223,7 +226,7 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 	SetupDiDestroyDeviceInfoList(deviceInfo);
 
 	// Copy found handle
-	if(resultHandle && resultHandle != INVALID_HANDLE_VALUE) {
+	if (resultHandle && resultHandle != INVALID_HANDLE_VALUE) {
 		memcpy(handle, &resultHandle, sizeof(HANDLE));
 		return true;
 	}
@@ -244,7 +247,7 @@ int HIDDevice::Read(void *buffer, int length) {
 	//return HidD_GetInputReport(_deviceHandle, buffer, length);
 	DWORD bytesRead;
 	isReading = true;
-	if(ReadFile(_deviceHandle, buffer, length, &bytesRead, 0)) {
+	if (ReadFile(_deviceHandle, buffer, length, &bytesRead, 0)) {
 		return bytesRead;
 	}
 	return 0;
@@ -253,7 +256,7 @@ int HIDDevice::Read(void *buffer, int length) {
 // Write HID report
 int HIDDevice::Write(void *buffer, int length) {
 	DWORD bytesWritten;
-	if(WriteFile(_deviceHandle, buffer, length, &bytesWritten, 0)) {
+	if (WriteFile(_deviceHandle, buffer, length, &bytesWritten, 0)) {
 		return bytesWritten;
 	}
 	return 0;
@@ -272,10 +275,10 @@ bool HIDDevice::GetFeature(void *buffer, int length) {
 // String request
 int HIDDevice::StringRequest(UCHAR stringId, UCHAR * buffer, int length)
 {
-	if(HidD_GetIndexedString(_deviceHandle, stringId, buffer, length)) {
+	if (HidD_GetIndexedString(_deviceHandle, stringId, buffer, length)) {
 		int realLength = length;
-		for(int i = 0; i < length; i += 2) {
-			if(buffer[i] == 0) {
+		for (int i = 0; i < length; i += 2) {
+			if (buffer[i] == 0) {
 				realLength = i;
 				break;
 			}
@@ -291,7 +294,7 @@ string HIDDevice::GetString(UCHAR stringId)
 	UCHAR buffer[256];
 	int bytesRead = 0;
 
-	if(isReading) {
+	if (isReading) {
 		throw runtime_error("HID string request can't be sent when the device is in use!");
 	}
 	else {
@@ -299,8 +302,8 @@ string HIDDevice::GetString(UCHAR stringId)
 	}
 
 	// Reply received?
-	if(bytesRead > 0) {
-		for(int i = 0; i < bytesRead; i += 2) {
+	if (bytesRead > 0) {
+		for (int i = 0; i < bytesRead; i += 2) {
 			resultString.push_back(buffer[i]);
 		}
 	}
@@ -328,10 +331,16 @@ string HIDDevice::GetSerialNumber()
 
 // Close the device
 void HIDDevice::CloseDevice() {
-	if(isOpen && _deviceHandle != NULL && _deviceHandle != INVALID_HANDLE_VALUE) {
+	if (isOpen && _deviceHandle != NULL && _deviceHandle != INVALID_HANDLE_VALUE) {
 		try {
+
+			// Cancel IO
+			CancelIoEx(_deviceHandle, NULL);
+
+			/*
 			// Workaround for hanging CloseHandle
-			_deviceHandle = CreateFile(
+			printf("  HID closing fix\n");
+			HANDLE tmpHandle = CreateFile(
 					_devicePathW.c_str(),
 					GENERIC_READ | GENERIC_WRITE,
 					FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -340,9 +349,15 @@ void HIDDevice::CloseDevice() {
 					0,
 					NULL);
 
+			SAFE_CLOSE_HANDLE(tmpHandle);
+			printf("HID closing fix done!\n");
+			*/
+
 			SAFE_CLOSE_HANDLE(_deviceHandle);
-		} catch(exception) {
-			_deviceHandle = NULL;
+
+		}
+		catch (exception) {
+			SAFE_CLOSE_HANDLE(_deviceHandle);
 		}
 	}
 	isOpen = false;

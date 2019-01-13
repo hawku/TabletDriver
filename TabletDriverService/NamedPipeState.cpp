@@ -9,6 +9,7 @@ NamedPipeState::NamedPipeState(string pipeName) : NamedPipeServer(pipeName)
 
 NamedPipeState::~NamedPipeState()
 {
+	Stop();
 }
 
 //
@@ -16,7 +17,7 @@ NamedPipeState::~NamedPipeState()
 //
 bool NamedPipeState::Start()
 {
-	if(!IsRunning()) {
+	if (!IsRunning()) {
 		bool result = NamedPipeServer::Start();
 		threadStateWriter = new thread(&NamedPipeState::RunStateWriterThread, this);
 		return result;
@@ -30,7 +31,24 @@ bool NamedPipeState::Start()
 //
 bool NamedPipeState::Stop()
 {
-	return NamedPipeServer::Stop();
+	printf("Stopping state writer...\n");
+
+	SetRunningState(false);
+
+	Sleep(10);
+
+	if (threadStateWriter != NULL) {
+		try {
+			threadStateWriter->join();
+			printf("Stopping state writer stopped!\n");
+		}
+		catch (exception &e) {
+			printf("State writer exception: %s\n", e.what());
+		}
+	}
+
+	return true;
+	//return NamedPipeServer::Stop();
 }
 
 //
@@ -42,13 +60,10 @@ void NamedPipeState::RunStateWriterThread()
 	bool outputEnabled = false;
 	bool running = true;
 
-	while(IsRunning()) {
-		lock.lock();
-		outputEnabled = isStateOutputEnabled;
-		lock.unlock();
+	while (IsRunning()) {
 
-		if(tablet != NULL && tabletHandler != NULL && outputEnabled) {
-			if(tabletHandler->outputStateWrite.position.Distance(lastState.position) > 0) {
+		if (tablet != NULL && tabletHandler != NULL && isStateOutputEnabled) {
+			if (tabletHandler->outputStateWrite.position.Distance(lastState.position) > 0) {
 
 				// Input
 				stateMessage.inputButtons = tablet->state.inputButtons;

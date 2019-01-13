@@ -2,6 +2,9 @@
 
 #include <string>
 #include <vector>
+#include <atomic>
+#include <mutex>
+#include <condition_variable>
 
 #include "USBDevice.h"
 #include "HIDDevice.h"
@@ -57,9 +60,10 @@ public:
 	struct {
 		BYTE reportId;
 		BYTE buttons;
-		USHORT x;
-		USHORT y;
+		UINT32 x;
+		UINT32 y;
 		USHORT pressure;
+		USHORT height;
 	} reportData;
 
 	//
@@ -89,6 +93,9 @@ public:
 		USHORT lastButtons;
 	};
 	TabletAuxState auxState;
+	mutex lockAuxState;
+	condition_variable conditionAuxState;
+
 
 	//
 	// Data formatters
@@ -131,7 +138,7 @@ public:
 
 	//
 	string name = "Unknown";
-	bool isOpen;
+	atomic<bool> isOpen;
 	int skipReports;
 
 	// Pen tip button keep down

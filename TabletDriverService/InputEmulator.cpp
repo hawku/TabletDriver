@@ -333,7 +333,7 @@ void InputEmulator::AddKey(string key, string keyName, WORD virtualCode)
 void InputEmulator::AddKey(string key, string keyName, WORD virtualCode, int button)
 {
 	std::transform(key.begin(), key.end(), key.begin(), ::toupper);
-	if(keyMap.count(key) <= 0) {
+	if (keyMap.count(key) <= 0) {
 		keyMap[key] = new KeyMapValue(keyName, virtualCode, button);
 		keys.push_back(key);
 	}
@@ -350,7 +350,7 @@ WORD InputEmulator::GetKeyCode(string key) {
 	// Convert the key string to uppercase
 	std::transform(key.begin(), key.end(), key.begin(), ::toupper);
 
-	if(keyMap.count(key) > 0 && keyMap[key]->virtualKey > 0) {
+	if (keyMap.count(key) > 0 && keyMap[key]->virtualKey > 0) {
 		vkCode = keyMap[key]->virtualKey;
 	}
 
@@ -368,20 +368,20 @@ void InputEmulator::MouseSet(int button, bool down) {
 	input.mi.mouseData = 0;
 	input.mi.dx = 0;
 	input.mi.dy = 0;
-	if(button == 1) {
-		if(down)
+	if (button == 1) {
+		if (down)
 			input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 		else
 			input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
 	}
-	else if(button == 2) {
-		if(down)
+	else if (button == 2) {
+		if (down)
 			input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
 		else
 			input.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
 	}
-	else if(button == 3) {
-		if(down)
+	else if (button == 3) {
+		if (down)
 			input.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
 		else
 			input.mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
@@ -414,7 +414,7 @@ void InputEmulator::MouseScroll(int delta, bool vertical) {
 	input.mi.dwExtraInfo = 0;
 
 	// Vertical or horizontal?
-	if(vertical) {
+	if (vertical) {
 		input.mi.dwFlags = MOUSEEVENTF_WHEEL;
 	}
 	else {
@@ -476,7 +476,7 @@ void InputEmulator::SetKeyState(string key, bool down) {
 void InputEmulator::SetKeyState(WORD vkCode, bool down)
 {
 	INPUT input = { 0 };
-	if(down) {
+	if (down) {
 		input.type = INPUT_KEYBOARD;
 		input.ki.wVk = vkCode;
 		SendInput(1, &input, sizeof(INPUT));
@@ -500,31 +500,31 @@ void InputEmulator::SetInputStates(string inputs, bool down)
 	stringstream stringStream(inputs);
 	KeyMapValue *keyMapValue;
 
-	while(getline(stringStream, input, '+')) {
+	while (getline(stringStream, input, '+')) {
 
 		// Key in map?
-		if(keyMap.count(input) > 0) {
+		if (keyMap.count(input) > 0) {
 
 			keyMapValue = keyMap[input];
 
 			// Virtual key?
-			if(keyMapValue->virtualKey > 0) {
+			if (keyMapValue->virtualKey > 0) {
 
 				// Set keyboard key state
 				SetKeyState(keyMapValue->virtualKey, down);
 			}
 
 			// Mouse button?
-			else if(keyMapValue->mouseButton > 0 && keyMapValue->mouseButton < 5) {
+			else if (keyMapValue->mouseButton > 0 && keyMapValue->mouseButton < 5) {
 
 				// Set mouse button state
 				MouseSet(keyMapValue->mouseButton, down);
 			}
 
 			// Mouse scroll
-			else if(keyMapValue->mouseButton >= 0x81 && keyMapValue->mouseButton <= 0x84) {
+			else if (keyMapValue->mouseButton >= 0x81 && keyMapValue->mouseButton <= 0x84) {
 
-				switch(keyMapValue->mouseButton)
+				switch (keyMapValue->mouseButton)
 				{
 				case MouseButtons::MouseScrollUp: MouseScroll(-1, true); break;
 				case MouseButtons::MouseScrollDown: MouseScroll(1, true); break;
@@ -539,23 +539,25 @@ void InputEmulator::SetInputStates(string inputs, bool down)
 		//
 		// Precise volume control
 		//
-		else if(input.compare(0, 8, "VOLUMEUP") == 0 && input.size() > 8 && down) {
+		else if (input.compare(0, 8, "VOLUMEUP") == 0 && input.size() > 8 && down) {
 			float value = 0;
 			try {
 				// Parse number from end of the string
 				value = stof(input.substr(8, input.size() - 8));
 				VolumeChange(value / 100.0f);
-			} catch(exception& e) {
+			}
+			catch (exception& e) {
 				LOG_ERROR("Volume control error! %s\n", e.what());
 			}
 		}
-		else if(input.compare(0, 10, "VOLUMEDOWN") == 0 && input.size() > 10 && down) {
+		else if (input.compare(0, 10, "VOLUMEDOWN") == 0 && input.size() > 10 && down) {
 			float value = 0;
 			try {
 				// Parse number from end of the string
 				value = stof(input.substr(10, input.size() - 10));
 				VolumeChange(-value / 100.0f);
-			} catch(exception& e) {
+			}
+			catch (exception& e) {
 				LOG_ERROR("Volume control error! %s\n", e.what());
 			}
 		}
@@ -581,21 +583,26 @@ bool InputEmulator::CreateEndpointVolume()
 {
 	HRESULT hresult;
 
-	// Device enumerator
-	//LOG_DEBUG("Device enumerator\n");
-	hresult = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pDeviceEnumerator));
-	CHECK_HRESULT(hresult, pDeviceEnumerator);
+	try {
+		// Device enumerator
+		hresult = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pDeviceEnumerator));
+		CHECK_HRESULT(hresult, pDeviceEnumerator);
 
-	// Default audio endpoint
-	//LOG_DEBUG("Default audio endpoint\n");
-	hresult = pDeviceEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &pDefaultAudioDevice);
-	CHECK_HRESULT(hresult, pDefaultAudioDevice);
+		// Default audio endpoint
+		hresult = pDeviceEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &pDefaultAudioDevice);
+		CHECK_HRESULT(hresult, pDefaultAudioDevice);
 
-	// Endpoint volume
-	//LOG_DEBUG("Audio endpoint volume\n");
-	hresult = pDefaultAudioDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL, (LPVOID *)&pAudioEndpointVolume);
-	CHECK_HRESULT(hresult, pAudioEndpointVolume);
-
+		// Endpoint volume
+		hresult = pDefaultAudioDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL, (LPVOID *)&pAudioEndpointVolume);
+		CHECK_HRESULT(hresult, pAudioEndpointVolume);
+	}
+	catch (exception &e) {
+		LOG_ERROR("Audio endpoint exception: %s\n", e.what());
+		SAFE_RELEASE(pDeviceEnumerator);
+		SAFE_RELEASE(pDefaultAudioDevice);
+		SAFE_RELEASE(pAudioEndpointVolume);
+		return false;
+	}
 	return true;
 }
 
@@ -615,10 +622,13 @@ bool InputEmulator::ReleaseEndpointVolume()
 //
 void InputEmulator::VolumeSet(float volume)
 {
+	// Lock audio control
+	std::unique_lock<std::mutex> mlock(lockAudio);
+
 	// Get endpoint volume
-	if(CreateEndpointVolume()) {
-		if(volume < 0) volume = 0.0f;
-		else if(volume > 1) volume = 1.0f;
+	if (CreateEndpointVolume()) {
+		if (volume < 0) volume = 0.0f;
+		else if (volume > 1) volume = 1.0f;
 		pAudioEndpointVolume->SetMasterVolumeLevelScalar(volume, &GUID_NULL);
 	}
 	ReleaseEndpointVolume();
@@ -629,53 +639,67 @@ void InputEmulator::VolumeSet(float volume)
 //
 void InputEmulator::VolumeBalance(float newBalance)
 {
+	// Lock audio control
+	std::unique_lock<std::mutex> mlock(lockAudio);
+
 	UINT channelCount = 0;
 	float levelLeft = -1;
 	float levelRight = -1;
 
 	// Get endpoint volume
-	if(CreateEndpointVolume()) {
+	if (CreateEndpointVolume()) {
 
 		// Channel count
-		pAudioEndpointVolume->GetChannelCount(&channelCount);
-		if(channelCount >= 2) {
+		try {
+			pAudioEndpointVolume->GetChannelCount(&channelCount);
+			if (channelCount >= 2) {
 
-			// Get channel levels
-			pAudioEndpointVolume->GetChannelVolumeLevelScalar(0, &levelLeft);
-			pAudioEndpointVolume->GetChannelVolumeLevelScalar(1, &levelRight);
+				// Get channel levels
+				pAudioEndpointVolume->GetChannelVolumeLevelScalar(0, &levelLeft);
+				pAudioEndpointVolume->GetChannelVolumeLevelScalar(1, &levelRight);
 
-			// Levels valid?
-			if(levelLeft >= 0 || levelRight >= 0) {
+				// Levels valid?
+				if (levelLeft >= 0 || levelRight >= 0) {
 
-				// Calculate balance
-				float levelSum = levelLeft + levelRight;
+					// Calculate balance
+					float levelSum = levelLeft + levelRight;
 
-				// Limit resolution
-				newBalance = round(newBalance * 100.0f) / 100.0f;
-				if(newBalance < 0.0f) newBalance = 0.0f;
-				else if(newBalance > 1.0f) newBalance = 1.0f;
+					// Limit resolution
+					newBalance = round(newBalance * 100.0f) / 100.0f;
+					if (newBalance < 0.0f) newBalance = 0.0f;
+					else if (newBalance > 1.0f) newBalance = 1.0f;
 
-				// Set channel level values
-				levelLeft = levelSum * newBalance;
-				levelRight = levelSum * (1 - newBalance);
+					// Set channel level values
+					levelLeft = levelSum * newBalance;
+					levelRight = levelSum * (1 - newBalance);
 
-				// Limit levels
-				if(levelLeft < 0) levelLeft = 0;
-				else if(levelLeft > 1) levelLeft = 1;
-				if(levelRight < 0) levelRight = 0;
-				else if(levelRight > 1) levelRight = 1;
+					// Limit levels
+					if (levelLeft < 0) levelLeft = 0;
+					else if (levelLeft > 1) levelLeft = 1;
+					if (levelRight < 0) levelRight = 0;
+					else if (levelRight > 1) levelRight = 1;
 
-				// Debug message
-				if(logger.IsDebugOutputEnabled()) {
-					LOG_DEBUG("Audio balance: Left %0.5f <- %0.3f -> %0.5f Right\n", levelLeft, newBalance, levelRight);
+					// Debug message
+					if (logger.IsDebugOutputEnabled()) {
+						LOG_DEBUG("Audio balance: Left %0.5f <- %0.3f -> %0.5f Right\n", levelLeft, newBalance, levelRight);
+					}
+
+					// Set endpoint volume channel levels
+					pAudioEndpointVolume->SetChannelVolumeLevelScalar(0, levelLeft, &GUID_NULL);
+					pAudioEndpointVolume->SetChannelVolumeLevelScalar(1, levelRight, &GUID_NULL);
+
+					// Set other channels to an average level between left and right
+					for (int i = 2; i < (int)channelCount; i++) {
+						pAudioEndpointVolume->SetChannelVolumeLevelScalar(i, levelSum / 2.0f, &GUID_NULL);
+					}
 				}
-
-				// Set endpoint volume channel levels
-				pAudioEndpointVolume->SetChannelVolumeLevelScalar(0, levelLeft, &GUID_NULL);
-				pAudioEndpointVolume->SetChannelVolumeLevelScalar(1, levelRight, &GUID_NULL);
 			}
 		}
+		catch (exception &e) {
+			LOG_ERROR("Can't set audio balance! %s\n", e.what());
+		}
 	}
+
 	ReleaseEndpointVolume();
 }
 
@@ -684,8 +708,11 @@ void InputEmulator::VolumeBalance(float newBalance)
 //
 float InputEmulator::VolumeGet()
 {
+	// Lock audio control
+	std::unique_lock<std::mutex> mlock(lockAudio);
+
 	float volume = 0;
-	if(CreateEndpointVolume()) {
+	if (CreateEndpointVolume()) {
 		pAudioEndpointVolume->GetMasterVolumeLevelScalar(&volume);
 	}
 	ReleaseEndpointVolume();
@@ -697,12 +724,15 @@ float InputEmulator::VolumeGet()
 //
 void InputEmulator::VolumeChange(float delta)
 {
+	// Lock audio control
+	std::unique_lock<std::mutex> mlock(lockAudio);
+
 	float volume;
-	if(CreateEndpointVolume()) {
+	if (CreateEndpointVolume()) {
 		pAudioEndpointVolume->GetMasterVolumeLevelScalar(&volume);
 		volume += delta;
-		if(volume < 0) volume = 0.0f;
-		else if(volume > 1) volume = 1.0f;
+		if (volume < 0) volume = 0.0f;
+		else if (volume > 1) volume = 1.0f;
 		pAudioEndpointVolume->SetMasterVolumeLevelScalar(volume, &GUID_NULL);
 	}
 	ReleaseEndpointVolume();

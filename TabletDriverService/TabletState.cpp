@@ -13,6 +13,7 @@ TabletState::TabletState() {
 	buttons = 0;
 	position.Set(0,0);
 	pressure = 0;
+	height = 0;
 
 	isValid = false;
 }

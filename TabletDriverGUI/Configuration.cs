@@ -122,6 +122,7 @@ namespace TabletDriverGUI
             public Point OffsetText;
             public Point OffsetPressure;
             public bool FadeInOut;
+            public bool Borderless;
             public TabletViewSettings()
             {
                 BackgroundColor = "#FFFFFF";
@@ -133,11 +134,12 @@ namespace TabletDriverGUI
                 InputTrailLength = 30;
                 OutputTrailLength = 30;
                 DrawLength = 0;
-                Font = "Arial";
+                Font = "Segoe UI";
                 FontSize = 25;
                 OffsetPressure = new Point(0, 0);
                 OffsetText = new Point(0, 0);
                 FadeInOut = false;
+                Borderless = false;
             }
         };
         public TabletViewSettings TabletView;

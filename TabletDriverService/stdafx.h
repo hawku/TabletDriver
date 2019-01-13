@@ -23,10 +23,14 @@
 // IntelliSense "fix"...
 //#define memcpy memcpy
 
-#define SAFE_CLOSE_HANDLE(handle) if(handle != NULL && handle != INVALID_HANDLE_VALUE) { CloseHandle(handle); handle = NULL; }
+#define SAFE_CLOSE_HANDLE(handle) \
+	if((handle) != NULL && (handle) != (INVALID_HANDLE_VALUE)) { \
+		CloseHandle(handle); \
+		handle = NULL; \
+	};
 
 
-// Global variables...
+// Global variables
 extern VMulti *vmulti;
 extern CommandHandler *commandHandler;
 extern Tablet *tablet;
@@ -36,7 +40,9 @@ extern ScreenMapper *mapper;
 extern NamedPipeInput *pipeInput;
 extern NamedPipeServer *pipeOutput;
 extern NamedPipeState *pipeState;
-extern void CleanupAndExit(int code);
-extern bool ProcessCommand(CommandLine *cmd);
 
-// TODO: reference additional headers your program requires here
+// Cleanup and exit
+extern void CleanupAndExit(int code);
+
+// Process command
+extern bool ProcessCommand(CommandLine *cmd);

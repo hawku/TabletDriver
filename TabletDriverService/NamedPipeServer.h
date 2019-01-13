@@ -1,32 +1,52 @@
 #pragma once
 
 #include <thread>
+#include <atomic>
 #include <mutex>
+#include <condition_variable>
 #include <string>
 
 #include "Runnable.h"
+#include "BufferQueue.h"
 
-#define BUFFER_SIZE 1024
+constexpr auto BUFFER_SIZE = 4096;
+constexpr auto MAX_CLIENTS = 16;
 
 class NamedPipeServer : public Runnable
 {
+protected:
+	atomic<bool> _isStopping;
 public:
 	string pipePath;
 	string pipeName;
 	thread *threadMain;
-	mutex lock;
+	mutex lockServer;
 
 	class Client {
+	private:
+		atomic<bool> _isConnected;
 	public:
 		int id;
 		HANDLE handlePipe;
-		thread* threadPipe;
+		OVERLAPPED overlapped;
+		NamedPipeServer *server;
+		thread* threadRead;
+		thread* threadWrite;
 		string pipeName;
-		bool isConnected;
+		mutex lockClient;
+		BufferQueue writeQueue;
+		mutex lockWriteWait;
+		condition_variable conditionWriteQueue;
 		Client();
+		~Client();
+		bool IsConnected();
+		void SetConnectedState(bool connected);
+
+		void RunReadThread();
+		void RunWriteThread();
 	};
 
-	Client clients[256];
+	Client clients[MAX_CLIENTS];
 	int clientCount;
 
 	NamedPipeServer(string pipeName);
@@ -34,11 +54,11 @@ public:
 
 	virtual bool Start();
 	virtual bool Stop();
-	virtual int ProcessData(int clientId, char *bufferInput, int length, char *bufferOutput);
+	virtual void ProcessData(int clientId, BYTE *bufferInput, int length);
 	bool Write(void * buffer, int length);
+	bool IsClientConnected();
 
 	void RunMainThread();
-	void RunClientThread(Client *client);
 
 
 

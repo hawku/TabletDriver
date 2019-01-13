@@ -1,12 +1,12 @@
 #pragma once
 
+#include <atomic>
 #include <mutex>
 
 class Runnable
 {
 protected:
-	bool _isRunning = false;
-	mutex isRunningLock;
+	atomic<bool> _isRunning = false;
 public:
 	bool IsRunning();
 	void SetRunningState(bool running);

@@ -253,6 +253,14 @@ namespace TabletDriverGUI
                 e.Handled = true;
             }
 
+            // Control + R -> Restart driver
+            if (e.KeyboardDevice.Modifiers == ModifierKeys.Control && e.Key == Key.R)
+            {
+                RestartDriverClick(sender, null);
+                e.Handled = true;
+            }
+
+
             // Control + I -> Import settings
             if (e.KeyboardDevice.Modifiers == ModifierKeys.Control && e.Key == Key.I)
             {

@@ -64,7 +64,7 @@ namespace TabletDriverGUI
         public NamedPipeClient(string pipeName)
         {
             this.pipeName = pipeName;
-            bufferRead = new byte[1024];
+            bufferRead = new byte[10240];
         }
 
         //
@@ -111,7 +111,6 @@ namespace TabletDriverGUI
             catch (Exception ex)
             {
                 Console.WriteLine("Pipe stop error: " + ex.Message);
-                throw;
             }
 
             OnDisconnected();
@@ -196,18 +195,23 @@ namespace TabletDriverGUI
 
                 //Console.WriteLine("Writing message to " + pipeName + ": " + message);
 
-                pipeStream.BeginWrite(buffer, 0, buffer.Length, asyncResult =>
+                try
                 {
-                    try
-                    {
-                        taskCompletionSource.SetResult(EndWriteCallBack(asyncResult));
-                    }
-                    catch (Exception ex)
-                    {
-                        taskCompletionSource.SetException(ex);
-                    }
-
-                }, null);
+                    pipeStream.BeginWrite(buffer, 0, buffer.Length, asyncResult => {
+                        try
+                        {
+                            taskCompletionSource.SetResult(EndWriteCallBack(asyncResult));
+                        }
+                        catch (Exception ex)
+                        {
+                            taskCompletionSource.SetException(ex);
+                        }
+                    }, null);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("BeginWrite exception: " + e.Message);
+                }
             }
 
             return taskCompletionSource.Task;

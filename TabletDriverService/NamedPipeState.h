@@ -1,4 +1,7 @@
 #pragma once
+
+#include <atomic>
+
 #include "NamedPipeServer.h"
 class NamedPipeState : public NamedPipeServer
 {
@@ -20,7 +23,7 @@ public:
 	} stateMessage;
 
 	thread *threadStateWriter;
-	bool isStateOutputEnabled;
+	atomic<bool> isStateOutputEnabled;
 
 	NamedPipeState(string pipeName);
 	~NamedPipeState();

@@ -45,8 +45,8 @@ namespace TabletDriverGUI
                     settings.BackgroundColor = "#000000";
                     settings.InfoColor  = Utils.RGBToHexColor(50,100,255);
                     settings.InputColor = Utils.RGBToHexColor(190,255,0);
-                    settings.OutputColor = Utils.RGBToHexColor(255,190,0);
-                    settings.LatencyColor = Utils.RGBToHexColor(230,200,0);
+                    settings.OutputColor = Utils.RGBToHexColor(255,120,0);
+                    settings.LatencyColor = Utils.RGBToHexColor(230,220,0);
                     settings.DrawColor = "#6666AA";
                     settings.InputTrailLength = 100;
                     settings.OutputTrailLength = 100;
@@ -129,6 +129,7 @@ namespace TabletDriverGUI
             textOffsetPressureX.Text = Utils.GetNumberString(config.TabletView.OffsetPressure.X);
             textOffsetPressureY.Text = Utils.GetNumberString(config.TabletView.OffsetPressure.Y);
             checkBoxFadeInOut.IsChecked = config.TabletView.FadeInOut;
+            checkBoxBorderless.IsChecked = config.TabletView.Borderless;
         }
 
         public void StoreValues()
@@ -168,6 +169,7 @@ namespace TabletDriverGUI
             if (Utils.ParseNumber(textOffsetPressureY.Text, out value))
                 config.TabletView.OffsetPressure.Y = value;
             config.TabletView.FadeInOut = (bool)checkBoxFadeInOut.IsChecked;
+            config.TabletView.Borderless = (bool)checkBoxBorderless.IsChecked;
 
         }
 

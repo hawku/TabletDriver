@@ -11,7 +11,7 @@
 //
 Tablet::Tablet(string usbGUID) : Tablet() {
 	usbDevice = new USBDevice(usbGUID);
-	if(usbDevice->isOpen) {
+	if (usbDevice->isOpen) {
 		this->isOpen = true;
 		usbPipeId = 0x81;
 	}
@@ -27,7 +27,7 @@ Tablet::Tablet(string usbGUID) : Tablet() {
 //
 Tablet::Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage, bool isExclusive) : Tablet() {
 	hidDevice = new HIDDevice(vendorId, productId, usagePage, usage, isExclusive);
-	if(hidDevice->isOpen) {
+	if (hidDevice->isOpen) {
 		this->isOpen = true;
 	}
 	else {
@@ -80,9 +80,9 @@ Tablet::Tablet() {
 Tablet::~Tablet() {
 
 	isOpen = false;
-	
+
 	// HID device
-	if(hidDevice != NULL) {
+	if (hidDevice != NULL) {
 		printf("  Cleanup HIDDevice\n");
 		hidDevice->CloseDevice();
 		delete hidDevice;
@@ -90,7 +90,7 @@ Tablet::~Tablet() {
 	}
 
 	// Aux device
-	if(hidDeviceAux != NULL) {
+	if (hidDeviceAux != NULL) {
 		printf("  Cleanup Aux HIDDevice\n");
 		hidDeviceAux->CloseDevice();
 		delete hidDeviceAux;
@@ -98,7 +98,7 @@ Tablet::~Tablet() {
 	}
 
 	// WinUSB device
-	if(usbDevice != NULL) {
+	if (usbDevice != NULL) {
 		printf("  Cleanup USBDevice\n");
 		usbDevice->CloseDevice();
 		delete usbDevice;
@@ -106,12 +106,12 @@ Tablet::~Tablet() {
 	}
 
 	// Init feature reports
-	for(InitReport *report : initFeatureReports) {
+	for (InitReport *report : initFeatureReports) {
 		delete report;
 	}
 
 	// Init output reports
-	for(InitReport *report : initOutputReports) {
+	for (InitReport *report : initOutputReports) {
 		delete report;
 	}
 
@@ -124,8 +124,8 @@ Tablet::~Tablet() {
 bool Tablet::Init() {
 
 	// String requests
-	if(initStrings.size() > 0) {
-		for(int stringId : initStrings) {
+	if (initStrings.size() > 0) {
+		for (int stringId : initStrings) {
 			GetDeviceString(stringId);
 			Sleep(10);
 		}
@@ -133,8 +133,8 @@ bool Tablet::Init() {
 	Sleep(100);
 
 	// Feature reports
-	for(InitReport *report : initFeatureReports) {
-		if(!hidDevice->SetFeature(report->data, report->length)) {
+	for (InitReport *report : initFeatureReports) {
+		if (!hidDevice->SetFeature(report->data, report->length)) {
 			return false;
 		}
 		Sleep(20);
@@ -142,8 +142,8 @@ bool Tablet::Init() {
 	Sleep(100);
 
 	// Output reports
-	for(InitReport *report : initOutputReports) {
-		if(!hidDevice->Write(report->data, report->length)) {
+	for (InitReport *report : initOutputReports) {
+		if (!hidDevice->Write(report->data, report->length)) {
 			return false;
 		}
 		Sleep(20);
@@ -158,13 +158,13 @@ bool Tablet::Init() {
 // Check if the tablet has enough configuration parameters set
 //
 bool Tablet::IsConfigured() {
-	if(
+	if (
 		settings.maxX > 1 &&
 		settings.maxY > 1 &&
 		settings.maxPressure > 1 &&
 		settings.width > 1 &&
 		settings.height > 1
-	) return true;
+		) return true;
 	return false;
 }
 
@@ -175,12 +175,12 @@ bool Tablet::IsConfigured() {
 string Tablet::GetDeviceString(UCHAR stringId)
 {
 	// USB device
-	if(usbDevice != NULL) {
+	if (usbDevice != NULL) {
 		return usbDevice->GetString(stringId);
 	}
 
 	// HID device
-	else if(hidDevice != NULL) {
+	else if (hidDevice != NULL) {
 		return hidDevice->GetString(stringId);
 	}
 
@@ -193,12 +193,12 @@ string Tablet::GetDeviceString(UCHAR stringId)
 string Tablet::GetDeviceManufacturerName()
 {
 	// USB device
-	if(usbDevice != NULL) {
+	if (usbDevice != NULL) {
 		return usbDevice->GetManufacturerName();
 	}
 
 	// HID device
-	else if(hidDevice != NULL) {
+	else if (hidDevice != NULL) {
 		return hidDevice->GetManufacturerName();
 	}
 
@@ -211,12 +211,12 @@ string Tablet::GetDeviceManufacturerName()
 string Tablet::GetDeviceProductName()
 {
 	// USB device
-	if(usbDevice != NULL) {
+	if (usbDevice != NULL) {
 		return usbDevice->GetProductName();
 	}
 
 	// HID device
-	else if(hidDevice != NULL) {
+	else if (hidDevice != NULL) {
 		return hidDevice->GetProductName();
 	}
 
@@ -229,12 +229,12 @@ string Tablet::GetDeviceProductName()
 string Tablet::GetDeviceSerialNumber()
 {
 	// USB device
-	if(usbDevice != NULL) {
+	if (usbDevice != NULL) {
 		return usbDevice->GetSerialNumber();
 	}
 
 	// HID device
-	else if(hidDevice != NULL) {
+	else if (hidDevice != NULL) {
 		return hidDevice->GetSerialNumber();
 	}
 
@@ -250,25 +250,28 @@ int Tablet::ReadState() {
 	UCHAR *data;
 
 	// Read report
-	if(!this->Read(buffer, settings.reportLength)) {
+	if (!this->Read(buffer, settings.reportLength)) {
 		return -1;
 	}
 
-	if(!isOpen) return Tablet::ReportInvalid;
+	if (!isOpen) return Tablet::ReportInvalid;
 
 	// Process auxiliary data
-	if(settings.auxReports[0].reportId > 0 && hidDeviceAux == NULL) {
+	if (settings.auxReports[0].reportId > 0 && hidDeviceAux == NULL) {
 		ProcessAuxData(buffer, settings.reportLength);
+
+		// Notify aux state change
+		conditionAuxState.notify_one();
 	}
 
 	// Skip reports
-	if(skipReports > 0) {
+	if (skipReports > 0) {
 		skipReports--;
 		return Tablet::ReportInvalid;
 	}
 
 	// Set data pointer
-	if(settings.dataFormat == TabletSettings::TabletFormatWacomDrivers) {
+	if (settings.dataFormat == TabletSettings::TabletFormatWacomDrivers) {
 		data = buffer + 1;
 	}
 	else {
@@ -278,10 +281,10 @@ int Tablet::ReadState() {
 	//
 	// Wacom Intuos data format V2
 	//
-	if(settings.dataFormat == TabletSettings::TabletFormatWacomIntuosV2) {
+	if (settings.dataFormat == TabletSettings::TabletFormatWacomIntuosV2) {
 
 		// Wacom driver device
-		if(settings.reportLength == 11) {
+		if (settings.reportLength == 11) {
 			data = buffer + 1;
 		}
 
@@ -290,7 +293,7 @@ int Tablet::ReadState() {
 		reportData.x = ((data[2] * 0x100 + data[3]) << 1) | ((data[9] >> 1) & 1);
 		reportData.y = ((data[4] * 0x100 + data[5]) << 1) | (data[9] & 1);
 		reportData.pressure = (data[6] << 3) | ((data[7] & 0xC0) >> 5) | (data[1] & 1);
-		//distance = buffer[9] >> 2;
+		reportData.height = data[9] >> 2;
 
 
 	}
@@ -298,10 +301,10 @@ int Tablet::ReadState() {
 	//
 	// Wacom Intuos data format V3 (Wacom 4100)
 	//
-	else if(settings.dataFormat == TabletSettings::TabletFormatWacomIntuosV3) {
+	else if (settings.dataFormat == TabletSettings::TabletFormatWacomIntuosV3) {
 
 		// Wacom driver device
-		if(settings.reportLength == 193) {
+		if (settings.reportLength == 193) {
 			data = buffer + 1;
 		}
 
@@ -314,18 +317,17 @@ int Tablet::ReadState() {
 	}
 
 	//
-	// Skip first data byte (VEIKK S640)
+	// Skip first data byte (VEIKK)
 	//
-	else if(settings.dataFormat == TabletSettings::TabletFormatSkipFirstDataByte) {
+	else if (settings.dataFormat == TabletSettings::TabletFormatSkipFirstDataByte) {
 
 		// Validate report length
-		if(settings.reportLength >= 9) {
-
-			// Offset report data
-			memcpy(&reportData, (data + 1), sizeof(reportData));
-
-			// Set report id
+		if (settings.reportLength >= 9) {
 			reportData.reportId = data[0];
+			reportData.buttons = data[2] & ~0x01;
+			reportData.x = data[3] | (data[4] << 8);
+			reportData.y = data[5] | (data[6] << 8);
+			reportData.pressure = data[7] | (data[8] << 8);
 		}
 
 	}
@@ -333,51 +335,57 @@ int Tablet::ReadState() {
 	//
 	// Custom data format
 	//
-	else if(settings.dataFormat == TabletSettings::TabletFormatCustom) {
+	else if (settings.dataFormat == TabletSettings::TabletFormatCustom) {
 
 		// Data formatter target length valid?
-		if(dataFormatter.targetLength <= sizeof(reportData)) {
+		if (dataFormatter.targetLength <= sizeof(reportData)) {
 
 			// Clear report data
 			memset(&reportData, 0, sizeof(reportData));
 
 			// Format data
 			dataFormatter.Format(&reportData, buffer);
-
 		}
-
-
 	}
 
 	//
-	// Copy buffer to struct
+	// Standard tablet data format
 	//
 	else {
-		memcpy(&reportData, data, sizeof(reportData));
+		reportData.reportId = data[0];
+		reportData.buttons = data[1] & ~0x01;
+		reportData.x = data[2] | (data[3] << 8);
+		reportData.y = data[4] | (data[5] << 8);
+		reportData.pressure = data[6] | (data[7] << 8);
+
+		// Wacom height
+		if (settings.reportLength > 8) {
+			reportData.height = data[8];
+		}
 	}
 
 
 	// Validate report id
-	if(settings.reportId > 0 && reportData.reportId != settings.reportId) {
+	if (settings.reportId > 0 && reportData.reportId != settings.reportId) {
 		return Tablet::ReportInvalid;
 	}
 
 	// Detect mask
-	if(settings.detectMask > 0 && (reportData.buttons & settings.detectMask) != settings.detectMask) {
+	if (settings.detectMask > 0 && (reportData.buttons & settings.detectMask) != settings.detectMask) {
 		return Tablet::ReportPositionInvalid;
 	}
 
 	// Ignore mask
-	if(settings.ignoreMask > 0 && (reportData.buttons & settings.ignoreMask) == settings.ignoreMask) {
+	if (settings.ignoreMask > 0 && (reportData.buttons & settings.ignoreMask) == settings.ignoreMask) {
 		return Tablet::ReportIgnore;
 	}
 
 	//
 	// Use pen pressure to detect the pen tip click
 	//
-	if(settings.clickPressure > 0) {
+	if (settings.clickPressure > 0) {
 		reportData.buttons &= ~1;
-		if(reportData.pressure > settings.clickPressure) {
+		if (reportData.pressure > settings.clickPressure) {
 			reportData.buttons |= 1;
 		}
 
@@ -385,16 +393,16 @@ int Tablet::ReadState() {
 	}
 
 	// Force tip button down if pressure is detected
-	else if(reportData.pressure > 10) {
+	else if (reportData.pressure > 10) {
 		reportData.buttons |= 1;
 	}
 
 	// Keep pen tip button down for a few reports
-	if(settings.keepTipDown > 0) {
-		if(reportData.buttons & 0x01) {
+	if (settings.keepTipDown > 0) {
+		if (reportData.buttons & 0x01) {
 			tipDownCounter = settings.keepTipDown;
 		}
-		if(tipDownCounter-- >= 0) {
+		if (tipDownCounter-- >= 0) {
 			reportData.buttons |= 1;
 		}
 	}
@@ -419,7 +427,7 @@ int Tablet::ReadState() {
 
 	state.inputPosition.Set(state.position);
 
-	if(settings.skew != 0) {
+	if (settings.skew != 0) {
 		state.position.x += state.position.y * settings.skew;
 	}
 	state.pressure = state.inputPressure = ((double)reportData.pressure / (double)settings.maxPressure);
@@ -428,15 +436,15 @@ int Tablet::ReadState() {
 	//
 	// Pressure deadzone
 	//
-	if(settings.pressureDeadzoneLow > 0.0 || settings.pressureDeadzoneHigh > 0.0) {
+	if (settings.pressureDeadzoneLow > 0.0 || settings.pressureDeadzoneHigh > 0.0) {
 
 		// Minimum
-		if(state.pressure < settings.pressureDeadzoneLow) {
+		if (state.pressure < settings.pressureDeadzoneLow) {
 			state.pressure = 0.0;
 		}
 
 		// Maximum
-		else if(state.pressure > 1 - settings.pressureDeadzoneHigh) {
+		else if (state.pressure > 1 - settings.pressureDeadzoneHigh) {
 			state.pressure = 1.0;
 		}
 
@@ -447,22 +455,27 @@ int Tablet::ReadState() {
 			pressure /= (1 - settings.pressureDeadzoneHigh);
 			state.pressure = pressure;
 		}
-
 	}
 
 	//
 	// Pressure sensitivity 
 	//
-	if(settings.pressureSensitivity > 0.0) {
+	if (settings.pressureSensitivity > 0.0) {
 		state.pressure = 1 - pow(1 - state.pressure, (1 + settings.pressureSensitivity));
 	}
-	else if(settings.pressureSensitivity < 0.0) {
+	else if (settings.pressureSensitivity < 0.0) {
 		state.pressure = pow(state.pressure, 1 - settings.pressureSensitivity);
 	}
 
 
+	//
+	// Height
+	//
+	state.height = state.inputHeight = reportData.height;
+
+
 	// Tablet measurement update
-	if(measurement.IsRunning()) {
+	if (measurement.IsRunning()) {
 		state.buttons = reportData.buttons & 0x0F;
 		measurement.Update(state);
 		return Tablet::ReportInvalid;
@@ -477,15 +490,15 @@ int Tablet::ReadState() {
 // Read report from tablet
 //
 bool Tablet::Read(void *buffer, int length) {
-	if(!isOpen) return false;
+	if (!isOpen) return false;
 	bool status = false;
-	if(usbDevice != NULL) {
+	if (usbDevice != NULL) {
 		status = usbDevice->Read(usbPipeId, buffer, length) > 0;
 	}
-	else if(hidDevice != NULL) {
+	else if (hidDevice != NULL) {
 		status = hidDevice->Read(buffer, length);
 	}
-	if(logger.IsDebugOutputEnabled() && status) {
+	if (logger.IsDebugOutputEnabled() && status) {
 		LOG_DEBUGBUFFER(buffer, length, "Read: ");
 	}
 	return status;
@@ -497,10 +510,9 @@ bool Tablet::Read(void *buffer, int length) {
 int Tablet::ProcessAuxData(void *buffer, int length)
 {
 	int status = TabletAuxReportStatus::AuxReportInvalid;
+	bool firstReport = true;
 
-	auxState.buttons = 0;
-
-	for(int i = 0; i < settings.auxReportCount; i++) {
+	for (int i = 0; i < settings.auxReportCount; i++) {
 		TabletSettings::AuxReport *auxReport = &settings.auxReports[i];
 
 		// Clear report data
@@ -511,24 +523,30 @@ int Tablet::ProcessAuxData(void *buffer, int length)
 		auxReport->formatter.Format(&auxReportData, buffer);
 
 		// Report id valid?
-		if(auxReportData.reportId == auxReport->reportId) {
+		if (auxReportData.reportId == auxReport->reportId) {
 
 			// Detect mask
-			if(auxReport->detectMask > 0 && (auxReportData.detect & auxReport->detectMask) != auxReport->detectMask) {
-				if(status != TabletAuxReportStatus::AuxReportValid)
+			if (auxReport->detectMask > 0 && (auxReportData.detect & auxReport->detectMask) != auxReport->detectMask) {
+				if (status != TabletAuxReportStatus::AuxReportValid)
 					status = TabletAuxReportStatus::AuxReportInvalid;
 				continue;
 			}
 
 			// Ignore mask
-			if(auxReport->ignoreMask > 0 && (auxReportData.detect & auxReport->ignoreMask) == auxReport->ignoreMask) {
-				if(status != TabletAuxReportStatus::AuxReportValid)
+			if (auxReport->ignoreMask > 0 && (auxReportData.detect & auxReport->ignoreMask) == auxReport->ignoreMask) {
+				if (status != TabletAuxReportStatus::AuxReportValid)
 					status = TabletAuxReportStatus::AuxReportIgnore;
 				continue;
 			}
 
+			// Reset buttons
+			if (firstReport) {
+				auxState.buttons = 0;
+				firstReport = false;
+			}
+
 			// Update aux state
-			if(auxReportData.isPressed > 0) {
+			if (auxReportData.isPressed > 0) {
 				auxState.buttons |= auxReportData.buttons;
 			}
 			auxState.isValid = true;
@@ -550,24 +568,27 @@ int Tablet::ReadAuxReport()
 
 	// Read aux device
 	bool status = false;
-	if(hidDeviceAux != NULL) {
+	if (hidDeviceAux != NULL) {
 		status = hidDeviceAux->Read(buffer, length);
 
 		// Debug message
-		if(logger.IsDebugOutputEnabled()) {
+		if (logger.IsDebugOutputEnabled()) {
 			LOG_DEBUGBUFFER(buffer, length, "Aux read: ");
 		}
 
 		return ProcessAuxData(buffer, length);
 
 	}
-	else if(usbDevice != NULL || settings.auxReports[0].reportId > 0) {
-		if(auxState.isValid) {
-			Sleep(1);
+	else if (usbDevice != NULL || settings.auxReports[0].reportId > 0) {
+
+		// Wait for an auxiliary state change
+		std::unique_lock<std::mutex> mlock(lockAuxState);
+		conditionAuxState.wait(mlock);
+
+		if (auxState.isValid) {
 			return TabletAuxReportStatus::AuxReportValid;
 		}
 		else {
-			Sleep(1);
 			return TabletAuxReportStatus::AuxReportInvalid;
 		}
 	}
@@ -579,11 +600,11 @@ int Tablet::ReadAuxReport()
 // Write report to the tablet
 //
 bool Tablet::Write(void *buffer, int length) {
-	if(!isOpen) return false;
-	if(usbDevice != NULL) {
+	if (!isOpen) return false;
+	if (usbDevice != NULL) {
 		return usbDevice->Write(usbPipeId, buffer, length) > 0;
 	}
-	else if(hidDevice != NULL) {
+	else if (hidDevice != NULL) {
 		return hidDevice->Write(buffer, length);
 	}
 	return false;
@@ -593,12 +614,18 @@ bool Tablet::Write(void *buffer, int length) {
 // Close tablet
 //
 void Tablet::CloseDevice() {
-	if(isOpen) {
-		if(usbDevice != NULL) {
+	if (isOpen) {
+		if (usbDevice != NULL) {
+			printf("  Tablet: Closing WinUSB device\n");
 			usbDevice->CloseDevice();
 		}
-		else if(hidDevice != NULL) {
+		if (hidDevice != NULL) {
+			printf("  Tablet: Closing HID device\n");
 			hidDevice->CloseDevice();
+		}
+		if (hidDeviceAux != NULL) {
+			printf("  Tablet: Closing Aux HID device\n");
+			hidDeviceAux->CloseDevice();
 		}
 	}
 	isOpen = false;

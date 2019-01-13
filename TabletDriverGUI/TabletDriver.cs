@@ -384,7 +384,7 @@ namespace TabletDriverGUI
         }
 
         //
-        // Driver service data received
+        // Driver service standard output data received
         //
         private void ProcessService_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
@@ -395,7 +395,7 @@ namespace TabletDriverGUI
             }
             else
             {
-                //ProcessDriverMessage(e.Data);
+                //ProcessDriverMessage(e.Data + "\n");
             }
         }
 
@@ -407,7 +407,7 @@ namespace TabletDriverGUI
         {
 
             string stringMessage = Encoding.UTF8.GetString(e.Message.Data, 0, e.Message.Length);
-            //ConsoleAddLine("Pipe: " + stringMessage);
+            //ConsoleAddLine("Pipe: '" + stringMessage + "'");
             ProcessDriverMessage(stringMessage);
 
         }

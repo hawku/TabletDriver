@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "CommandHandler.h"
 
 #define LOG_MODULE ""
@@ -85,7 +85,7 @@ void CommandHandler::CreateOtherCommands() {
 	AddAlias("Mode", "OutputMode");
 	AddCommand(new Command("OutputMode", [&](CommandLine *cmd) {
 
-		string mode = cmd->GetStringLower(0, "");
+		std::string mode = cmd->GetStringLower(0, "");
 
 		// Absolute mouse
 		if (mode.compare(0, 3, "abs") == 0) {
@@ -340,6 +340,29 @@ void CommandHandler::CreateOtherCommands() {
 
 
 	//
+	// Command: ForceLowLatencyAudio
+	//
+	// Forces low latency audio on Windows 10
+	//
+	AddCommand(new Command("ForceLowLatencyAudio", [&](CommandLine *cmd) {
+		if (!ExecuteCommand("TabletValid")) return false;
+
+		int result = tabletHandler->inputEmulator.ForceLowLatencyAudio();
+		if (result > 0) {
+			LOG_INFO("Low latency audio forced!\n");
+		}
+		else if (result == 0) {
+			LOG_INFO("Low latency audio is already forced!\n");
+		}
+		else {
+			LOG_ERROR("Low latency audio error! Maybe you are not running this on Windows 10?\n");
+		}
+
+		return true;
+	}));
+
+
+	//
 	// Command: Debug
 	//
 	// Enable/disable debugging output
@@ -359,7 +382,7 @@ void CommandHandler::CreateOtherCommands() {
 	// Start/stop logging messages to a log file
 	//
 	AddCommand(new Command("Log", [&](CommandLine *cmd) {
-		string logPath = cmd->GetString(0, "log.txt");
+		std::string logPath = cmd->GetString(0, "log.txt");
 		if (!cmd->GetBoolean(0, true)) {
 			logger.CloseLogFile();
 			LOG_INFO("Log file '%s' closed.\n", logger.logFilename.c_str());
@@ -469,7 +492,7 @@ void CommandHandler::CreateOtherCommands() {
 
 		// Pen buttons
 		for (int i = 0; i < tablet->settings.buttonCount; i++) {
-			stringIndex += sprintf_s(stringBuffer + stringIndex, maxLength - stringIndex, "'%s' ", tablet->settings.buttonMap[i].c_str());
+			stringIndex += sprintf_s(stringBuffer + stringIndex, maxLength - stringIndex, "'%s' ", tablet->settings.buttonMap[i].ToString().c_str());
 		}
 		LOG_INFO("  Pen button map = %s\n", stringBuffer);
 
@@ -477,7 +500,7 @@ void CommandHandler::CreateOtherCommands() {
 		if (tablet->settings.auxButtonCount > 0) {
 			stringIndex = 0;
 			for (int i = 0; i < tablet->settings.auxButtonCount; i++) {
-				stringIndex += sprintf_s(stringBuffer + stringIndex, maxLength - stringIndex, "'%s' ", tablet->settings.auxButtonMap[i].c_str());
+				stringIndex += sprintf_s(stringBuffer + stringIndex, maxLength - stringIndex, "'%s' ", tablet->settings.auxButtonMap[i].ToString().c_str());
 			}
 			LOG_INFO("  Aux button map = %s\n", stringBuffer);
 		}
@@ -486,9 +509,9 @@ void CommandHandler::CreateOtherCommands() {
 
 		// Init strings
 		if (tablet->initStrings.size() > 0) {
-			string stringIds = "";
+			std::string stringIds = "";
 			for (int stringId : tablet->initStrings) {
-				stringIds += to_string(stringId) + " ";
+				stringIds += std::to_string(stringId) + " ";
 			}
 			LOG_INFO("  Init string ids: %s\n", stringIds.c_str());
 		}
@@ -620,7 +643,7 @@ void CommandHandler::CreateOtherCommands() {
 	// Reads commands from a file and stops if tablet is redefined.
 	//
 	AddCommand(new Command("Include", [&](CommandLine *cmd) {
-		string filename = cmd->GetString(0, "");
+		std::string filename = cmd->GetString(0, "");
 		if (filename == "") {
 			LOG_ERROR("Invalid filename '%s'!\n", filename.c_str());
 			return false;
@@ -646,13 +669,13 @@ void CommandHandler::CreateOtherCommands() {
 	AddCommand(new Command("ListCommands", [&](CommandLine *cmd) {
 
 		LOG_INFO("Commands: \n");
-		for (pair<string, Command*> cmdPair : commands) {
-			string commandName = cmdPair.second->name;
-			string lowerCaseName = commandName;
-			transform(lowerCaseName.begin(), lowerCaseName.end(), lowerCaseName.begin(), ::tolower);
+		for (std::pair<std::string, Command*> cmdPair : commands) {
+			std::string commandName = cmdPair.second->name;
+			std::string lowerCaseName = commandName;
+			std::transform(lowerCaseName.begin(), lowerCaseName.end(), lowerCaseName.begin(), ::tolower);
 
-			string aliasString = "";
-			for (pair<string, string> aliasPair : aliases) {
+			std::string aliasString = "";
+			for (std::pair<std::string, std::string> aliasPair : aliases) {
 				if (aliasPair.second == lowerCaseName) {
 					aliasString += ", " + aliasNames[aliasPair.first];
 				}
@@ -671,19 +694,19 @@ void CommandHandler::CreateOtherCommands() {
 	//
 	AddCommand(new Command("GetCommands", [&](CommandLine *cmd) {
 
-		string commandsString = "";
+		std::string commandsString = "";
 
 		LOG_STATUS("COMMANDS_CLEAR 1\n");
 
-		for (pair<string, Command*> cmdPair : commands) {
-			string commandName = cmdPair.second->name;
-			string lowerCaseName = commandName;
-			transform(lowerCaseName.begin(), lowerCaseName.end(), lowerCaseName.begin(), ::tolower);
+		for (std::pair<std::string, Command*> cmdPair : commands) {
+			std::string commandName = cmdPair.second->name;
+			std::string lowerCaseName = commandName;
+			std::transform(lowerCaseName.begin(), lowerCaseName.end(), lowerCaseName.begin(), ::tolower);
 
 			commandsString += commandName + " ";
 
-			string aliasString = "";
-			for (pair<string, string> aliasPair : aliases) {
+			std::string aliasString = "";
+			for (std::pair<std::string, std::string> aliasPair : aliases) {
 				if (aliasPair.second == lowerCaseName) {
 					commandsString += aliasNames[aliasPair.first] + " ";
 				}
@@ -702,16 +725,16 @@ void CommandHandler::CreateOtherCommands() {
 	}));
 
 	//
-	// Command: ListKeys
+	// Command: ListInputs
 	//
-	// List all keys
+	// List all input actions
 	//
-	AddCommand(new Command("ListKeys", [&](CommandLine *cmd) {
+	AddCommand(new Command("ListInputs", [&](CommandLine *cmd) {
 
-		LOG_INFO("Keys:\n");
-		for (string key : tabletHandler->inputEmulator.keys) {
-			if (tabletHandler->inputEmulator.keyMap.count(key) > 0) {
-				string name = tabletHandler->inputEmulator.keyMap[key]->name;
+		LOG_INFO("Input actions:\n");
+		for (std::string key : tabletHandler->inputEmulator.inputs) {
+			if (tabletHandler->inputEmulator.inputMap.count(key) > 0) {
+				std::string name = tabletHandler->inputEmulator.inputMap[key]->description;
 				LOG_INFO("  % -20s %s\n", key.c_str(), name.c_str());
 			}
 		}
@@ -727,12 +750,12 @@ void CommandHandler::CreateOtherCommands() {
 	//
 	AddHelp("Help", "...");
 	AddCommand(new Command("Help", [&](CommandLine *cmd) {
-		string commandName = cmd->GetStringLower(0, "");
+		std::string commandName = cmd->GetStringLower(0, "");
 		if (aliases.count(commandName) > 0) {
 			commandName = aliases[commandName];
 		}
 		if (help.count(commandName)) {
-			string helpText = help[commandName];
+			std::string helpText = help[commandName];
 			LOG_INFO("Help:\n\n%s\n", helpText.c_str());
 		}
 		else {

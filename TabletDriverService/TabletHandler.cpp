@@ -1,5 +1,5 @@
 
-#include "stdafx.h"
+#include "precompiled.h"
 #include "TabletHandler.h"
 
 #define LOG_MODULE "TabletHandler"
@@ -47,7 +47,7 @@ TabletHandler::~TabletHandler() {
 		try {
 			tabletInputThread->join();
 		}
-		catch (exception &e) {
+		catch (std::exception &e) {
 			printf("Tablet input thread exception: %s\n", e.what());
 		}
 	}
@@ -62,7 +62,7 @@ TabletHandler::~TabletHandler() {
 		try {
 			auxInputThread->join();
 		}
-		catch (exception &e) {
+		catch (std::exception &e) {
 			printf("Aux input thread exception: %s\n", e.what());
 		}
 	}
@@ -76,14 +76,17 @@ TabletHandler::~TabletHandler() {
 bool TabletHandler::Start() {
 	if (tablet == NULL) return false;
 
+	// Set input emulator
+	tablet->settings.SetInputEmulator(&tabletHandler->inputEmulator);
+
 	SetRunningState(true);
 
 	// Timer
 	ChangeTimerInterval((int)round(timerInterval));
 
 	// Threads
-	tabletInputThread = new thread(&TabletHandler::RunTabletInputThread, this);
-	auxInputThread = new thread(&TabletHandler::RunAuxInputThread, this);
+	tabletInputThread = new std::thread(&TabletHandler::RunTabletInputThread, this);
+	auxInputThread = new std::thread(&TabletHandler::RunAuxInputThread, this);
 
 	return true;
 }
@@ -246,7 +249,7 @@ void TabletHandler::ChangeTimerInterval(int newInterval) {
 	}
 
 	// Start timer interval when filters are enabled and timer is running
-	else if(filtersEnabled) {
+	else if (filtersEnabled) {
 		ChangeTimer((int)newInterval);
 	}
 
@@ -290,7 +293,8 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 	bool isPressed;
 	bool isReleased;
 	bool hasBinding;
-	string key;
+	std::string key;
+	InputEmulator::InputActionCollection *inputCollection = NULL;
 	bool scrolled = false;
 	Vector2D scrollPosition;
 
@@ -328,33 +332,49 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 
 			// Pen button map
 			hasBinding = false;
-			if (isPen && tablet->settings.buttonMap[buttonIndex].size() > 0) {
-				key = tablet->settings.buttonMap[buttonIndex];
-				if (inputEmulator.keyMap.count(key) > 0) {
-					hasBinding = true;
-				}
+			inputCollection = NULL;
+			if (isPen && tablet->settings.buttonMap[buttonIndex].Count() > 0) {
+				inputCollection = &tablet->settings.buttonMap[buttonIndex];
+				hasBinding = true;
 			}
 
 			// Auxiliary button map
-			else if (!isPen && tablet->settings.auxButtonMap[buttonIndex].size() > 0) {
-				key = tablet->settings.auxButtonMap[buttonIndex];
-				if (inputEmulator.keyMap.count(key) > 0) {
-					hasBinding = true;
-				}
+			else if (!isPen && tablet->settings.auxButtonMap[buttonIndex].Count() > 0) {
+				inputCollection = &tablet->settings.auxButtonMap[buttonIndex];
+				hasBinding = true;
 			}
 
-			// Button has a binding?
-			if (hasBinding) {
 
-				InputEmulator::KeyMapValue *keyMapValue = inputEmulator.keyMap[key];
+			// No input actions found -> skip
+			if (inputCollection == NULL) {
+				continue;
+			}
 
-				WORD virtualKey = keyMapValue->virtualKey;
-				int mouseButton = keyMapValue->mouseButton;
+			int indexStart = 0;
+			int indexAdd = 1;
+			int length = inputCollection->Count();
+
+			// Execute in reverse order when button is released
+			if (isReleased) {
+				indexStart = inputCollection->Count() - 1;
+				indexAdd = -1;
+			}
+
+			// Loop through input actions
+			int index = indexStart;
+			for(int i = 0; i < length; i++) {
+
+				InputEmulator::InputAction *inputAction = inputCollection->actions[index];
+				index += indexAdd;
+
+				int mouseButton = inputAction->mouseButton;
 
 				//
 				// Mouse buttons
 				//
-				if (mouseButton >= InputEmulator::Mouse1 && mouseButton <= InputEmulator::Mouse5) {
+				if (inputAction->type == InputEmulator::ActionTypeMouse &&
+					mouseButton >= InputEmulator::Mouse1 && mouseButton <= InputEmulator::Mouse5
+					) {
 
 					// Pen button
 					if (isPen && isDown) {
@@ -362,24 +382,29 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 					}
 
 					// Auxiliary button
-					else if (isPressed || isReleased) {
-						inputEmulator.MouseSet(mouseButton, isDown);
+					else if (!isPen) {
+						inputAction->Execute(isPressed, isReleased, isDown);
 					}
 				}
 
 				//
-				// Mouse scroll
+				// Mouse scroll and volume control
 				//
 				else if (
-					mouseButton == InputEmulator::MouseScrollVertical
+					(
+						inputAction->type == InputEmulator::ActionTypeMouse &&
+						(
+							mouseButton == InputEmulator::MouseScrollVertical
+							||
+							mouseButton == InputEmulator::MouseScrollHorizontal
+							||
+							mouseButton == InputEmulator::MouseScrollBoth
+							)
+						)
 					||
-					mouseButton == InputEmulator::MouseScrollHorizontal
+					inputAction->type == InputEmulator::ActionTypeAudioVolumeControl
 					||
-					mouseButton == InputEmulator::MouseScrollBoth
-					||
-					mouseButton == InputEmulator::MediaVolumeControl
-					||
-					mouseButton == InputEmulator::MediaBalanceControl
+					inputAction->type == InputEmulator::ActionTypeAudioBalanceControl
 					) {
 
 					// Scroll button down?
@@ -459,13 +484,13 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 						}
 
 						// Media volume control
-						if (delta.y != 0 && mouseButton == InputEmulator::MediaVolumeControl) {
+						if (delta.y != 0 && inputAction->type == InputEmulator::ActionTypeAudioVolumeControl) {
 							inputEmulator.VolumeChange(-(float)delta.y / 100.0f);
 							scrolled = true;
 						}
 
 						// Media balance control
-						if ((delta.x != 0 || isPressed) && mouseButton == InputEmulator::MediaBalanceControl) {
+						if ((delta.x != 0 || isPressed) && inputAction->type == InputEmulator::ActionTypeAudioBalanceControl) {
 							double balance = 0.5 + ((scrollStartPosition.x - scrollPosition.x) * tablet->settings.scrollSensitivity) / 50.0f;
 							inputEmulator.VolumeBalance((float)balance);
 							scrolled = true;
@@ -480,31 +505,13 @@ void TabletHandler::ProcessButtons(UINT32 *outButtons, bool isPen)
 
 				}
 
-
 				//
-				// Keyboard key
+				// All other actions
 				//
-				else if (virtualKey > 0) {
-					if (isPressed) {
-						inputEmulator.SetKeyState(virtualKey, true);
-					}
-					else if (isReleased) {
-						inputEmulator.SetKeyState(virtualKey, false);
-					}
+				else {
+					inputAction->Execute(isPressed, isReleased, isDown);
 				}
 
-			}
-
-			//
-			// Multiple inputs
-			//
-			else {
-				if (isPressed) {
-					inputEmulator.SetInputStates(key, true);
-				}
-				else if (isReleased) {
-					inputEmulator.SetInputStates(key, false);
-				}
 			}
 
 		}
@@ -533,7 +540,7 @@ void TabletHandler::RunTabletInputThread() {
 	UINT32 lastButtons = 0;
 	UINT32 outButtons = 0;
 
-	timeBegin = chrono::high_resolution_clock::now();
+	timeBegin = std::chrono::high_resolution_clock::now();
 
 	//
 	// Tablet input main loop
@@ -771,10 +778,10 @@ void TabletHandler::OnTimerTick() {
 	if (isTimerTickRunning) {
 
 		// Limit error logging rate
-		double timeDelta = (chrono::high_resolution_clock::now() - timeLastTimerProblem).count() / 1000000.0;
+		double timeDelta = (std::chrono::high_resolution_clock::now() - timeLastTimerProblem).count() / 1000000.0;
 		if (timeDelta > 2000.0) {
 			LOG_WARNING("Filter performance problem detected! Use lower filter rate or disable the smoothing filter.\n");
-			timeLastTimerProblem = chrono::high_resolution_clock::now();
+			timeLastTimerProblem = std::chrono::high_resolution_clock::now();
 		}
 		return;
 	}
@@ -847,7 +854,7 @@ void TabletHandler::WriteOutputState(TabletState * outputState)
 
 	// Debug message
 	if (result && logger.IsDebugOutputEnabled()) {
-		double delta = (chrono::high_resolution_clock::now() - timeBegin).count() / 1000000.0;
+		double delta = (std::chrono::high_resolution_clock::now() - timeBegin).count() / 1000000.0;
 		LOG_DEBUG("OutputState: T=%0.3f, B=%d, X=%0.3f, Y=%0.3f, P=%0.3f V=%s\n",
 			delta,
 			outputState->buttons,

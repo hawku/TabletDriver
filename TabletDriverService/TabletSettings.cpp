@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "TabletSettings.h"
 
 
@@ -27,9 +27,12 @@ TabletSettings::TabletSettings() {
 	scrollDrag = false;
 	skew = 0;
 	dataFormat = TabletFormatNormal;
-	buttonMap[0] = "MOUSE1";
-	buttonMap[1] = "MOUSE2";
-	buttonMap[2] = "MOUSE3";
+	buttonMap[0].Add(new InputEmulator::InputAction(InputEmulator::ActionTypeMouse, "Mouse 1"));
+	buttonMap[0].actions[0]->mouseButton = 1;
+	buttonMap[1].Add(new InputEmulator::InputAction(InputEmulator::ActionTypeMouse, "Mouse 2"));
+	buttonMap[1].actions[0]->mouseButton = 2;
+	buttonMap[2].Add(new InputEmulator::InputAction(InputEmulator::ActionTypeMouse, "Mouse 3"));
+	buttonMap[2].actions[0]->mouseButton = 3;
 	buttonCount = 3;
 
 	// Aux
@@ -46,4 +49,17 @@ TabletSettings::TabletSettings() {
 // Destructor
 //
 TabletSettings::~TabletSettings() {
+}
+
+//
+// Set input emulator
+//
+void TabletSettings::SetInputEmulator(InputEmulator * emulator)
+{
+	for (InputEmulator::InputActionCollection &collection : buttonMap) {
+		collection.emulator = emulator;
+	}
+	for (InputEmulator::InputActionCollection &collection : auxButtonMap) {
+		collection.emulator = emulator;
+	}
 }

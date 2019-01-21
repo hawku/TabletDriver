@@ -2,6 +2,8 @@
 
 #include "DataFormatter.h"
 
+#include "InputEmulator.h"
+
 class TabletSettings {
 public:
 
@@ -41,7 +43,7 @@ public:
 	bool scrollDrag;
 	double skew;
 	TabletDataFormat dataFormat;
-	string buttonMap[16];
+	InputEmulator::InputActionCollection buttonMap[32];
 	int buttonCount;
 
 
@@ -59,10 +61,12 @@ public:
 	int auxReportCount;
 	AuxReport *auxCurrentReport;
 	int auxCurrentReportIndex;
-	string auxButtonMap[16];
+	InputEmulator::InputActionCollection auxButtonMap[32];
 	int auxButtonCount;
 
 	TabletSettings();
 	~TabletSettings();
+
+	void SetInputEmulator(InputEmulator *emulator);
 };
 

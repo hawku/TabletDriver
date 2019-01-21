@@ -3,7 +3,7 @@
 class NamedPipeInput : public NamedPipeServer
 {
 public:
-	NamedPipeInput(string pipeName);
+	NamedPipeInput(std::string pipeName);
 	~NamedPipeInput();
 
 	void ProcessData(int clientId, BYTE *bufferInput, int length) override;

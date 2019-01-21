@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 
 #include <csignal>
 
@@ -41,8 +41,8 @@ void RunCleanupAndExit(int code);
 // Main
 //
 int main(int argc, char**argv) {
-	string line;
-	string filename;
+	std::string line;
+	std::string filename;
 	CommandLine *cmd;
 
 	// Init global variables
@@ -126,9 +126,9 @@ int main(int argc, char**argv) {
 
 	// Named pipes
 	if (argc > 2) {
-		pipeInput = new NamedPipeInput(string(argv[2]) + string("Input"));
-		pipeOutput = new NamedPipeServer(string(argv[2]) + string("Output"));
-		pipeState = new NamedPipeState(string(argv[2]) + string("State"));
+		pipeInput = new NamedPipeInput(std::string(argv[2]) + std::string("Input"));
+		pipeOutput = new NamedPipeServer(std::string(argv[2]) + std::string("Output"));
+		pipeState = new NamedPipeState(std::string(argv[2]) + std::string("State"));
 	}
 	else {
 		pipeInput = new NamedPipeInput("TabletDriverInput");
@@ -194,15 +194,15 @@ int main(int argc, char**argv) {
 	while (true) {
 
 		// Broken pipe
-		if (!cin) {
+		if (!std::cin) {
 			Sleep(100);
 		}
 
 		// Read line from the console
 		try {
-			getline(cin, line);
+			std::getline(std::cin, line);
 		}
-		catch (exception) {
+		catch (std::exception) {
 			Sleep(100);
 			//break;
 		}
@@ -304,7 +304,7 @@ void CleanupAndExit(int code) {
 	if (cleanupStarted) return;
 	cleanupStarted = true;
 
-	thread *t = new thread(RunCleanupAndExit, code);
+	std::thread *t = new std::thread(RunCleanupAndExit, code);
 }
 
 

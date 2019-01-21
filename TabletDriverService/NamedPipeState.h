@@ -22,10 +22,10 @@ public:
 		double outputPressure;
 	} stateMessage;
 
-	thread *threadStateWriter;
-	atomic<bool> isStateOutputEnabled;
+	std::thread *threadStateWriter;
+	std::atomic<bool> isStateOutputEnabled;
 
-	NamedPipeState(string pipeName);
+	NamedPipeState(std::string pipeName);
 	~NamedPipeState();
 
 	bool Start() override;

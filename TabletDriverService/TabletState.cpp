@@ -1,9 +1,9 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "TabletState.h"
 
 
 TabletState::TabletState() {
-	time = chrono::high_resolution_clock::now();
+	time = std::chrono::high_resolution_clock::now();
 	
 	inputButtons = 0;
 	inputPosition.Set(0,0);

@@ -1,8 +1,8 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "NamedPipeState.h"
 
 
-NamedPipeState::NamedPipeState(string pipeName) : NamedPipeServer(pipeName)
+NamedPipeState::NamedPipeState(std::string pipeName) : NamedPipeServer(pipeName)
 {
 	isStateOutputEnabled = false;
 }
@@ -19,7 +19,7 @@ bool NamedPipeState::Start()
 {
 	if (!IsRunning()) {
 		bool result = NamedPipeServer::Start();
-		threadStateWriter = new thread(&NamedPipeState::RunStateWriterThread, this);
+		threadStateWriter = new std::thread(&NamedPipeState::RunStateWriterThread, this);
 		return result;
 	}
 	return false;
@@ -42,7 +42,7 @@ bool NamedPipeState::Stop()
 			threadStateWriter->join();
 			printf("Stopping state writer stopped!\n");
 		}
-		catch (exception &e) {
+		catch (std::exception &e) {
 			printf("State writer exception: %s\n", e.what());
 		}
 	}

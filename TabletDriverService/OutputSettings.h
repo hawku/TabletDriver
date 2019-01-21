@@ -16,7 +16,7 @@ public:
 		PixelPosition pixelPosition;
 		Vector2D targetPosition;
 		Vector2D lastPosition;
-		chrono::high_resolution_clock::time_point lastTime;
+		std::chrono::high_resolution_clock::time_point lastTime;
 	} relativeState;
 
 	Vector2D relativeSensitivity;
@@ -24,7 +24,7 @@ public:
 	double relativeResetTime;
 	bool relativeDragMove;
 
-	void ResetRelativeState(double x, double y, chrono::high_resolution_clock::time_point time);
+	void ResetRelativeState(double x, double y, std::chrono::high_resolution_clock::time_point time);
 
 	OutputSettings();
 	~OutputSettings();

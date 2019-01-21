@@ -5,7 +5,7 @@
 
 class TabletState {
 public:
-	chrono::high_resolution_clock::time_point time;
+	std::chrono::high_resolution_clock::time_point time;
 	
 	unsigned char inputButtons;
 	Vector2D inputPosition;

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "TabletFilterSmoothing.h"
 
 #define LOG_MODULE "Smoothing"
@@ -12,7 +12,7 @@ TabletFilterSmoothing::TabletFilterSmoothing() {
 	weight = 1.000;
 	threshold = 0.63;
 	onlyWhenButtonsDown = false;
-	lastTargetTime = chrono::high_resolution_clock::now();
+	lastTargetTime = std::chrono::high_resolution_clock::now();
 
 	target.position.Set(0, 0);
 	outputState.position.Set(0,0);
@@ -80,7 +80,7 @@ void TabletFilterSmoothing::Update() {
 
 	if(!target.isValid) return;
 
-	double timeDelta = (chrono::high_resolution_clock::now() - outputState.time).count() / 1000000.0;
+	double timeDelta = (std::chrono::high_resolution_clock::now() - outputState.time).count() / 1000000.0;
 
 	//
 	// Do not run the filter if the last state is older than 100 milliseconds.

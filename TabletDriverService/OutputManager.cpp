@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "OutputManager.h"
 
 #define LOG_MODULE "OutputManager"

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "Tablet.h"
 #include "TabletHandler.h"
 
@@ -9,7 +9,7 @@
 //
 // USB Device Constructor
 //
-Tablet::Tablet(string usbGUID) : Tablet() {
+Tablet::Tablet(std::string usbGUID) : Tablet() {
 	usbDevice = new USBDevice(usbGUID);
 	if (usbDevice->isOpen) {
 		this->isOpen = true;
@@ -71,7 +71,6 @@ Tablet::Tablet() {
 
 	// Keep tip down report counter
 	tipDownCounter = 0;
-
 }
 
 //
@@ -172,7 +171,7 @@ bool Tablet::IsConfigured() {
 //
 // Get a device string from HID or USB device.
 //
-string Tablet::GetDeviceString(UCHAR stringId)
+std::string Tablet::GetDeviceString(UCHAR stringId)
 {
 	// USB device
 	if (usbDevice != NULL) {
@@ -190,7 +189,7 @@ string Tablet::GetDeviceString(UCHAR stringId)
 //
 // Get HID or WinUSB device manufacturer name
 //
-string Tablet::GetDeviceManufacturerName()
+std::string Tablet::GetDeviceManufacturerName()
 {
 	// USB device
 	if (usbDevice != NULL) {
@@ -208,7 +207,7 @@ string Tablet::GetDeviceManufacturerName()
 //
 // Get HID or WinUSB device product name
 //
-string Tablet::GetDeviceProductName()
+std::string Tablet::GetDeviceProductName()
 {
 	// USB device
 	if (usbDevice != NULL) {
@@ -226,7 +225,7 @@ string Tablet::GetDeviceProductName()
 //
 // Get HID or WinUSB device serial number
 //
-string Tablet::GetDeviceSerialNumber()
+std::string Tablet::GetDeviceSerialNumber()
 {
 	// USB device
 	if (usbDevice != NULL) {
@@ -413,7 +412,7 @@ int Tablet::ReadState() {
 
 
 	// Time
-	state.time = chrono::high_resolution_clock::now();
+	state.time = std::chrono::high_resolution_clock::now();
 
 
 	// Buttons

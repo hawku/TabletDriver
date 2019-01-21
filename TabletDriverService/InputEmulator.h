@@ -15,10 +15,9 @@
 		(resource) = NULL; \
 	}
 
-#define CHECK_HRESULT(hresult, resource) \
+#define CHECK_HRESULT(hresult, errorText) \
     if (FAILED(hresult)) { \
-		SAFE_RELEASE(resource); \
-		return false; \
+		throw std::runtime_error(errorText); \
 	}
 
 class InputEmulator
@@ -29,7 +28,9 @@ private:
 	IAudioEndpointVolume *pAudioEndpointVolume = NULL;
 	IMMDeviceEnumerator *pDeviceEnumerator = NULL;
 	IMMDevice *pDefaultAudioDevice = NULL;
-	mutex lockAudio;
+	IAudioClient3* pAudioClient3 = NULL;
+	bool isLowLatencyAudioForced = false;
+	std::mutex lockAudio;
 public:
 	enum MouseButtons {
 		Mouse1 = 1,
@@ -43,42 +44,69 @@ public:
 		MouseScrollRight = 0x84,
 		MouseScrollVertical = 0x101,
 		MouseScrollHorizontal = 0x102,
-		MouseScrollBoth = 0x103,
-		MediaVolumeControl = 0x110,
-		MediaBalanceControl = 0x111,
+		MouseScrollBoth = 0x103
 	};
 
-	class KeyMapValue {
+	enum InputActionType {
+		ActionTypeKeyboard,
+		ActionTypeMouse,
+		ActionTypeAudioVolumeControl,
+		ActionTypeAudioBalanceControl,
+		ActionTypeAudioVolumeChange,
+		ActionTypeStartApplication
+	};
+
+	class InputAction {
 	public:
-		string name;
+		InputEmulator *emulator;
+		InputActionType type;
+		std::string description;
 		WORD virtualKey;
 		int mouseButton;
-		KeyMapValue();
-		KeyMapValue(string name, WORD key, int button);
-		KeyMapValue(string name, WORD key);
+		double numericValue;
+		std::string stringValue;
+		InputAction();
+		InputAction(InputActionType type, std::string description);
+		void Execute(bool isPressed, bool isReleased, bool isDown);
+	};
+
+	class InputActionCollection {
+	public:
+		InputEmulator *emulator;
+		std::vector<InputAction *> actions;
+		InputActionCollection();
+		InputActionCollection(InputEmulator *emulator);
+		~InputActionCollection();
+		void Add(InputAction *action);
+		void Add(std::string actions);
+		void Execute(bool isPressed, bool isReleased, bool isDown);
+		void Clear();
+		int Count();
+		std::string ToString();
 	};
 
 
-	map<string, KeyMapValue*> keyMap;
-	vector<string> keys;
+
+	std::map<std::string, InputAction*> inputMap;
+	std::vector<std::string> inputs;
 
 	InputEmulator();
 	~InputEmulator();
 
 
-	void AddKey(string key, string keyName, WORD virtualCode);
-	void AddKey(string key, string keyName, WORD virtualCode, int button);
-	WORD GetKeyCode(string key);
+	void AddKey(std::string key, std::string keyName, WORD virtualCode);
+	void AddMouse(std::string key, std::string keyName, int button);
+	WORD GetKeyCode(std::string key);
 	
 	void MouseSet(int button, bool down);
 	void MousePress(int button, int time);
 	void MouseMove(int x, int y);
 	void MouseMoveTo(int x, int y);
 	void MouseScroll(int delta, bool vertical);
-	void SetKeyState(string key, bool down);
+	void SetKeyState(std::string key, bool down);
 	void SetKeyState(WORD vkCode, bool down);
-	void SetInputStates(string inputs, bool down);
-	void KeyPress(string keys, int time);
+	void SetInputStates(std::string inputs, bool down);
+	void KeyPress(std::string keys, int time);
 
 	bool CreateEndpointVolume();
 	bool ReleaseEndpointVolume();
@@ -86,6 +114,7 @@ public:
 	void VolumeBalance(float leftRight);
 	float VolumeGet();
 	void VolumeChange(float delta);
+	int ForceLowLatencyAudio();
 
 
 };

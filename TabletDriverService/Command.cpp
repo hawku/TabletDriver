@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "Command.h"
 
 
@@ -14,7 +14,7 @@ Command::Command() {
 	callback = NULL;
 }
 
-Command::Command(string _name, function<bool(CommandLine*)> _callback) {
+Command::Command(std::string _name, std::function<bool(CommandLine*)> _callback) {
 	this->name = _name;
 	this->callback = _callback;
 }

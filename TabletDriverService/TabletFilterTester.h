@@ -17,14 +17,14 @@ public:
 	HANDLE timer;
 	WAITORTIMERCALLBACK callback;
 
-	vector<TabletFilter *> filters;
-	string inputFilepath;
-	string outputFilepath;
+	std::vector<TabletFilter *> filters;
+	std::string inputFilepath;
+	std::string outputFilepath;
 
-	ifstream inputFile;
-	ofstream outputFile;
+	std::ifstream inputFile;
+	std::ofstream outputFile;
 
-	TabletFilterTester(string inputFilepath, string outputFilepath);
+	TabletFilterTester(std::string inputFilepath, std::string outputFilepath);
 	~TabletFilterTester();
 
 	void AddFilter(TabletFilter *filter);

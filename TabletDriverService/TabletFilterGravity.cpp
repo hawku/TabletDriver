@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "TabletFilterGravity.h"
 
 #define LOG_MODULE "Gravity"

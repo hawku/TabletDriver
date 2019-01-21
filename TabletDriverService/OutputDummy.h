@@ -3,7 +3,7 @@
 class OutputDummy : public Output {
 public:
 
-	chrono::high_resolution_clock::time_point timeBegin;
+	std::chrono::high_resolution_clock::time_point timeBegin;
 
 	void Init() override;
 	bool Set(TabletState *tabletState);

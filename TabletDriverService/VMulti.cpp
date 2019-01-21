@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "VMulti.h"
 
 #define LOG_MODULE "VMulti"

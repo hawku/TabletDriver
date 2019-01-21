@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "CommandHandler.h"
 
 #define LOG_MODULE ""
@@ -272,7 +272,7 @@ void CommandHandler::CreateTabletCommands() {
 	AddAlias("TabletFormat", "TabletDataFormat");
 	AddCommand(new Command("TabletDataFormat", [&](CommandLine *cmd) {
 		if (tablet == NULL) return false;
-		string format = cmd->GetStringLower(0, "");
+		std::string format = cmd->GetStringLower(0, "");
 
 		// Wacom Intuos Format V2 (Wacom CTL-490)
 		if (format == "wacomintuosv2") {
@@ -322,14 +322,14 @@ void CommandHandler::CreateTabletCommands() {
 	AddCommand(new Command("CustomDataInstruction", [&](CommandLine *cmd) {
 		if (tablet == NULL) return false;
 
-		string commandName = cmd->GetCommandLowerCase();
+		std::string commandName = cmd->GetCommandLowerCase();
 
 		if (cmd->valueCount >= 3) {
 
 			DataFormatter::DataInstruction instruction;
 
 			int targetByte = cmd->GetInt(0, 0);
-			string targetByteName = cmd->GetStringLower(0, "");
+			std::string targetByteName = cmd->GetStringLower(0, "");
 			/*
 			int targetBitMask = cmd->GetInt(1, 0xFF);
 			int sourceByte = cmd->GetInt(2, 0);
@@ -337,38 +337,18 @@ void CommandHandler::CreateTabletCommands() {
 			int sourceBitShift = cmd->GetInt(4, 0);
 			*/
 
-
 			// Auxiliary byte names
 			if (commandName.compare(0, 3, "aux") == 0) {
-				if (targetByteName == "reportid") targetByte = 0;
-				if (targetByteName == "buttonslow") targetByte = 1;
-				if (targetByteName == "buttonshigh") targetByte = 2;
-				if (targetByteName == "detect") targetByte = 3;
-				if (targetByteName == "ispressed") targetByte = 4;
-
+				if (tablet->auxReportByteNames.count(targetByteName) > 0) {
+					targetByte = tablet->auxReportByteNames.at(targetByteName);
+				}
 			}
 
 			// Tablet byte names
 			else {
-				if (targetByteName == "reportid") targetByte = 0;
-				if (targetByteName == "buttons") targetByte = 1;
-				if (targetByteName == "xlow") targetByte = 2;
-				if (targetByteName == "xhigh") targetByte = 3;
-				if (targetByteName == "xbyte1") targetByte = 2;
-				if (targetByteName == "xbyte2") targetByte = 3;
-				if (targetByteName == "xbyte3") targetByte = 4;
-				if (targetByteName == "xbyte4") targetByte = 5;
-				if (targetByteName == "ylow") targetByte = 6;
-				if (targetByteName == "yhigh") targetByte = 7;
-				if (targetByteName == "ybyte1") targetByte = 6;
-				if (targetByteName == "ybyte2") targetByte = 7;
-				if (targetByteName == "ybyte3") targetByte = 8;
-				if (targetByteName == "ybyte4") targetByte = 9;
-				if (targetByteName == "pressurelow") targetByte = 10;
-				if (targetByteName == "pressurehigh") targetByte = 11;
-				if (targetByteName == "heightlow") targetByte = 12;
-				if (targetByteName == "heighthigh") targetByte = 13;
-
+				if (tablet->reportByteNames.count(targetByteName) > 0) {
+					targetByte = tablet->reportByteNames.at(targetByteName);
+				}
 			}
 
 
@@ -377,9 +357,9 @@ void CommandHandler::CreateTabletCommands() {
 
 			// Loop through parameters
 			for (int i = 1; i < cmd->valueCount; i += 2) {
-				string parameter = cmd->GetStringLower(i, "");
+				std::string parameter = cmd->GetStringLower(i, "");
 				int value = cmd->GetInt(i + 1, -1);
-				string stringValue = cmd->GetStringLower(i + 1, "");
+				std::string stringValue = cmd->GetStringLower(i + 1, "");
 
 				// Set instruction parameters
 				if (parameter == "targetmask" || parameter == "mask") instruction.targetBitMask = value;
@@ -494,9 +474,9 @@ void CommandHandler::CreateTabletCommands() {
 				tablet->initStrings.push_back(stringId);
 			}
 		}
-		string stringIdsString = "";
+		std::string stringIdsString = "";
 		for (int stringId : tablet->initStrings) {
-			stringIdsString += to_string(stringId) + " ";
+			stringIdsString += std::to_string(stringId) + " ";
 		}
 		LOG_INFO("Tablet initialization string ids = %s\n", stringIdsString.c_str());
 
@@ -547,8 +527,12 @@ void CommandHandler::CreateTabletCommands() {
 	//
 	AddCommand(new Command("ClearButtonMap", [&](CommandLine *cmd) {
 		if (!ExecuteCommand("TabletValid")) return false;
-		for (string &str : tablet->settings.buttonMap) {
-			str = "";
+
+		// Set input emulator
+		tablet->settings.SetInputEmulator(&tabletHandler->inputEmulator);
+
+		for (InputEmulator::InputActionCollection &collection : tablet->settings.buttonMap) {
+			collection.Clear();
 		}
 		LOG_INFO("Pen button map cleared!\n");
 		return true;
@@ -560,8 +544,12 @@ void CommandHandler::CreateTabletCommands() {
 	//
 	AddCommand(new Command("ClearAuxButtonMap", [&](CommandLine *cmd) {
 		if (!ExecuteCommand("TabletValid")) return false;
-		for (int i = 0; i < 16; i++) {
-			tablet->settings.auxButtonMap[i] = "";
+
+		// Set input emulator
+		tablet->settings.SetInputEmulator(&tabletHandler->inputEmulator);
+
+		for (InputEmulator::InputActionCollection &collection : tablet->settings.auxButtonMap) {
+			collection.Clear();
 		}
 		LOG_INFO("Aux button map cleared!\n");
 		return true;
@@ -579,41 +567,50 @@ void CommandHandler::CreateTabletCommands() {
 	AddCommand(new Command("ButtonMap", [&](CommandLine *cmd) {
 		if (!ExecuteCommand("TabletValid")) return false;
 
-		string commandName = cmd->GetCommandLowerCase();
+		std::string commandName = cmd->GetCommandLowerCase();
 		int button = cmd->GetInt(0, 0);
-		string keys = "";
-		if (cmd->valueCount == 2) {
-			keys = cmd->GetString(1, "");
-			transform(keys.begin(), keys.end(), keys.begin(), ::toupper);
-		}
-		else {
-			for (int i = 1; i < cmd->valueCount; i++) {
-				string key = cmd->GetString(i, "");
-				key.erase(remove(key.begin(), key.end(), '+'), key.end());
-				if (key.size() > 0) {
-					std::transform(key.begin(), key.end(), key.begin(), ::toupper);
-					if (i != 1) keys += "+";
-					keys += key;
-				}
-			}
-		}
 
-		if (button >= 1) {
+		// Value count and button valid?
+		if (cmd->valueCount >= 2 && button >= 1) {
+
+			InputEmulator::InputActionCollection *collection;
+
+			// Set input emulator
+			tablet->settings.SetInputEmulator(&tabletHandler->inputEmulator);
+
+			// Aux buttons
 			if (commandName.compare(0, 3, "aux") == 0) {
 				if (button <= tablet->settings.auxButtonCount) {
-					tablet->settings.auxButtonMap[button - 1] = keys;
-					LOG_INFO("Aux button %d mapped to '%s'\n", button, keys.c_str());
+					collection = &tablet->settings.auxButtonMap[button - 1];
+					collection->Clear();
+					for (int i = 1; i < cmd->valueCount; i++) {
+						collection->Add(cmd->GetString(i, ""));
+					}
+					LOG_INFO("Aux button %d mapped to '%s'\n", button, collection->ToString().c_str());
+				}
+				else {
+					LOG_INFO("There are only %d auxiliary buttons!\n", tablet->settings.auxButtonCount);
 				}
 			}
+
+			// Pen buttons
 			else {
 				if (button <= tablet->settings.buttonCount) {
-					tablet->settings.buttonMap[button - 1] = keys;
-					LOG_INFO("Pen button %d mapped to '%s'\n", button, keys.c_str());
+					collection = &tablet->settings.buttonMap[button - 1];
+					collection->Clear();
+					for (int i = 1; i < cmd->valueCount; i++) {
+						collection->Add(cmd->GetString(i, ""));
+					}
+					LOG_INFO("Pen button %d mapped to '%s'\n", button, collection->ToString().c_str());
 				}
+				else {
+					LOG_INFO("There are only %d buttons!\n", tablet->settings.buttonCount);
+				}
+
 			}
 		}
 		else {
-			LOG_INFO("Usage: %s <button> <key>\n", cmd->command.c_str());
+			LOG_INFO("Usage: %s <button> <action> [<action2> ...]\n", cmd->command.c_str());
 		}
 
 		return true;
@@ -629,7 +626,7 @@ void CommandHandler::CreateTabletCommands() {
 	AddCommand(new Command("TabletMove", [&](CommandLine *cmd) {
 		if (cmd->valueCount <= 0) return false;
 		if (!ExecuteCommand("TabletValid")) return false;
-		string border;
+		std::string border;
 		double offset;
 		bool moved = true;
 

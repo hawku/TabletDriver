@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "OutputDummy.h"
 
 
@@ -7,7 +7,7 @@
 
 
 void OutputDummy::Init() {
-	timeBegin = chrono::high_resolution_clock::now();
+	timeBegin = std::chrono::high_resolution_clock::now();
 }
 
 bool OutputDummy::Set(TabletState *tabletState) {

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "NamedPipeServer.h"
 
 #define LOG_MODULE "NamedPipeServer"
@@ -8,7 +8,7 @@
 //
 // Constructor
 //
-NamedPipeServer::NamedPipeServer(string pipeName)
+NamedPipeServer::NamedPipeServer(std::string pipeName)
 {
 	this->pipePath = "\\\\.\\PIPE\\" + pipeName;
 	this->pipeName = pipeName;
@@ -39,7 +39,7 @@ bool NamedPipeServer::Start()
 		SetRunningState(true);
 
 		LOG_DEBUG("Starting %s main thread...\n", pipeName.c_str());
-		threadMain = new thread(&NamedPipeServer::RunMainThread, this);
+		threadMain = new std::thread(&NamedPipeServer::RunMainThread, this);
 		LOG_DEBUG("%s main thread started!\n", pipeName.c_str());
 
 		return true;
@@ -99,7 +99,7 @@ bool NamedPipeServer::Stop()
 	try {
 		threadMain->join();
 	}
-	catch (exception &e) {
+	catch (std::exception &e) {
 		printf("%s: main thread exception: %s\n", pipeName.c_str(), e.what());
 	}
 	printf("%s: Main thread closed!\n", pipeName.c_str());
@@ -129,7 +129,7 @@ bool NamedPipeServer::Stop()
 					clients[i].threadRead->join();
 				}
 			}
-			catch (exception &e) {
+			catch (std::exception &e) {
 				printf("   %s: read thread #%d exception: %s\n", pipeName.c_str(), i, e.what());
 			}
 
@@ -151,7 +151,7 @@ bool NamedPipeServer::Stop()
 					clients[i].threadWrite->join();
 				}
 			}
-			catch (exception &e) {
+			catch (std::exception &e) {
 				printf("   %s: write thread #%d exception: %s\n", pipeName.c_str(), i, e.what());
 			}
 
@@ -335,8 +335,8 @@ void NamedPipeServer::RunMainThread()
 			}
 
 			client->server = this;
-			client->threadRead = new thread([&] { client->RunReadThread(); });
-			client->threadWrite = new thread([&] { client->RunWriteThread(); });
+			client->threadRead = new std::thread([&] { client->RunReadThread(); });
+			client->threadWrite = new std::thread([&] { client->RunWriteThread(); });
 			clientIndex++;
 			if (clientIndex >= MAX_CLIENTS) {
 				clientIndex = 0;
@@ -490,7 +490,7 @@ void NamedPipeServer::Client::RunWriteThread()
 				try {
 					result = WriteFile(handlePipe, buffer, length, NULL, &overlapped);
 				}
-				catch (exception &e) {
+				catch (std::exception &e) {
 					LOG_ERROR("WriteFile exception: %s\n", e.what());
 				}
 

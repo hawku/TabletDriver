@@ -19,16 +19,16 @@ private:
 
 public:
 	Tablet *tablet;
-	thread *tabletInputThread;
-	thread *auxInputThread;
+	std::thread *tabletInputThread;
+	std::thread *auxInputThread;
 	HANDLE timer;
 	double timerInterval;
 
-	atomic<bool> _isTimerStopping;
-	mutex lockTimer;
-	mutex lock;
-	chrono::high_resolution_clock::time_point timeBegin;
-	chrono::high_resolution_clock::time_point timeLastTimerProblem;
+	std::atomic<bool> _isTimerStopping;
+	std::mutex lockTimer;
+	std::mutex lock;
+	std::chrono::high_resolution_clock::time_point timeBegin;
+	std::chrono::high_resolution_clock::time_point timeLastTimerProblem;
 	TabletState outputState;
 	TabletState outputStateWrite;
 	InputEmulator inputEmulator;

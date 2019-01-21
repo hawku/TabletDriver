@@ -14,9 +14,9 @@ private:
 	double oldVelocity;
 	double oldAcceleration;
 	int ignoreInvalidReports;
-	chrono::high_resolution_clock::time_point timeBegin;
-	chrono::high_resolution_clock::time_point timeLastReport;
-	chrono::high_resolution_clock::time_point timeNow;
+	std::chrono::high_resolution_clock::time_point timeBegin;
+	std::chrono::high_resolution_clock::time_point timeLastReport;
+	std::chrono::high_resolution_clock::time_point timeNow;
 
 public:
 	Vector2D latestTarget;

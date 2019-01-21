@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "TabletFilterAntiSmoothing.h"
 
 
@@ -29,7 +29,7 @@ TabletFilterAntiSmoothing::TabletFilterAntiSmoothing() {
 
 	ignoreInvalidReports = 0;
 
-	timeBegin = chrono::high_resolution_clock::now();
+	timeBegin = std::chrono::high_resolution_clock::now();
 	timeLastReport = timeBegin;
 	timeNow = timeBegin;
 

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "TabletFilterPeak.h"
 
 #define LOG_MODULE "Peak"

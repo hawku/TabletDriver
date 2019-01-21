@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "CommandHandler.h"
 
 #define LOG_MODULE ""
@@ -18,7 +18,7 @@ void CommandHandler::CreateDeviceCommands() {
 
 		// 
 		if (cmd->valueCount >= 1) {
-			string guid = cmd->GetString(0, "");
+			std::string guid = cmd->GetString(0, "");
 			if (tablet == NULL) {
 				tablet = new Tablet(guid);
 				if (tablet->isOpen) {
@@ -73,7 +73,7 @@ void CommandHandler::CreateDeviceCommands() {
 			USHORT usage = cmd->GetInt(3, 0);
 			bool isExclusive = false;
 			for (int i = 4; i < cmd->valueCount; i += 2) {
-				string parameter = cmd->GetStringLower(i, "");
+				std::string parameter = cmd->GetStringLower(i, "");
 				if (parameter == "exclusive") {
 					isExclusive = cmd->GetBoolean(i + 1, false);
 				}
@@ -257,8 +257,8 @@ void CommandHandler::CreateDeviceCommands() {
 		if (cmd->valueCount <= 0) return false;
 		if (tablet == NULL) return false;
 
-		string stringName = cmd->GetStringLower(0, "");
-		string deviceString;
+		std::string stringName = cmd->GetStringLower(0, "");
+		std::string deviceString;
 
 		// Manufacturer
 		if (stringName.compare(0, 3, "man") == 0) {
@@ -307,10 +307,10 @@ void CommandHandler::CreateDeviceCommands() {
 		// Loop through string ids
 		for (int stringId = stringIdMin; stringId <= stringIdMax; stringId++) {
 			try {
-				string deviceString = tablet->GetDeviceString(stringId);
+				std::string deviceString = tablet->GetDeviceString(stringId);
 				LOG_INFO("  String (%d) = '%s'\n", stringId, deviceString.c_str());
 			}
-			catch (const exception &e) {
+			catch (const std::exception &e) {
 				LOG_ERROR("%s\n", e.what());
 				break;
 			}
@@ -341,10 +341,9 @@ void CommandHandler::CreateDeviceCommands() {
 		if (tablet == NULL) return false;
 
 		int stringId = cmd->GetInt(0, 0);
-		string stringName = cmd->GetStringLower(0, "");
-		string matchString = cmd->GetString(1, "");
-
-		string deviceString = "";
+		std::string stringName = cmd->GetStringLower(0, "");
+		std::string matchString = cmd->GetString(1, "");
+		std::string deviceString = "";
 
 		// Manufacturer
 		if (stringName.compare(0, 3, "man") == 0) {
@@ -366,7 +365,7 @@ void CommandHandler::CreateDeviceCommands() {
 
 		// Request device string 
 		else {
-			stringName = to_string(stringId);
+			stringName = std::to_string(stringId);
 			if (stringId == 0) {
 				LOG_ERROR("Invalid string id!\n");
 				return false;
@@ -374,7 +373,7 @@ void CommandHandler::CreateDeviceCommands() {
 			try {
 				deviceString = tablet->GetDeviceString(stringId);
 			}
-			catch (exception&e) {
+			catch (std::exception&e) {
 				LOG_ERROR("%s\n", e.what());
 			}
 		}

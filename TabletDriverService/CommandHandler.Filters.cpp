@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "CommandHandler.h"
 
 #define LOG_MODULE ""
@@ -23,7 +23,7 @@ void CommandHandler::CreateFilterCommands() {
 		double latency = cmd->GetDouble(0, tablet->smoothing.GetLatency());
 		bool onlyWhenButtonsDown = cmd->GetBoolean(1, tablet->smoothing.onlyWhenButtonsDown);
 
-		string stringValue = cmd->GetStringLower(0, "");
+		std::string stringValue = cmd->GetStringLower(0, "");
 
 		// Off / False
 		if (stringValue == "off" || stringValue == "false") {
@@ -169,7 +169,7 @@ void CommandHandler::CreateFilterCommands() {
 		// Tablet valid?
 		if (!ExecuteCommand("TabletValid")) return false;
 
-		string stringValue = cmd->GetStringLower(0, "");
+		std::string stringValue = cmd->GetStringLower(0, "");
 
 		// Off / False
 		if (stringValue == "off" || stringValue == "false") {
@@ -247,7 +247,7 @@ void CommandHandler::CreateFilterCommands() {
 		// Tablet valid?
 		if (!ExecuteCommand("TabletValid")) return false;
 
-		string stringValue = cmd->GetStringLower(0, "");
+		std::string stringValue = cmd->GetStringLower(0, "");
 
 		// Off / False
 		if (stringValue == "off") {
@@ -374,8 +374,8 @@ void CommandHandler::CreateFilterCommands() {
 		// Tablet valid?
 		if (!ExecuteCommand("TabletValid")) return false;
 
-		string inputFilepath = cmd->GetString(0, "tester_input.txt");
-		string outputFilepath = cmd->GetString(1, "tester_output.txt");
+		std::string inputFilepath = cmd->GetString(0, "tester_input.txt");
+		std::string outputFilepath = cmd->GetString(1, "tester_output.txt");
 		TabletFilterAntiSmoothing *filterAntiSmoothing = NULL;
 		TabletFilterNoiseReduction *filterNoise = NULL;
 		TabletFilterTester *tester = NULL;

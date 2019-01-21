@@ -9,7 +9,7 @@ public:
 	double weight;
 	double threshold;
 	TabletState target;
-	chrono::high_resolution_clock::time_point lastTargetTime;
+	std::chrono::high_resolution_clock::time_point lastTargetTime;
 	bool onlyWhenButtonsDown;
 
 	TabletFilterSmoothing();

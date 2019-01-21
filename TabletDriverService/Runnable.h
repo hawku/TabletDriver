@@ -6,7 +6,7 @@
 class Runnable
 {
 protected:
-	atomic<bool> _isRunning = false;
+	std::atomic<bool> _isRunning = false;
 public:
 	bool IsRunning();
 	void SetRunningState(bool running);

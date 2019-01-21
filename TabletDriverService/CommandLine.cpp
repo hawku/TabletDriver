@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "CommandLine.h"
 
 #define LOG_MODULE "CommandLine"
@@ -7,7 +7,7 @@
 //
 // Constructor
 //
-CommandLine::CommandLine(string text) {
+CommandLine::CommandLine(std::string text) {
 	this->line = text;
 	this->Parse(text);
 }
@@ -21,11 +21,11 @@ CommandLine::~CommandLine() {
 //
 // Command matcher
 //
-bool CommandLine::is(string command) {
+bool CommandLine::is(std::string command) {
 
-	string match = this->command;
-	transform(command.begin(), command.end(), command.begin(), ::tolower);
-	transform(match.begin(), match.end(), match.begin(), ::tolower);
+	std::string match = this->command;
+	std::transform(command.begin(), command.end(), command.begin(), ::tolower);
+	std::transform(match.begin(), match.end(), match.begin(), ::tolower);
 
 	if (command.compare(match) == 0) {
 		return true;
@@ -36,15 +36,15 @@ bool CommandLine::is(string command) {
 //
 // Get command in lower case
 //
-string CommandLine::GetCommandLowerCase() {
-	transform(command.begin(), command.end(), command.begin(), ::tolower);
+std::string CommandLine::GetCommandLowerCase() {
+	std::transform(command.begin(), command.end(), command.begin(), ::tolower);
 	return command;
 }
 
 //
 // Get command parameters as as string
 //
-string CommandLine::GetParameterString() {
+std::string CommandLine::GetParameterString() {
 	if (command.size() < line.size())
 		return line.substr(command.size() + 1);
 	return "";
@@ -54,10 +54,10 @@ string CommandLine::GetParameterString() {
 //
 // Parse
 //
-int CommandLine::Parse(string line) {
+int CommandLine::Parse(std::string line) {
 
-	string item = "";
-	vector<string> items;
+	std::string item = "";
+	std::vector<std::string> items;
 
 	int lineLength = line.size();
 	int itemLength = 0;
@@ -204,13 +204,13 @@ int CommandLine::Parse(string line) {
 //
 // Parse hex string
 //
-string CommandLine::ParseHex(string str) {
+std::string CommandLine::ParseHex(std::string str) {
 	if (str.size() >= 3 && str[0] == '0' && str[1] == 'x') {
 		try {
-			string tmp = str.substr(2, str.size() - 2);
-			return to_string(stol(tmp, 0, 16));
+			std::string tmp = str.substr(2, str.size() - 2);
+			return std::to_string(stol(tmp, 0, 16));
 		}
-		catch (exception) {
+		catch (std::exception) {
 		}
 	}
 	return str;
@@ -219,7 +219,7 @@ string CommandLine::ParseHex(string str) {
 //
 // Parse bit string (e.g. 0b10100101)
 //
-string CommandLine::ParseBits(string str) {
+std::string CommandLine::ParseBits(std::string str) {
 	if (str.size() >= 3 && str[0] == '0' && str[1] == 'b') {
 		int length = str.size();
 		unsigned int output = 0;
@@ -230,9 +230,9 @@ string CommandLine::ParseBits(string str) {
 					output |= 1 << (length - (i + 1));
 				}
 			}
-			return to_string(output);
+			return std::to_string(output);
 		}
-		catch (exception) {
+		catch (std::exception) {
 		}
 	}
 	return str;
@@ -241,7 +241,7 @@ string CommandLine::ParseBits(string str) {
 //
 // Parse hex and bits strings
 //
-string CommandLine::ParseHexBits(string str)
+std::string CommandLine::ParseHexBits(std::string str)
 {
 	return ParseBits(ParseHex(str));
 }
@@ -250,7 +250,7 @@ string CommandLine::ParseHexBits(string str)
 //
 // Get string value
 //
-string CommandLine::GetString(int index, string defaultValue) {
+std::string CommandLine::GetString(int index, std::string defaultValue) {
 	if (index < valueCount) {
 		return values[index];
 	}
@@ -261,8 +261,8 @@ string CommandLine::GetString(int index, string defaultValue) {
 //
 // Get lowercase string value
 //
-string CommandLine::GetStringLower(int index, string defaultValue) {
-	string str = GetString(index, defaultValue);
+std::string CommandLine::GetStringLower(int index, std::string defaultValue) {
+	std::string str = GetString(index, defaultValue);
 	transform(str.begin(), str.end(), str.begin(), ::tolower);
 	return str;
 }
@@ -277,7 +277,7 @@ int CommandLine::GetInt(int index, int defaultValue) {
 			auto value = stoi(ParseHexBits(values[index]));
 			return value;
 		}
-		catch (exception) {}
+		catch (std::exception) {}
 	}
 	return defaultValue;
 }
@@ -292,7 +292,7 @@ long CommandLine::GetLong(int index, long defaultValue) {
 			auto value = stol(ParseHexBits(values[index]));
 			return value;
 		}
-		catch (exception) {}
+		catch (std::exception) {}
 	}
 	return defaultValue;
 }
@@ -307,7 +307,7 @@ double CommandLine::GetDouble(int index, double defaultValue) {
 			auto value = stod(ParseHexBits(values[index]));
 			return value;
 		}
-		catch (exception) {}
+		catch (std::exception) {}
 	}
 	return defaultValue;
 }
@@ -322,7 +322,7 @@ float CommandLine::GetFloat(int index, float defaultValue) {
 			auto value = stof(ParseHexBits(values[index]));
 			return value;
 		}
-		catch (exception) {}
+		catch (std::exception) {}
 	}
 	return defaultValue;
 }
@@ -333,7 +333,7 @@ float CommandLine::GetFloat(int index, float defaultValue) {
 //
 bool CommandLine::GetBoolean(int index, bool defaultValue) {
 	if (GetInt(index, 0) > 0) return true;
-	string str = GetStringLower(index, "");
+	std::string str = GetStringLower(index, "");
 	if (str == "true") return true;
 	if (str == "on") return true;
 	if (str == "false") return false;

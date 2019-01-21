@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "DataFormatter.h"
 
 //#define LOG_MODULE "DataFormatter"
@@ -35,7 +35,12 @@ bool DataFormatter::Format(void * targetBuffer, void * sourceBuffer)
 		byte &= instruction->sourceBitMask;
 
 		// Shift
-		byte <<= instruction->sourceBitShift;
+		if (instruction->sourceBitShift < 0) {
+			byte >>= -instruction->sourceBitShift;
+		}
+		else {
+			byte <<= instruction->sourceBitShift;
+		}
 
 		// Target bit mask
 		byte &= instruction->targetBitMask;
@@ -48,15 +53,18 @@ bool DataFormatter::Format(void * targetBuffer, void * sourceBuffer)
 		default: break;
 		}
 
+		
 		/*
-		LOG_DEBUG("  INSTR T=%d TM=0x%02X S=%d SM=0x%02X SS=%d\n",
+		LOG_DEBUG("  INSTR T=%d TM=0x%02X S=%d SM=0x%02X SS=%d R=%d\n",
 			instruction->targetByte,
 			instruction->targetBitMask,
 			instruction->sourceByte,
 			instruction->sourceBitMask,
-			instruction->sourceBitShift
+			instruction->sourceBitShift,
+			byte
 		);
 		*/
+		
 	}
 
 	return true;

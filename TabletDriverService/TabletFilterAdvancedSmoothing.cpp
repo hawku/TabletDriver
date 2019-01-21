@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "TabletFilterAdvancedSmoothing.h"
 
 #define LOG_MODULE "AdvanceSmoothing"
@@ -24,7 +24,7 @@ TabletFilterAdvancedSmoothing::TabletFilterAdvancedSmoothing() {
 		);
 	}
 
-	lastTargetTime = chrono::high_resolution_clock::now();
+	lastTargetTime = std::chrono::high_resolution_clock::now();
 }
 
 
@@ -98,7 +98,7 @@ void TabletFilterAdvancedSmoothing::OnTimerIntervalChange(double oldInterval, do
 // Update
 void TabletFilterAdvancedSmoothing::Update() {
 
-	double timeDelta = (chrono::high_resolution_clock::now() - outputState.time).count() / 1000000.0;
+	double timeDelta = (std::chrono::high_resolution_clock::now() - outputState.time).count() / 1000000.0;
 
 	//
 	// Do not run the filter if the last state is older than 100 milliseconds.

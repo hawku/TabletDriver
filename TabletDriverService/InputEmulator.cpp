@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "InputEmulator.h"
 
 #define LOG_MODULE "InputEmulator"
@@ -13,6 +13,18 @@ InputEmulator::InputEmulator()
 
 InputEmulator::~InputEmulator()
 {
+	if (isLowLatencyAudioForced && pAudioClient3 != NULL) {
+		try {
+			pAudioClient3->Stop();
+			SAFE_RELEASE(pAudioClient3);
+			printf("Low latency audio client stopped!\n");
+		}
+		catch (std::exception &e) {
+			printf("ERROR: Couldn't stop low latency audio client! %s\n", e.what());
+			SAFE_RELEASE(pAudioClient3);
+		}
+		isLowLatencyAudioForced = false;
+	}
 }
 
 //
@@ -21,30 +33,30 @@ InputEmulator::~InputEmulator()
 void InputEmulator::CreateKeyMap()
 {
 	// Disabled
-	AddKey("DISABLED", "Disabled", 0, 0);
+	AddKey("DISABLED", "Disabled", 0);
 
 	// Mouse buttons
-	AddKey("MOUSE1", "Mouse 1", 0, MouseButtons::Mouse1);
-	AddKey("MOUSE2", "Mouse 2", 0, MouseButtons::Mouse2);
-	AddKey("MOUSE3", "Mouse 3", 0, MouseButtons::Mouse3);
-	AddKey("MOUSE4", "Mouse 4", 0, MouseButtons::Mouse4);
-	AddKey("MOUSE5", "Mouse 5", 0, MouseButtons::Mouse5);
+	AddMouse("MOUSE1", "Mouse 1", MouseButtons::Mouse1);
+	AddMouse("MOUSE2", "Mouse 2", MouseButtons::Mouse2);
+	AddMouse("MOUSE3", "Mouse 3", MouseButtons::Mouse3);
+	AddMouse("MOUSE4", "Mouse 4", MouseButtons::Mouse4);
+	AddMouse("MOUSE5", "Mouse 5", MouseButtons::Mouse5);
 
 	// Mouse scroll
-	AddKey("SCROLLUP", "Mouse Scroll Up", 0, MouseButtons::MouseScrollUp);
-	AddKey("SCROLLDOWN", "Mouse Scroll Down", 0, MouseButtons::MouseScrollDown);
-	AddKey("SCROLLLEFT", "Mouse Scroll Left", 0, MouseButtons::MouseScrollLeft);
-	AddKey("SCROLLRIGHT", "Mouse Scroll Right", 0, MouseButtons::MouseScrollRight);
+	AddMouse("SCROLLUP", "Mouse Scroll Up", MouseButtons::MouseScrollUp);
+	AddMouse("SCROLLDOWN", "Mouse Scroll Down", MouseButtons::MouseScrollDown);
+	AddMouse("SCROLLLEFT", "Mouse Scroll Left", MouseButtons::MouseScrollLeft);
+	AddMouse("SCROLLRIGHT", "Mouse Scroll Right", MouseButtons::MouseScrollRight);
 
 
 	// Mouse scroll
-	AddKey("MOUSESCROLLV", "Mouse Scroll Vertical", 0, MouseButtons::MouseScrollVertical);
-	AddKey("MOUSESCROLLH", "Mouse Scroll Horizontal", 0, MouseButtons::MouseScrollHorizontal);
-	AddKey("MOUSESCROLLB", "Mouse Scroll Both", 0, MouseButtons::MouseScrollBoth);
+	AddMouse("MOUSESCROLLV", "Mouse Scroll Vertical", MouseButtons::MouseScrollVertical);
+	AddMouse("MOUSESCROLLH", "Mouse Scroll Horizontal", MouseButtons::MouseScrollHorizontal);
+	AddMouse("MOUSESCROLLB", "Mouse Scroll Both", MouseButtons::MouseScrollBoth);
 
 	// Media volume control
-	AddKey("VOLUMECONTROL", "Media Volume Control", 0, MouseButtons::MediaVolumeControl);
-	AddKey("BALANCECONTROL", "Media Balance Control", 0, MouseButtons::MediaBalanceControl);
+	inputMap["VOLUMECONTROL"] = new InputAction(InputActionType::ActionTypeAudioVolumeControl, "Media Volume Control");
+	inputMap["BALANCECONTROL"] = new InputAction(InputActionType::ActionTypeAudioBalanceControl, "Media Balance Control");
 
 	// Shift
 	AddKey("SHIFT", "Shift", VK_SHIFT);
@@ -319,39 +331,46 @@ void InputEmulator::CreateVirtualKeyMap() {
 
 
 //
-// Add key to key map
+// Add key to input map 
 //
-void InputEmulator::AddKey(string key, string keyName, WORD virtualCode)
+void InputEmulator::AddKey(std::string inputName, std::string description, WORD virtualCode)
 {
-	AddKey(key, keyName, virtualCode, 0);
-}
-
-
-//
-// Add key to key map 
-//
-void InputEmulator::AddKey(string key, string keyName, WORD virtualCode, int button)
-{
-	std::transform(key.begin(), key.end(), key.begin(), ::toupper);
-	if (keyMap.count(key) <= 0) {
-		keyMap[key] = new KeyMapValue(keyName, virtualCode, button);
-		keys.push_back(key);
+	std::transform(inputName.begin(), inputName.end(), inputName.begin(), ::toupper);
+	if (inputMap.count(inputName) <= 0) {
+		inputMap[inputName] = new InputAction(InputActionType::ActionTypeKeyboard, description);
+		inputMap[inputName]->virtualKey = virtualCode;
+		inputs.push_back(inputName);
 	}
 }
 
 
 //
+// Add mouse action to input map 
+//
+void InputEmulator::AddMouse(std::string inputName, std::string description, int button)
+{
+	std::transform(inputName.begin(), inputName.end(), inputName.begin(), ::toupper);
+	if (inputMap.count(inputName) <= 0) {
+		inputMap[inputName] = new InputAction(InputActionType::ActionTypeMouse, description);
+		inputMap[inputName]->mouseButton = button;
+		inputs.push_back(inputName);
+	}
+}
+
+
+
+//
 // Get keycode
 //
-WORD InputEmulator::GetKeyCode(string key) {
+WORD InputEmulator::GetKeyCode(std::string key) {
 
 	WORD vkCode = 0;
 
 	// Convert the key string to uppercase
 	std::transform(key.begin(), key.end(), key.begin(), ::toupper);
 
-	if (keyMap.count(key) > 0 && keyMap[key]->virtualKey > 0) {
-		vkCode = keyMap[key]->virtualKey;
+	if (inputMap.count(key) > 0 && inputMap[key]->virtualKey > 0) {
+		vkCode = inputMap[key]->virtualKey;
 	}
 
 	return vkCode;
@@ -462,7 +481,7 @@ void InputEmulator::MouseMoveTo(int x, int y) {
 //
 // Set keyboard key state with key name
 //
-void InputEmulator::SetKeyState(string key, bool down) {
+void InputEmulator::SetKeyState(std::string key, bool down) {
 	INPUT input = { 0 };
 	WORD vkCode = 0;
 	vkCode = GetKeyCode(key);
@@ -493,83 +512,19 @@ void InputEmulator::SetKeyState(WORD vkCode, bool down)
 //
 // Set mouse or keyboard input states
 //
-void InputEmulator::SetInputStates(string inputs, bool down)
+void InputEmulator::SetInputStates(std::string inputs, bool down)
 {
-	string input;
-	std::transform(inputs.begin(), inputs.end(), inputs.begin(), ::toupper);
-	stringstream stringStream(inputs);
-	KeyMapValue *keyMapValue;
-
-	while (getline(stringStream, input, '+')) {
-
-		// Key in map?
-		if (keyMap.count(input) > 0) {
-
-			keyMapValue = keyMap[input];
-
-			// Virtual key?
-			if (keyMapValue->virtualKey > 0) {
-
-				// Set keyboard key state
-				SetKeyState(keyMapValue->virtualKey, down);
-			}
-
-			// Mouse button?
-			else if (keyMapValue->mouseButton > 0 && keyMapValue->mouseButton < 5) {
-
-				// Set mouse button state
-				MouseSet(keyMapValue->mouseButton, down);
-			}
-
-			// Mouse scroll
-			else if (keyMapValue->mouseButton >= 0x81 && keyMapValue->mouseButton <= 0x84) {
-
-				switch (keyMapValue->mouseButton)
-				{
-				case MouseButtons::MouseScrollUp: MouseScroll(-1, true); break;
-				case MouseButtons::MouseScrollDown: MouseScroll(1, true); break;
-				case MouseButtons::MouseScrollLeft: MouseScroll(-1, false); break;
-				case MouseButtons::MouseScrollRight: MouseScroll(1, false); break;
-				default:
-					break;
-				}
-			}
-		}
-
-		//
-		// Precise volume control
-		//
-		else if (input.compare(0, 8, "VOLUMEUP") == 0 && input.size() > 8 && down) {
-			float value = 0;
-			try {
-				// Parse number from end of the string
-				value = stof(input.substr(8, input.size() - 8));
-				VolumeChange(value / 100.0f);
-			}
-			catch (exception& e) {
-				LOG_ERROR("Volume control error! %s\n", e.what());
-			}
-		}
-		else if (input.compare(0, 10, "VOLUMEDOWN") == 0 && input.size() > 10 && down) {
-			float value = 0;
-			try {
-				// Parse number from end of the string
-				value = stof(input.substr(10, input.size() - 10));
-				VolumeChange(-value / 100.0f);
-			}
-			catch (exception& e) {
-				LOG_ERROR("Volume control error! %s\n", e.what());
-			}
-		}
-	}
-
+	InputActionCollection collection;
+	collection.emulator = this;
+	collection.Add(inputs);
+	collection.Execute(true, true, down);
 }
 
 
 //
 // Press keyboard key
 //
-void InputEmulator::KeyPress(string keys, int time) {
+void InputEmulator::KeyPress(std::string keys, int time) {
 	SetInputStates(keys, true);
 	Sleep(time);
 	SetInputStates(keys, false);
@@ -586,18 +541,18 @@ bool InputEmulator::CreateEndpointVolume()
 	try {
 		// Device enumerator
 		hresult = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pDeviceEnumerator));
-		CHECK_HRESULT(hresult, pDeviceEnumerator);
+		CHECK_HRESULT(hresult, "MMDeviceEnumerator");
 
 		// Default audio endpoint
 		hresult = pDeviceEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &pDefaultAudioDevice);
-		CHECK_HRESULT(hresult, pDefaultAudioDevice);
+		CHECK_HRESULT(hresult, "GetDefaultAudioEndpoint");
 
 		// Endpoint volume
 		hresult = pDefaultAudioDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL, (LPVOID *)&pAudioEndpointVolume);
-		CHECK_HRESULT(hresult, pAudioEndpointVolume);
+		CHECK_HRESULT(hresult, "IAudioEndpointVolume");
 	}
-	catch (exception &e) {
-		LOG_ERROR("Audio endpoint exception: %s\n", e.what());
+	catch (std::exception &e) {
+		LOG_ERROR("Couldn't create audio endpoint volume! Error at %s\n", e.what());
 		SAFE_RELEASE(pDeviceEnumerator);
 		SAFE_RELEASE(pDefaultAudioDevice);
 		SAFE_RELEASE(pAudioEndpointVolume);
@@ -695,7 +650,7 @@ void InputEmulator::VolumeBalance(float newBalance)
 				}
 			}
 		}
-		catch (exception &e) {
+		catch (std::exception &e) {
 			LOG_ERROR("Can't set audio balance! %s\n", e.what());
 		}
 	}
@@ -740,20 +695,447 @@ void InputEmulator::VolumeChange(float delta)
 
 
 //
-// Key map value constructors
+// Force low latency audio (Windows 10)
 //
-InputEmulator::KeyMapValue::KeyMapValue()
+int InputEmulator::ForceLowLatencyAudio()
 {
+	// Lock audio control
+	std::unique_lock<std::mutex> mlock(lockAudio);
+
+	if (isLowLatencyAudioForced) return 0;
+
+	HRESULT hresult;
+	IMMDeviceEnumerator* pEnumerator = NULL;
+	IMMDevice* pDevice = NULL;
+	WAVEFORMATEX* pFormat = NULL;
+
+	UINT32 defaultPeriodInFrames = 0;
+	UINT32 fundamentalPeriodInFrames = 0;
+	UINT32 minPeriodInFrames = 0;
+	UINT32 maxPeriodInFrames = 0;
+	UINT32 beforePeriodInFrames = 0;
+	UINT32 nowPeriodInFrames = 0;
+
+	bool debug = logger.IsDebugOutputEnabled();
+
+	try {
+
+		// Create MMDeviceEnumerator
+		hresult = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), reinterpret_cast<void**>(&pEnumerator));
+		CHECK_HRESULT(hresult, "MMDeviceEnumerator");
+
+		// Get default audio endpoint
+		hresult = pEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &pDevice);
+		CHECK_HRESULT(hresult, "GetDefaultAudioEndpoint");
+
+		// Create AudioClient3
+		hresult = pDevice->Activate(__uuidof(IAudioClient3), CLSCTX_ALL, NULL, reinterpret_cast<void**>(&pAudioClient3));
+		CHECK_HRESULT(hresult, "IAudioClient3");
+
+		// Get audio format
+		hresult = pAudioClient3->GetMixFormat(&pFormat);
+		CHECK_HRESULT(hresult, "GetMixFormat");
+
+		if (debug) {
+			LOG_DEBUG("Format.nChannels = %d\n", pFormat->nChannels);
+			LOG_DEBUG("Format.nSamplesPerSec = %d\n", pFormat->nSamplesPerSec);
+			LOG_DEBUG("Format.wBitsPerSample = %d\n", pFormat->wBitsPerSample);
+			LOG_DEBUG("Format.nAvgBytesPerSec = %d\n", pFormat->nAvgBytesPerSec);
+			LOG_DEBUG("Format.nBlockAlign = %d\n", pFormat->nBlockAlign);
+			LOG_DEBUG("Format.wFormatTag = %d\n", pFormat->wFormatTag);
+		}
+
+
+		// Get shared mode period settings
+		hresult = pAudioClient3->GetSharedModeEnginePeriod(
+			pFormat,
+			&defaultPeriodInFrames,
+			&fundamentalPeriodInFrames,
+			&minPeriodInFrames,
+			&maxPeriodInFrames);
+		CHECK_HRESULT(hresult, "GetSharedModeEnginePeriod");
+
+		if (debug) {
+			LOG_DEBUG("DefaultPeriodInFrames = %d\n", defaultPeriodInFrames);
+			LOG_DEBUG("FundamentalPeriodInFrames = %d\n", fundamentalPeriodInFrames);
+			LOG_DEBUG("MinPeriodInFrames = %d\n", minPeriodInFrames);
+			LOG_DEBUG("MaxPeriodInFrames = %d\n", maxPeriodInFrames);
+		}
+
+		beforePeriodInFrames = 0;
+		hresult = pAudioClient3->GetCurrentSharedModeEnginePeriod(&pFormat, &beforePeriodInFrames);
+		CHECK_HRESULT(hresult, "GetCurrentSharedModeEnginePeriod");
+		if (debug) {
+			LOG_DEBUG("BeforePeriodInFrames = %d\n", beforePeriodInFrames);
+		}
+
+		hresult = pAudioClient3->InitializeSharedAudioStream(
+			0,
+			minPeriodInFrames,
+			pFormat,
+			NULL);
+		CHECK_HRESULT(hresult, "InitializeSharedAudioStream");
+
+
+		hresult = pAudioClient3->Start();
+		CHECK_HRESULT(hresult, "AudioClient3 start");
+
+		nowPeriodInFrames = 0;
+		hresult = pAudioClient3->GetCurrentSharedModeEnginePeriod(&pFormat, &nowPeriodInFrames);
+		CHECK_HRESULT(hresult, "GetCurrentSharedModeEnginePeriod");
+
+		if (debug) {
+			LOG_DEBUG("NowPeriodInFrames = %d\n", nowPeriodInFrames);
+			LOG_DEBUG("Latency Min = %0.3f ms\n",
+				(double)minPeriodInFrames / (double)pFormat->nSamplesPerSec * 1000.0
+			);
+			LOG_DEBUG("Latency Max = %0.3f ms\n",
+				(double)maxPeriodInFrames / (double)pFormat->nSamplesPerSec * 1000.0
+			);
+			LOG_DEBUG("Latency Before = %0.3f ms\n",
+				(double)beforePeriodInFrames / (double)pFormat->nSamplesPerSec * 1000.0
+			);
+			LOG_DEBUG("Latency Now = %0.3f ms\n",
+				(double)nowPeriodInFrames / (double)pFormat->nSamplesPerSec * 1000.0
+			);
+		}
+
+		SAFE_RELEASE(pEnumerator);
+		SAFE_RELEASE(pDevice);
+		if (pFormat != NULL) {
+			CoTaskMemFree(pFormat);
+		}
+
+		isLowLatencyAudioForced = true;
+	}
+	catch (std::exception &e) {
+		isLowLatencyAudioForced = false;
+		LOG_ERROR("Couldn't force low latency audio! %s failed!\n", e.what());
+		SAFE_RELEASE(pEnumerator);
+		SAFE_RELEASE(pDevice);
+		SAFE_RELEASE(pAudioClient3);
+		if (pFormat != NULL) {
+			CoTaskMemFree(pFormat);
+		}
+		return -1;
+	}
+
+	return 1;
 }
-InputEmulator::KeyMapValue::KeyMapValue(string name, WORD key, int button)
+
+
+//
+// InputAction constructor
+//
+InputEmulator::InputAction::InputAction()
 {
-	this->name = name;
-	this->virtualKey = key;
-	this->mouseButton = button;
-}
-InputEmulator::KeyMapValue::KeyMapValue(string name, WORD key)
-{
-	this->name = name;
-	this->virtualKey = key;
+	this->virtualKey = 0;
 	this->mouseButton = 0;
+	this->numericValue = 0;
+	this->stringValue = "";
+}
+InputEmulator::InputAction::InputAction(InputActionType type, std::string description) : InputAction()
+{
+	this->type = type;
+	this->description = description;
+}
+
+//
+// InputAction execute
+//
+void InputEmulator::InputAction::Execute(bool isPressed, bool isReleased, bool isDown)
+{
+
+	// Do not run if not button is not pressed or released
+	if (!isPressed && !isReleased) {
+		return;
+	}
+
+	// Debug message
+	if (logger.IsDebugOutputEnabled()) {
+		LOG_DEBUG("Execute '%s' P=%s, R=%s, D=%s, T=%d, K=%d, M=%d, N=%0.2f\n",
+			description.c_str(),
+			isPressed ? "True" : "False",
+			isReleased ? "True" : "False",
+			isDown ? "True" : "False",
+			type,
+			virtualKey,
+			mouseButton,
+			numericValue
+		);
+	}
+
+
+	//
+	// Keyboard action
+	//
+	if (type == InputActionType::ActionTypeKeyboard && virtualKey > 0) {
+		emulator->SetKeyState(virtualKey, isDown);
+	}
+
+	//
+	// Mouse button
+	//
+	else if (type == InputActionType::ActionTypeMouse &&
+		mouseButton >= MouseButtons::Mouse1 &&
+		mouseButton <= MouseButtons::Mouse5) {
+		emulator->MouseSet(mouseButton, isDown);
+	}
+
+	//
+	// Mouse scroll
+	//
+	else if (
+		type == InputActionType::ActionTypeMouse &&
+		mouseButton >= MouseButtons::MouseScrollUp &&
+		mouseButton <= MouseButtons::MouseScrollRight &&
+		isPressed) {
+
+		switch (mouseButton)
+		{
+		case MouseButtons::MouseScrollUp: emulator->MouseScroll(1, true); break;
+		case MouseButtons::MouseScrollDown: emulator->MouseScroll(-1, true); break;
+		case MouseButtons::MouseScrollLeft: emulator->MouseScroll(-1, false); break;
+		case MouseButtons::MouseScrollRight: emulator->MouseScroll(1, false); break;
+		default:
+			break;
+		}
+	}
+
+	//
+	// Audio volume change
+	//
+	else if (type == InputActionType::ActionTypeAudioVolumeChange && numericValue != 0 && isPressed) {
+		try {
+			emulator->VolumeChange((float)numericValue);
+		}
+		catch (std::exception& e) {
+			LOG_ERROR("Volume control error! %s\n", e.what());
+		}
+	}
+
+	//
+	// Start application
+	//
+	else if (type == InputActionType::ActionTypeStartApplication && stringValue.size() > 0 && isPressed) {
+
+		try {
+			SHELLEXECUTEINFOA executeInfo;
+			executeInfo.cbSize = sizeof(SHELLEXECUTEINFOA);
+			executeInfo.fMask = NULL;
+			executeInfo.lpParameters = NULL;
+			executeInfo.lpDirectory = NULL;
+			executeInfo.hInstApp = NULL;
+			executeInfo.hwnd = GetDesktopWindow();
+			executeInfo.lpVerb = "open";
+			executeInfo.lpFile = stringValue.c_str();
+			executeInfo.nShow = SW_SHOWDEFAULT;
+
+			bool result = ShellExecuteExA(&executeInfo);
+			DWORD errorCode = GetLastError();
+
+			// Errors
+			if (!result && errorCode > 0) {
+
+				// Get error text
+				LPSTR errorTextBuffer = nullptr;
+				size_t size = FormatMessageA(
+					FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+					NULL,
+					errorCode,
+					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+					(LPSTR)&errorTextBuffer, 0,
+					NULL
+				);
+				std::string errorText(errorTextBuffer, size);
+				LocalFree(errorTextBuffer);
+
+				// Throw
+				throw std::exception(errorText.c_str());
+			}
+		}
+		catch (std::exception& e) {
+			LOG_ERROR("Can't open \"%s\". Error: %s\n", stringValue.c_str(), e.what());
+		}
+	}
+
+}
+
+
+
+//
+// InputActionCollection constructor
+//
+InputEmulator::InputActionCollection::InputActionCollection()
+{
+}
+InputEmulator::InputActionCollection::InputActionCollection(InputEmulator *emulator)
+{
+	this->emulator = emulator;
+}
+
+//
+// InputActionCollection destructor
+//
+InputEmulator::InputActionCollection::~InputActionCollection()
+{
+	Clear();
+}
+
+//
+// InputActionCollection add action
+//
+void InputEmulator::InputActionCollection::Add(InputAction *action)
+{
+	action->emulator = emulator;
+	actions.push_back(action);
+}
+
+//
+// InputActionCollection add action by using a string
+//
+void InputEmulator::InputActionCollection::Add(std::string actions)
+{
+	std::string originalText = actions;
+	std::transform(actions.begin(), actions.end(), actions.begin(), ::toupper);
+	std::stringstream stringStream(actions);
+	std::string input;
+	InputAction *inputAction = NULL;
+	InputAction *newInputAction = NULL;
+
+	while (getline(stringStream, input, '+')) {
+
+		// Input in the map?
+		if (emulator->inputMap.count(input) > 0) {
+			inputAction = emulator->inputMap[input];
+
+			newInputAction = new InputAction(inputAction->type, inputAction->description);
+			newInputAction->mouseButton = inputAction->mouseButton;
+			newInputAction->virtualKey = inputAction->virtualKey;
+			newInputAction->numericValue = inputAction->numericValue;
+			newInputAction->stringValue = inputAction->stringValue;
+			Add(newInputAction);
+		}
+
+		//
+		// Precise volume control
+		//
+		else if (input.compare(0, 8, "VOLUMEUP") == 0 && input.size() > 8) {
+			double value = 0;
+			try {
+				// Parse number from end of the string
+				value = stod(input.substr(8, input.size() - 8));
+
+				// Create input action
+				newInputAction = new InputAction(InputActionType::ActionTypeAudioVolumeChange, "Volume Up");
+				newInputAction->numericValue = value / 100.0;
+				Add(newInputAction);
+			}
+			catch (std::exception& e) {
+				LOG_ERROR("Volume control error! %s\n", e.what());
+			}
+		}
+		else if (input.compare(0, 10, "VOLUMEDOWN") == 0 && input.size() > 10) {
+			float value = 0;
+			try {
+				// Parse number from end of the string
+				value = stof(input.substr(10, input.size() - 10));
+
+				// Create input action
+				newInputAction = new InputAction(InputActionType::ActionTypeAudioVolumeChange, "Volume Down");
+				newInputAction->numericValue = -value / 100.0;
+				Add(newInputAction);
+			}
+			catch (std::exception& e) {
+				LOG_ERROR("Volume control error! %s\n", e.what());
+			}
+		}
+
+
+		//
+		// Run application or open a file/folder
+		//
+		else if (input.compare(0, 4, "RUN ") == 0) {
+
+			// Get path
+			std::string path = originalText.substr(4, originalText.size() - 4);
+
+			// Create input action
+			newInputAction = new InputAction(InputActionType::ActionTypeStartApplication, "Run: " + path);
+			newInputAction->stringValue = path;
+			Add(newInputAction);
+
+		}
+	}
+
+}
+
+
+//
+// InputActionCollection execute actions
+//
+void InputEmulator::InputActionCollection::Execute(bool isPressed, bool isReleased, bool isDown)
+{
+	// Do not run if not button is not pressed or released
+	if (!isPressed && !isReleased) {
+		return;
+	}
+
+	// Execute in normal order when pressed
+	if (isPressed) {
+		for (InputAction *inputAction : actions) {
+			inputAction->Execute(isPressed, isReleased, isDown);
+		}
+	}
+
+	// Execute in reverse order when released
+	else if (isReleased) {
+		int startIndex = actions.size() - 1;
+		for (int i = startIndex; i >= 0; i--) {
+			actions[i]->Execute(isPressed, isReleased, isDown);
+		}
+	}
+
+}
+
+//
+// InputActionCollection clear
+//
+void InputEmulator::InputActionCollection::Clear()
+{
+	// Destroy actions
+	for (InputAction *action : actions) {
+		if (action != NULL)
+			delete action;
+	}
+	actions.clear();
+}
+
+
+//
+// InputActionCollection count
+//
+int InputEmulator::InputActionCollection::Count()
+{
+	return actions.size();
+}
+
+
+//
+// InputActionCollection to string
+//
+std::string InputEmulator::InputActionCollection::ToString()
+{
+	std::string str = "";
+	bool first = true;
+	for (InputAction *action : actions) {
+		if (first) {
+			first = false;
+		}
+		else {
+			str += " + ";
+		}
+		str += action->description;
+	}
+	return str;
 }

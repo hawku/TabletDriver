@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "HIDDevice.h"
 
 #define LOG_MODULE "HIDDevice"
@@ -33,7 +33,7 @@ HIDDevice::~HIDDevice() {
 }
 
 
-bool GetHIDStrings(HANDLE deviceHandle, string *manufacturerName, string *productName, string *serialNumber) {
+bool GetHIDStrings(HANDLE deviceHandle, std::string *manufacturerName, std::string *productName, std::string *serialNumber) {
 	BYTE buffer[1024];
 	int i;
 
@@ -82,9 +82,9 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 	PHIDP_PREPARSED_DATA hidPreparsedData;
 	HIDD_ATTRIBUTES hidAttributes;
 	HIDP_CAPS hidCapabilities;
-	string manufacturerName;
-	string productName;
-	string serialNumber;
+	std::string manufacturerName;
+	std::string productName;
+	std::string serialNumber;
 
 	HANDLE deviceHandle;
 	HANDLE resultHandle = 0;
@@ -199,7 +199,7 @@ bool HIDDevice::OpenDevice(HANDLE *handle, USHORT vendorId, USHORT productId, US
 					SetCommTimeouts(deviceHandle, &commTimeOuts);
 
 					_devicePathW = deviceInterfaceDetailData->DevicePath;
-					string str(_devicePathW.begin(), _devicePathW.end());
+					std::string str(_devicePathW.begin(), _devicePathW.end());
 					_devicePath = str;
 
 					resultHandle = deviceHandle;
@@ -288,14 +288,14 @@ int HIDDevice::StringRequest(UCHAR stringId, UCHAR * buffer, int length)
 	return 0;
 }
 
-string HIDDevice::GetString(UCHAR stringId)
+std::string HIDDevice::GetString(UCHAR stringId)
 {
-	string resultString = "";
+	std::string resultString = "";
 	UCHAR buffer[256];
 	int bytesRead = 0;
 
 	if (isReading) {
-		throw runtime_error("HID string request can't be sent when the device is in use!");
+		throw std::runtime_error("HID string request can't be sent when the device is in use!");
 	}
 	else {
 		bytesRead = StringRequest(stringId, buffer, 256);
@@ -312,19 +312,19 @@ string HIDDevice::GetString(UCHAR stringId)
 }
 
 // Get HID manufacturer name
-string HIDDevice::GetManufacturerName()
+std::string HIDDevice::GetManufacturerName()
 {
 	return _manufacturerName;
 }
 
 // Get HID product name
-string HIDDevice::GetProductName()
+std::string HIDDevice::GetProductName()
 {
 	return _productName;
 }
 
 // Get HID serial number
-string HIDDevice::GetSerialNumber()
+std::string HIDDevice::GetSerialNumber()
 {
 	return _serialNumber;
 }
@@ -356,7 +356,7 @@ void HIDDevice::CloseDevice() {
 			SAFE_CLOSE_HANDLE(_deviceHandle);
 
 		}
-		catch (exception) {
+		catch (std::exception) {
 			SAFE_CLOSE_HANDLE(_deviceHandle);
 		}
 	}

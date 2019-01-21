@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "TabletFilterNoiseReduction.h"
 
 
@@ -14,7 +14,7 @@ TabletFilterNoiseReduction::TabletFilterNoiseReduction() {
 	distanceMaximum = 1;
 	iterations = 10;
 	reportRate = 1;
-	timeBegin = chrono::high_resolution_clock::now();
+	timeBegin = std::chrono::high_resolution_clock::now();
 	timeLastReport = timeBegin;
 	timeNow = timeBegin;
 	outputPosition = &outputState.position;

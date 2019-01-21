@@ -1,10 +1,10 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "NamedPipeInput.h"
 
 #define LOG_MODULE "PipeInput"
 #include "Logger.h"
 
-NamedPipeInput::NamedPipeInput(string pipeName) : NamedPipeServer(pipeName)
+NamedPipeInput::NamedPipeInput(std::string pipeName) : NamedPipeServer(pipeName)
 {
 
 }
@@ -28,7 +28,7 @@ void NamedPipeInput::ProcessData(int clientId, BYTE *buffer, int length)
 	cmdBuffer[length] = 0;
 
 	// Create command string
-	string commandText = "";
+	std::string commandText = "";
 	commandText.append(cmdBuffer);
 	delete cmdBuffer;
 

@@ -15,28 +15,28 @@ constexpr auto MAX_CLIENTS = 16;
 class NamedPipeServer : public Runnable
 {
 protected:
-	atomic<bool> _isStopping;
+	std::atomic<bool> _isStopping;
 public:
-	string pipePath;
-	string pipeName;
-	thread *threadMain;
-	mutex lockServer;
+	std::string pipePath;
+	std::string pipeName;
+	std::thread *threadMain;
+	std::mutex lockServer;
 
 	class Client {
 	private:
-		atomic<bool> _isConnected;
+		std::atomic<bool> _isConnected;
 	public:
 		int id;
 		HANDLE handlePipe;
 		OVERLAPPED overlapped;
 		NamedPipeServer *server;
-		thread* threadRead;
-		thread* threadWrite;
-		string pipeName;
-		mutex lockClient;
+		std::thread* threadRead;
+		std::thread* threadWrite;
+		std::string pipeName;
+		std::mutex lockClient;
 		BufferQueue writeQueue;
-		mutex lockWriteWait;
-		condition_variable conditionWriteQueue;
+		std::mutex lockWriteWait;
+		std::condition_variable conditionWriteQueue;
 		Client();
 		~Client();
 		bool IsConnected();
@@ -49,7 +49,7 @@ public:
 	Client clients[MAX_CLIENTS];
 	int clientCount;
 
-	NamedPipeServer(string pipeName);
+	NamedPipeServer(std::string pipeName);
 	~NamedPipeServer();
 
 	virtual bool Start();

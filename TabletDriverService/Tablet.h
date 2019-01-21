@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
@@ -19,22 +20,12 @@
 #include "TabletMeasurement.h"
 #include "DataFormatter.h"
 
-using namespace std;
-
 class Tablet {
 public:
 	USBDevice *usbDevice;
 	HIDDevice *hidDevice;
 	HIDDevice *hidDeviceAux;
 	int usbPipeId;
-
-	//
-	// Enums
-	//
-	enum TabletButtons {
-		Button1, Button2, Button3, Button4,
-		Button5, Button6, Button7, Button8
-	};
 
 	// Tablet report status
 	enum TabletReportStatus {
@@ -54,17 +45,56 @@ public:
 
 
 	//
-	// Position report data
+	// Tablet report data
 	//
 #pragma pack(1)
 	struct {
 		BYTE reportId;
-		BYTE buttons;
+		UINT32 buttons;
 		UINT32 x;
 		UINT32 y;
 		USHORT pressure;
 		USHORT height;
 	} reportData;
+
+	// Tablet report byte names
+	const std::map<std::string, int> reportByteNames = {
+
+		// Report id
+		{"reportid", 0},
+
+		// Buttons
+		{"buttons", 1},
+		{"buttonsbyte1", 1},
+		{"buttonsbyte2", 2},
+		{"buttonsbyte3", 3},
+		{"buttonsbyte4", 4},
+
+		// X position
+		{"xlow", 5},
+		{"xhigh", 6},
+		{"xbyte1", 5},
+		{"xbyte2", 6},
+		{"xbyte3", 7},
+		{"xbyte4", 8},
+
+		// Y position
+		{"ylow", 9},
+		{"yhigh", 10},
+		{"ybyte1", 9},
+		{"ybyte2", 10},
+		{"ybyte3", 11},
+		{"ybyte4", 12},
+
+		// Pressure
+		{"pressurelow", 13},
+		{"pressurehigh", 14},
+
+		// Height
+		{"heightlow", 15},
+		{"heighthigh", 16}
+	};
+
 
 	//
 	// Auxiliary report data
@@ -72,10 +102,32 @@ public:
 #pragma pack(1)
 	struct {
 		BYTE reportId;
-		USHORT buttons;
+		UINT32 buttons;
 		UCHAR detect;
 		UCHAR isPressed;
 	} auxReportData;
+
+	// Auxiliary report byte names
+	const std::map<std::string, int> auxReportByteNames = {
+
+		// Report id
+		{ "reportid", 0 },
+
+		// Buttons
+		{ "buttonslow", 1 },
+		{ "buttonshigh", 2 },
+		{ "buttonsbyte1", 1 },
+		{ "buttonsbyte2", 2 },
+		{ "buttonsbyte3", 3 },
+		{ "buttonsbyte4", 4 },
+
+		// Detect byte
+		{ "detect", 5 },
+
+		// Is button pressed byte
+		{ "ispressed", 6 }
+	};
+
 
 	class InitReport {
 	public:
@@ -93,36 +145,24 @@ public:
 		USHORT lastButtons;
 	};
 	TabletAuxState auxState;
-	mutex lockAuxState;
-	condition_variable conditionAuxState;
+	std::mutex lockAuxState;
+	std::condition_variable conditionAuxState;
 
 
-	//
-	// Data formatters
-	//
+	// Data formatter
 	DataFormatter dataFormatter;
 
-	//
 	// Tablet State
-	//
 	TabletState state;
 
 	// Settings
 	TabletSettings settings;
 
-	// Smoothing filter
+	// Filters
 	TabletFilterSmoothing smoothing;
-
-	// Smoothing filter
 	TabletFilterAdvancedSmoothing advancedSmoothing;
-
-	// Noise reduction filter
 	TabletFilterNoiseReduction noiseFilter;
-
-	// Anti-smoothing filter
 	TabletFilterAntiSmoothing antiSmoothing;
-
-	// Gravity filter
 	TabletFilterGravity gravityFilter;
 
 	// Timed filters
@@ -137,21 +177,19 @@ public:
 	TabletMeasurement measurement;
 
 	//
-	string name = "Unknown";
-	atomic<bool> isOpen;
+	std::string name = "Unknown";
+	std::atomic<bool> isOpen;
 	int skipReports;
 
 	// Pen tip button keep down
 	int tipDownCounter;
 
-	// Tablet initialize buffers
-	vector<InitReport*> initFeatureReports;
-	vector<InitReport*> initOutputReports;
-	vector<int> initStrings;
+	// Tablet initialization buffers
+	std::vector<InitReport*> initFeatureReports;
+	std::vector<InitReport*> initOutputReports;
+	std::vector<int> initStrings;
 
-
-
-	Tablet(string usbGUID);
+	Tablet(std::string usbGUID);
 	Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage, bool isExclusive);
 	Tablet(USHORT vendorId, USHORT productId, USHORT usagePage, USHORT usage);
 	Tablet();
@@ -160,10 +198,10 @@ public:
 	bool Init();
 	bool IsConfigured();
 
-	string GetDeviceString(UCHAR stringId);
-	string GetDeviceManufacturerName();
-	string GetDeviceProductName();
-	string GetDeviceSerialNumber();
+	std::string GetDeviceString(UCHAR stringId);
+	std::string GetDeviceManufacturerName();
+	std::string GetDeviceProductName();
+	std::string GetDeviceSerialNumber();
 	int ReadState();
 	bool Write(void *buffer, int length);
 	bool Read(void *buffer, int length);

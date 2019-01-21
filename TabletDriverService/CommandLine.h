@@ -7,27 +7,26 @@
 #include <stdlib.h>
 #include <algorithm>
 
-using namespace std;
 
 class CommandLine {
 public:
-	string line;
-	string command;
-	vector<string> values;
+	std::string line;
+	std::string command;
+	std::vector<std::string> values;
 	int valueCount;
 	bool isValid;
 
-	CommandLine(string text);
+	CommandLine(std::string text);
 	~CommandLine();
-	bool is(string command);
-	string GetCommandLowerCase();
-	string GetParameterString();
-	int Parse(string text);
-	string ParseHex(string str);
-	string ParseBits(string str);
-	string ParseHexBits(string str);
-	string GetString(int index, string defaultValue);
-	string GetStringLower(int index, string defaultValue);
+	bool is(std::string command);
+	std::string GetCommandLowerCase();
+	std::string GetParameterString();
+	int Parse(std::string text);
+	std::string ParseHex(std::string str);
+	std::string ParseBits(std::string str);
+	std::string ParseHexBits(std::string str);
+	std::string GetString(int index, std::string defaultValue);
+	std::string GetStringLower(int index, std::string defaultValue);
 	int GetInt(int index, int defaultValue);
 	long GetLong(int index, long defaultValue);
 	double GetDouble(int index, double defaultValue);

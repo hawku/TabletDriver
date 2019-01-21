@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "Logger.h"
 
 //
@@ -54,15 +54,12 @@ void Logger::OutputItem(LogItem *item) {
 		}
 	}
 
-	// Destroy log item
-	delete item;
-
 	// Write to standard output
 	try {
-		cout.write(buffer, index);
-		cout.flush();
+		std::cout.write(buffer, index);
+		std::cout.flush();
 	}
-	catch (exception) {
+	catch (std::exception) {
 	}
 
 	// Write to output pipe
@@ -71,7 +68,7 @@ void Logger::OutputItem(LogItem *item) {
 			writeCallback(buffer, index);
 		}
 	}
-	catch (exception) {
+	catch (std::exception) {
 	}
 
 	// Write to log file
@@ -86,18 +83,33 @@ void Logger::OutputItem(LogItem *item) {
 //
 void Logger::ProcessQueue() {
 
+	std::queue<LogItem*> temporaryQueue;
+
 	// Lock queue
 	lockQueue.lock();
 
-	// Loop through items
+	// Loop through queue items and add to a temporary queue
 	while (!logQueue.empty()) {
 		LogItem *item = logQueue.front();
-		OutputItem(item);
+		temporaryQueue.push(item);
 		logQueue.pop();
 	}
 
 	// Unlock queue
 	lockQueue.unlock();
+
+	// Process the temporary queue
+	while (!temporaryQueue.empty()) {
+		LogItem *item = temporaryQueue.front();
+
+		// Output log item
+		OutputItem(item);
+
+		// Destroy log item
+		delete item;
+
+		temporaryQueue.pop();
+	}
 
 }
 
@@ -105,7 +117,7 @@ void Logger::ProcessQueue() {
 //
 // Log message
 //
-void Logger::LogMessage(int level, string module, const char *fmt, ...) {
+void Logger::LogMessage(int level, std::string module, const char *fmt, ...) {
 	char message[4096];
 	int maxLength = sizeof(message) - 1;
 	int index;
@@ -148,7 +160,7 @@ void Logger::LogMessage(int level, string module, const char *fmt, ...) {
 //
 // Log buffer data
 //
-void Logger::LogBuffer(int level, string module, void *buffer, int length, const char *fmt, ...) {
+void Logger::LogBuffer(int level, std::string module, void *buffer, int length, const char *fmt, ...) {
 	bool newLine = false;
 	char message[4096];
 	int maxLength = sizeof(message) - 1;
@@ -231,7 +243,13 @@ void Logger::AddQueue(LogItem *item) {
 
 	// Direct print (skips the message buffer)
 	if (directPrint) {
+
+		// Output log item
 		OutputItem(item);
+
+		// Destroy log item
+		delete item;
+
 		return;
 	}
 
@@ -291,11 +309,11 @@ void Logger::run() {
 //
 // Open log file
 //
-bool Logger::OpenLogFile(string filename) {
+bool Logger::OpenLogFile(std::string filename) {
 	if (logFile && logFile.is_open()) {
 		logFile.close();
 	}
-	logFile = ofstream(filename, ofstream::out);
+	logFile = std::ofstream(filename, std::ofstream::out);
 	if (!logFile) {
 		return false;
 	}
@@ -346,7 +364,7 @@ bool Logger::IsDebugOutputEnabled()
 void Logger::Start() {
 	if (!IsRunning()) {
 		SetRunningState(true);
-		threadLog = thread([this] { this->run(); });
+		threadLog = std::thread([this] { this->run(); });
 	}
 }
 
@@ -363,7 +381,7 @@ void Logger::Stop() {
 		try {
 			threadLog.join();
 		}
-		catch (exception &e) {
+		catch (std::exception &e) {
 			printf("Logger thread join exception: %s\n", e.what());
 		}
 

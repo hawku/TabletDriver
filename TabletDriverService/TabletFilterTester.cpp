@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "TabletFilterTester.h"
 
 #define LOG_MODULE "Tester"
@@ -6,7 +6,7 @@
 
 
 // Constructor
-TabletFilterTester::TabletFilterTester(string input, string output) {
+TabletFilterTester::TabletFilterTester(std::string input, std::string output) {
 	this->inputFilepath = input;
 	this->outputFilepath = output;
 }
@@ -29,11 +29,11 @@ void TabletFilterTester::AddFilter(TabletFilter *filter)
 //
 bool TabletFilterTester::Open() {
 
-	inputFile = ifstream(inputFilepath, ifstream::in);
+	inputFile = std::ifstream(inputFilepath, std::ifstream::in);
 	if(!inputFile) return false;
 
 
-	outputFile = ofstream(outputFilepath, ofstream::out);
+	outputFile = std::ofstream(outputFilepath, std::ofstream::out);
 	if(!outputFile) return false;
 
 	return true;
@@ -45,10 +45,10 @@ bool TabletFilterTester::Open() {
 void TabletFilterTester::Run() {
 
 	double time;
-	chrono::high_resolution_clock::time_point timeBegin;
-	chrono::high_resolution_clock::time_point timeNow;
+	std::chrono::high_resolution_clock::time_point timeBegin;
+	std::chrono::high_resolution_clock::time_point timeNow;
 	Vector2D position;
-	string line;
+	std::string line;
 	bool firstReport;
 	double distance;
 	TabletState tabletState, outputState;
@@ -61,7 +61,7 @@ void TabletFilterTester::Run() {
 		// Read line from input file
 		try {
 			getline(inputFile, line);
-		} catch(exception) {
+		} catch(std::exception) {
 			break;
 		}
 
@@ -83,7 +83,7 @@ void TabletFilterTester::Run() {
 
 			// Init settings on first report
 			if(firstReport) {
-				timeBegin = chrono::high_resolution_clock::now();
+				timeBegin = std::chrono::high_resolution_clock::now();
 				firstReport = false;
 				outputState.position.Set(position);
 
@@ -106,7 +106,7 @@ void TabletFilterTester::Run() {
 				}
 			}
 
-			timeNow = timeBegin + chrono::microseconds((int)(time * 1000.0));
+			timeNow = timeBegin + std::chrono::microseconds((int)(time * 1000.0));
 			distance = position.Distance(outputState.position);
 
 			/*
@@ -131,7 +131,7 @@ void TabletFilterTester::Run() {
 				);
 			}
 
-			outputFile << "position " << time << " " << outputState.position.x << " " << outputState.position.y << fixed << setprecision(2) << "\n";
+			outputFile << "position " << time << " " << outputState.position.x << " " << outputState.position.y << std::fixed << std::setprecision(2) << "\n";
 
 
 		}

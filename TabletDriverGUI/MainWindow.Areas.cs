@@ -1106,8 +1106,13 @@ namespace TabletDriverGUI
 
                 double oldWidth = mouseArea.Area.Width;
                 double oldHeight = mouseArea.Area.Height;
-                mouseArea.Area.Width = Math.Round(oldWidth + delta);
-                mouseArea.Area.Height = oldHeight / oldWidth * mouseArea.Area.Width;
+                double newWidth = Math.Round(oldWidth + delta);
+                double newHeight = oldHeight / oldWidth * newWidth;
+                if (delta > 0 || newWidth >= 10 || newHeight >= 10)
+                {
+                    mouseArea.Area.Width = newWidth;
+                    mouseArea.Area.Height = newHeight;
+                }
                 LoadSettingsFromConfiguration();
             }
 

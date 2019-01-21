@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "OutputVMultiDigitizer.h"
 
 #define LOG_MODULE "VMultiDigitizer"

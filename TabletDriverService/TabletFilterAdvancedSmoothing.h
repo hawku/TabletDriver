@@ -34,7 +34,7 @@ public:
 
 	TabletState target;
 	TabletState lastTarget;
-	chrono::high_resolution_clock::time_point lastTargetTime;
+	std::chrono::high_resolution_clock::time_point lastTargetTime;
 
 	TabletFilterAdvancedSmoothing();
 	~TabletFilterAdvancedSmoothing();

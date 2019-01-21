@@ -17,9 +17,9 @@ public:
 	double distanceThreshold;
 	double distanceMaximum;
 	double reportRate;
-	chrono::high_resolution_clock::time_point timeBegin;
-	chrono::high_resolution_clock::time_point timeLastReport;
-	chrono::high_resolution_clock::time_point timeNow;
+	std::chrono::high_resolution_clock::time_point timeBegin;
+	std::chrono::high_resolution_clock::time_point timeLastReport;
+	std::chrono::high_resolution_clock::time_point timeNow;
 
 
 	void SetTarget(TabletState *tabletState);

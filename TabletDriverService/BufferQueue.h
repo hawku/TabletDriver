@@ -13,10 +13,10 @@ public:
 		~Item();
 	};
 
-	queue<Item*> queue;
-	mutex lockQueue;
-	mutex lockWait;
-	condition_variable conditionBuffer;
+	std::queue<Item*> queue;
+	std::mutex lockQueue;
+	std::mutex lockWait;
+	std::condition_variable conditionBuffer;
 	void Push(void *buffer, int length);
 	void Pop();
 	void Clear();

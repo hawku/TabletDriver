@@ -17,6 +17,8 @@
 #include <mutex>
 #include <condition_variable>
 
+#include <Windows.h>
+
 #include "Runnable.h"
 
 #ifndef LOG_MODULE
@@ -51,16 +53,14 @@
 #define LOG_DEBUGBUFFER(buf, len, ...) logger.LogBuffer(logger.LogLevelDebug, LOG_MODULE, buf, len, __VA_ARGS__)
 
 
-using namespace std;
-
 class Logger : public Runnable {
 private:
-	thread threadLog;
+	std::thread threadLog;
 	void run();
-	mutex lockQueue;
-	mutex lockNewItem;
-	condition_variable conditionNewItem;
-	ofstream logFile;
+	std::mutex lockQueue;
+	std::mutex lockNewItem;
+	std::condition_variable conditionNewItem;
+	std::ofstream logFile;
 	bool logToFile;
 	bool isDebugOutputEnabled;
 
@@ -80,12 +80,12 @@ public:
 		tm time;
 		SYSTEMTIME systemTime;
 		int level;
-		string module;
-		string message;
+		std::string module;
+		std::string message;
 	} LogItem;
-	queue<LogItem*> logQueue;
+	std::queue<LogItem*> logQueue;
 
-	string levelNames[9] = {
+	std::string levelNames[9] = {
 		"",
 		"",
 		"CRITICAL",
@@ -97,14 +97,14 @@ public:
 		"DEBUG"
 	};
 	bool directPrint;
-	string logFilename = "";
-	function<void(void *buffer, int length)> writeCallback = NULL;
-	mutex lock;
+	std::string logFilename = "";
+	std::function<void(void *buffer, int length)> writeCallback = NULL;
+	std::mutex lock;
 
 	void OutputItem(LogItem *item);
 	void ProcessQueue();
-	void LogMessage(int level, string module, const char *fmt, ...);
-	void LogBuffer(int level, string module, void *buffer, int length, const char *fmt, ...);
+	void LogMessage(int level, std::string module, const char *fmt, ...);
+	void LogBuffer(int level, std::string module, void *buffer, int length, const char *fmt, ...);
 	int verbosity;
 	Logger();
 	void AddQueue(LogItem *item);
@@ -112,7 +112,7 @@ public:
 	void WaitNewItem();
 	void Start();
 	void Stop();
-	bool OpenLogFile(string filename);
+	bool OpenLogFile(std::string filename);
 	bool CloseLogFile();
 
 	void SetDebugOutput(bool enabled);

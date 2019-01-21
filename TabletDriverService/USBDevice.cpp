@@ -1,10 +1,10 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "USBDevice.h"
 
 #define LOG_MODULE "USBDevice"
 #include "Logger.h"
 
-USBDevice::USBDevice(string Guid) {
+USBDevice::USBDevice(std::string Guid) {
 	this->guid = Guid;
 	isOpen = false;
 	if(this->OpenDevice(&_deviceHandle, &_usbHandle, &deviceDescriptor, guid)) {
@@ -16,7 +16,7 @@ USBDevice::~USBDevice() {
 }
 
 
-bool USBDevice::OpenDevice(HANDLE *outDeviceHandle, WINUSB_INTERFACE_HANDLE *outUSBHandle, USB_DEVICE_DESCRIPTOR *outDeviceDescriptor, string usbDeviceGUIDString) {
+bool USBDevice::OpenDevice(HANDLE *outDeviceHandle, WINUSB_INTERFACE_HANDLE *outUSBHandle, USB_DEVICE_DESCRIPTOR *outDeviceDescriptor, std::string usbDeviceGUIDString) {
 	GUID usbDeviceGUID;
 
 	HDEVINFO                         deviceInfo;
@@ -160,7 +160,7 @@ int USBDevice::Read(UCHAR pipeId, void *buffer, int length) {
 		if(WinUsb_ReadPipe(_usbHandle, pipeId, (UCHAR *)buffer, length, &bytesRead, 0)) {
 			return (int)bytesRead;
 		}
-	} catch(exception &e) {
+	} catch(std::exception &e) {
 		LOG_ERROR("Exception USB: %s\n", e.what());
 	}
 	return 0;
@@ -213,8 +213,8 @@ int USBDevice::StringRequest(UCHAR stringId, UCHAR *buffer, int length)
 	return bytesRead;
 }
 
-string USBDevice::GetString(UCHAR stringId) {
-	string resultString = "";
+std::string USBDevice::GetString(UCHAR stringId) {
+	std::string resultString = "";
 	UCHAR buffer[256];
 	int bytesRead = 0;
 
@@ -231,20 +231,20 @@ string USBDevice::GetString(UCHAR stringId) {
 }
 
 // Get WinUSB device manufacturer name
-string USBDevice::GetManufacturerName() {
+std::string USBDevice::GetManufacturerName() {
 	if(deviceDescriptor.iManufacturer == 0) return "";
 	return GetString(deviceDescriptor.iManufacturer);
 }
 
 // Get WinUSB device product name
-string USBDevice::GetProductName()
+std::string USBDevice::GetProductName()
 {
 	if(deviceDescriptor.iProduct == 0) return "";
 	return GetString(deviceDescriptor.iProduct);
 }
 
 // Get WinUSB device serial number
-string USBDevice::GetSerialNumber()
+std::string USBDevice::GetSerialNumber()
 {
 	if(deviceDescriptor.iSerialNumber == 0) return "";
 	return GetString(deviceDescriptor.iSerialNumber);
@@ -258,14 +258,14 @@ void USBDevice::CloseDevice() {
 		try {
 			WinUsb_Free(_usbHandle);
 			_usbHandle = NULL;
-		} catch(exception &e) {
+		} catch(std::exception &e) {
 			LOG_ERROR("WinUSB WinUsb_Free ERROR! %s\n", e.what());
 		}
 	}
 	if(_deviceHandle != NULL && _deviceHandle != INVALID_HANDLE_VALUE) {
 		try {
 			SAFE_CLOSE_HANDLE(_deviceHandle);
-		} catch(exception &e) {
+		} catch(std::exception &e) {
 			LOG_ERROR("WinUSB CloseHandler ERROR! %s\n", e.what());
 		}
 	}

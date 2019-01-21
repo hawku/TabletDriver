@@ -9,19 +9,19 @@
 
 class CommandHandler {
 public:
-	map<string, Command*> commands;
-	map<string, string> aliases;
-	map<string, string> aliasNames;
-	map<string, string> help;
+	std::map<std::string, Command*> commands;
+	std::map<std::string, std::string> aliases;
+	std::map<std::string, std::string> aliasNames;
+	std::map<std::string, std::string> help;
 
-	mutex lock;
+	std::mutex lock;
 
 	CommandHandler();
 	~CommandHandler();
 
 	bool AddCommand(Command *command);
-	bool AddAlias(string commandName, string alias);
-	bool AddHelp(string commandName, string line);
+	bool AddAlias(std::string commandName, std::string alias);
+	bool AddHelp(std::string commandName, std::string line);
 	void CreateCommands();
 	void CreateTabletCommands();
 	void CreateFilterCommands();
@@ -29,18 +29,18 @@ public:
 	void CreateAuxCommands();
 	void CreateOtherCommands();
 
-	bool IsValidCommand(string command);
-	bool ExecuteCommand(string command);
-	bool ExecuteCommandLock(string command);
+	bool IsValidCommand(std::string command);
+	bool ExecuteCommand(std::string command);
+	bool ExecuteCommandLock(std::string command);
 	bool ExecuteCommand(CommandLine *cmd);
 	bool ExecuteCommandLock(CommandLine * cmd);
-	bool ExecuteCommand(string command, string parameters);
-	bool ExecuteCommandLock(string command, string parameters);
-	bool ExecuteCommand(string command, CommandLine *cmd);
-	bool ExecuteCommandLock(string command, CommandLine * cmd);
+	bool ExecuteCommand(std::string command, std::string parameters);
+	bool ExecuteCommandLock(std::string command, std::string parameters);
+	bool ExecuteCommand(std::string command, CommandLine *cmd);
+	bool ExecuteCommandLock(std::string command, CommandLine * cmd);
 
-	bool ExecuteFile(string filename);
-	bool ExecuteFileLock(string filename);
+	bool ExecuteFile(std::string filename);
+	bool ExecuteFileLock(std::string filename);
 
 };
 

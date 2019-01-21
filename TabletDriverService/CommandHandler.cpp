@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "precompiled.h"
 #include "CommandHandler.h"
 
 #define LOG_MODULE ""
@@ -28,10 +28,10 @@ CommandHandler::~CommandHandler() {
 // Add command
 //
 bool CommandHandler::AddCommand(Command *command) {
-	string name = command->name;
-	transform(name.begin(), name.end(), name.begin(), ::tolower);
+	std::string name = command->name;
+	std::transform(name.begin(), name.end(), name.begin(), ::tolower);
 	if (commands.count(name) <= 0) {
-		commands.insert(pair<string, Command*>(name, command));
+		commands.insert(std::pair<std::string, Command*>(name, command));
 		return true;
 	}
 	return false;
@@ -40,15 +40,15 @@ bool CommandHandler::AddCommand(Command *command) {
 //
 // Add command alias
 //
-bool CommandHandler::AddAlias(string alias, string commandName) {
+bool CommandHandler::AddAlias(std::string alias, std::string commandName) {
 
-	string aliasLowerCase = alias;
-	transform(aliasLowerCase.begin(), aliasLowerCase.end(), aliasLowerCase.begin(), ::tolower);
-	transform(commandName.begin(), commandName.end(), commandName.begin(), ::tolower);
+	std::string aliasLowerCase = alias;
+	std::transform(aliasLowerCase.begin(), aliasLowerCase.end(), aliasLowerCase.begin(), ::tolower);
+	std::transform(commandName.begin(), commandName.end(), commandName.begin(), ::tolower);
 
 	if (aliases.count(aliasLowerCase) <= 0) {
-		aliases.insert(pair<string, string>(aliasLowerCase, commandName));
-		aliasNames.insert(pair<string, string>(aliasLowerCase, alias));
+		aliases.insert(std::pair<std::string, std::string>(aliasLowerCase, commandName));
+		aliasNames.insert(std::pair<std::string, std::string>(aliasLowerCase, alias));
 		return true;
 	}
 
@@ -58,11 +58,11 @@ bool CommandHandler::AddAlias(string alias, string commandName) {
 //
 // Add command help text
 //
-bool CommandHandler::AddHelp(string commandName, string line) {
-	transform(commandName.begin(), commandName.end(), commandName.begin(), ::tolower);
+bool CommandHandler::AddHelp(std::string commandName, std::string line) {
+	std::transform(commandName.begin(), commandName.end(), commandName.begin(), ::tolower);
 	line.append("\n");
 	if (help.count(commandName) < 0) {
-		help.insert(pair<string, string>(commandName, line));
+		help.insert(std::pair<std::string, std::string>(commandName, line));
 	}
 	else {
 		help[commandName].append(line);
@@ -86,8 +86,8 @@ void CommandHandler::CreateCommands() {
 //
 // Is valid command?
 //
-bool CommandHandler::IsValidCommand(string command) {
-	transform(command.begin(), command.end(), command.begin(), ::tolower);
+bool CommandHandler::IsValidCommand(std::string command) {
+	std::transform(command.begin(), command.end(), command.begin(), ::tolower);
 	if (aliases.count(command) > 0) {
 		command = aliases[command];
 	}
@@ -100,10 +100,10 @@ bool CommandHandler::IsValidCommand(string command) {
 //
 // Execute a command using command name
 //
-bool CommandHandler::ExecuteCommand(string command) {
+bool CommandHandler::ExecuteCommand(std::string command) {
 	return ExecuteCommand(command, NULL);
 }
-bool CommandHandler::ExecuteCommandLock(string command) {
+bool CommandHandler::ExecuteCommandLock(std::string command) {
 	std::unique_lock<std::mutex> mlock(lock);
 	return ExecuteCommand(command);
 }
@@ -124,13 +124,13 @@ bool CommandHandler::ExecuteCommandLock(CommandLine *cmd) {
 //
 // Execute a command using command and parameter string
 //
-bool CommandHandler::ExecuteCommand(string command, string parameters) {
+bool CommandHandler::ExecuteCommand(std::string command, std::string parameters) {
 	CommandLine *cmd = new CommandLine(command + " " + parameters);
 	bool result = ExecuteCommand(command, cmd);
 	delete cmd;
 	return result;
 }
-bool CommandHandler::ExecuteCommandLock(string command, string parameters) {
+bool CommandHandler::ExecuteCommandLock(std::string command, std::string parameters) {
 	std::unique_lock<std::mutex> mlock(lock);
 	return ExecuteCommand(command, parameters);
 }
@@ -139,8 +139,8 @@ bool CommandHandler::ExecuteCommandLock(string command, string parameters) {
 //
 // Execute a command
 //
-bool CommandHandler::ExecuteCommand(string command, CommandLine * cmd) {
-	transform(command.begin(), command.end(), command.begin(), ::tolower);
+bool CommandHandler::ExecuteCommand(std::string command, CommandLine * cmd) {
+	std::transform(command.begin(), command.end(), command.begin(), ::tolower);
 	if (aliases.count(command) > 0) {
 		command = aliases[command];
 	}
@@ -149,7 +149,7 @@ bool CommandHandler::ExecuteCommand(string command, CommandLine * cmd) {
 	}
 	return false;
 }
-bool CommandHandler::ExecuteCommandLock(string command, CommandLine * cmd) {
+bool CommandHandler::ExecuteCommandLock(std::string command, CommandLine * cmd) {
 	std::unique_lock<std::mutex> mlock(lock);
 	return ExecuteCommand(command, cmd);
 }
@@ -158,11 +158,11 @@ bool CommandHandler::ExecuteCommandLock(string command, CommandLine * cmd) {
 //
 // Execute commands from a file
 //
-bool CommandHandler::ExecuteFile(string filename) {
+bool CommandHandler::ExecuteFile(std::string filename) {
 
 	CommandLine *cmd;
-	ifstream file;
-	string line = "";
+	std::ifstream file;
+	std::string line = "";
 
 	// Open file
 	file.open(filename);
@@ -200,8 +200,8 @@ bool CommandHandler::ExecuteFile(string filename) {
 		}
 		LOG_INFO(">> %s\n", cmd->line.c_str());
 
-		string command = cmd->command;
-		transform(command.begin(), command.end(), command.begin(), ::tolower);
+		std::string command = cmd->command;
+		std::transform(command.begin(), command.end(), command.begin(), ::tolower);
 		if (aliases.count(command) > 0) {
 			command = aliases[command];
 		}
@@ -219,7 +219,7 @@ bool CommandHandler::ExecuteFile(string filename) {
 	return true;
 }
 
-bool CommandHandler::ExecuteFileLock(string filename)
+bool CommandHandler::ExecuteFileLock(std::string filename)
 {
 	std::unique_lock<std::mutex> mlock(lock);
 	return ExecuteFile(filename);

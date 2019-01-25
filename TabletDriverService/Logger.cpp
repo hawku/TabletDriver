@@ -281,7 +281,17 @@ void Logger::NotifyNewItem()
 void Logger::WaitNewItem()
 {
 	std::unique_lock<std::mutex> mlock(lockNewItem);
-	conditionNewItem.wait(mlock);
+
+	// Check if the queue is empty
+	bool isQueueEmpty = false;
+	lockQueue.lock();
+	isQueueEmpty = logQueue.empty();
+	lockQueue.unlock();
+
+	// Wait for items if queue is empty
+	if (isQueueEmpty) {
+		conditionNewItem.wait(mlock);
+	}
 }
 
 
@@ -292,15 +302,14 @@ void Logger::run() {
 
 	while (true) {
 
+		// Shutdown the thread
+		if (!IsRunning()) break;
+
 		// Wait for the new item
 		WaitNewItem();
 
 		// Process item queue
 		ProcessQueue();
-
-		// Shutdown the thread
-		if (!IsRunning()) break;
-
 	}
 
 	printf("Logger thread exit!\n");

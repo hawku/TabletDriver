@@ -53,7 +53,17 @@ void BufferQueue::Clear()
 void BufferQueue::Wait()
 {
 	std::unique_lock<std::mutex> mlock(lockWait);
-	conditionBuffer.wait(mlock);
+
+	// Check if the queue is empty
+	bool isQueueEmpty = false;
+	lockQueue.lock();
+	isQueueEmpty = queue.empty();
+	lockQueue.unlock();
+
+	// Wait for items if queue is empty
+	if (isQueueEmpty) {
+		conditionBuffer.wait(mlock);
+	}
 }
 
 //

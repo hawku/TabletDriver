@@ -166,7 +166,7 @@ namespace TabletDriverGUI
                         case ProcessPriorityClass.RealTime:
                             break;
                         default:
-                            RaiseError("TabletDriverService priority too low! Run the GUI as an administrator or change the priority to high!");
+                            RaiseError("TabletDriverService priority too low! Click to resolve the issue.");
                             break;
                     }
                 }

@@ -455,17 +455,21 @@ namespace TabletDriverGUI
             // Check for a process priority warning
             if (textStatusWarning.Text.ToLower().Contains("priority"))
             {
+                string message;
                 try
                 {
-                    // Set the process priority to above normal
-                    Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
-                    SetStatus("Process priority set to above normal.");
+                    // Set the service priority to high
+                    var processes = Process.GetProcessesByName("TabletDriverService");
+                    processes[0].PriorityClass = ProcessPriorityClass.High;
+                    message = "TabletDriverService priority set to high.";
                 }
                 catch
                 {
                     // Start task manager if unable to set the process priority programmatically
                     try { Process.Start("taskmgr.exe"); } catch (Exception) { }
+                    message = "Unable to set priority automatically. Opened task manager.";
                 }
+                SetStatus(message);
             }
         }
 

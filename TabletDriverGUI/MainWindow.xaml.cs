@@ -452,10 +452,20 @@ namespace TabletDriverGUI
         //
         private void StatusWarning_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            // Open Task Manager 
+            // Check for a process priority warning
             if (textStatusWarning.Text.ToLower().Contains("priority"))
             {
-                try { Process.Start("taskmgr.exe"); } catch (Exception) { }
+                try
+                {
+                    // Set the process priority to above normal
+                    Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
+                    SetStatus("Process priority set to above normal.");
+                }
+                catch
+                {
+                    // Start task manager if unable to set the process priority programmatically
+                    try { Process.Start("taskmgr.exe"); } catch (Exception) { }
+                }
             }
         }
 

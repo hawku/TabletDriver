@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -170,10 +171,9 @@ namespace TabletDriverGUI
             Closing += MainWindow_Closing;
             Loaded += MainWindow_Loaded;
             SizeChanged += MainWindow_SizeChanged;
-
+            SystemEvents.PowerModeChanged += SystemEvents_PowerModeChanged;
         }
-
-
+        
         #region Window events
 
         // Window is closing -> Stop driver
@@ -519,6 +519,12 @@ namespace TabletDriverGUI
         private void MouseTest(object sender, MouseButtonEventArgs e)
         {
             SetStatus("Event: " + e.RoutedEvent.ToString() + ", Mouse at " + ((UIElement)sender).ToString() + "! " + e.ChangedButton.ToString() + " " + e.ButtonState.ToString());
+        }
+
+        private void SystemEvents_PowerModeChanged(object sender, PowerModeChangedEventArgs e)
+        {
+            if (e.Mode == PowerModes.Resume)
+                RestartDriverClick(sender, null);
         }
 
     }

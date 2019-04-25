@@ -63,6 +63,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 ### Configured, but not properly tested:
 > - Huion New 1060 Plus
 > - Huion Inspiroy Q11K
+> - Huion Inspiroy H950P
   - Other Wacom tablets that might work: https://github.com/hawku/TabletDriver/blob/master/TabletDriverService/config/wacom.cfg
 
 #

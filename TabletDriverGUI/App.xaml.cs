@@ -69,7 +69,10 @@ namespace TabletDriverGUI
                     "TabletDriverSetting",
 
                     // Huion
-                    "Huion Tablet"
+                    "Huion Tablet",
+
+                    //Inspiroy
+                    "Inspiroy Tablet"
 
                 };
 

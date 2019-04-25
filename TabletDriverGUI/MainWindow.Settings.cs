@@ -197,6 +197,11 @@ namespace TabletDriverGUI
                     conf.SetAntiSmoothingSetting(1, true, 50, 1.5, 5);
                     conf.SetAntiSmoothingSetting(2, true, 200, 1.5, 10);
                 }),
+                new Configuration.Preset("Huion H950P", (conf) => {
+                    conf.SetAntiSmoothingSetting(0, true, 0, 0.1, 50);
+                    conf.SetAntiSmoothingSetting(1, true, 70, 0.1, 30);
+                    conf.SetAntiSmoothingSetting(2, true, 150, 0.1, 20);
+                })
 
             };
 

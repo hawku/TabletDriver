@@ -1269,16 +1269,17 @@ namespace TabletDriverGUI
             //
             else if (sender == mainMenuResetToDefault)
             {
-                WindowMessageBox messageBox = new WindowMessageBox(
+                var msgBox = new WindowMessageBox(
                               "Are you sure?", "Reset to default settings?",
                               "Yes", "No");
-                messageBox.ShowDialog();
-                if (messageBox.DialogResult == true)
-                {
 
-                    config = null;
+                if (msgBox.ShowDialog() == true)
+                {
                     isFirstStart = true;
                     config = new Configuration();
+
+                    // Save config
+                    config.Write(configFilename);
 
                     // Initialize configuration
                     InitializeConfiguration();

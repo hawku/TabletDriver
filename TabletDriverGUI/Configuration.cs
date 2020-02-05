@@ -9,20 +9,23 @@ namespace TabletDriverGUI
     [XmlRootAttribute("Configuration", IsNullable = true)]
     public class Configuration
     {
+        public const string DEFAULT_CONFIG_FILE = "config/configs/Default.xml";
+
         public int ConfigVersion;
-
         public string TabletName;
-
         public Area ScreenArea;
+
         [XmlArray("ScreenAreas")]
         [XmlArrayItem("ScreenArea")]
         public Area[] ScreenAreas;
-        public Area SelectedScreenArea;
 
+        public Area SelectedScreenArea;
         public Area TabletArea;
+
         [XmlArray("TabletAreas")]
         [XmlArrayItem("TabletArea")]
         public Area[] TabletAreas;
+
         public Area SelectedTabletArea;
 
         public Area TabletFullArea;
@@ -37,6 +40,7 @@ namespace TabletDriverGUI
             Absolute = 0,
             Relative = 1
         }
+
         public enum OutputModes
         {
             Standard = 0,
@@ -63,6 +67,7 @@ namespace TabletDriverGUI
             public double Velocity;
             public double Shape;
             public double Compensation;
+
             public AntiSmoothingSetting()
             {
                 Enabled = false;
@@ -70,10 +75,12 @@ namespace TabletDriverGUI
                 Shape = 0.5;
                 Compensation = 0;
             }
-        };
+        }
+
         [XmlArray("AntiSmoothingSettingsList")]
         [XmlArrayItem("AntiSmoothingSettings")]
         public AntiSmoothingSetting[] AntiSmoothingSettings;
+
         public bool AntiSmoothingOnlyWhenHover;
         public double AntiSmoothingDragMultiplier;
 
@@ -83,11 +90,13 @@ namespace TabletDriverGUI
         [XmlArray("ButtonMap")]
         [XmlArrayItem("Button")]
         public string[] ButtonMap;
+
         public bool DisableButtons;
 
         [XmlArray("TabletButtonMap")]
         [XmlArrayItem("Button")]
         public string[] TabletButtonMap;
+
         public bool DisableTabletButtons;
 
         public double PressureSensitivity;
@@ -123,6 +132,7 @@ namespace TabletDriverGUI
             public Point OffsetPressure;
             public bool FadeInOut;
             public bool Borderless;
+
             public TabletViewSettings()
             {
                 BackgroundColor = "#FFFFFF";
@@ -141,7 +151,8 @@ namespace TabletDriverGUI
                 FadeInOut = false;
                 Borderless = false;
             }
-        };
+        }
+
         public TabletViewSettings TabletView;
 
         public bool AutomaticRestart;
@@ -157,17 +168,15 @@ namespace TabletDriverGUI
         {
             public string Name;
             public Action<Configuration> Action;
+
             public Preset(string name, Action<Configuration> action)
             {
                 Name = name;
                 Action = action;
             }
-            public override string ToString()
-            {
-                return Name;
-            }
-        }
 
+            public override string ToString() => Name;
+        }
 
         public Configuration()
         {
@@ -176,6 +185,7 @@ namespace TabletDriverGUI
             // Screen Map
             ScreenArea = null;
             ScreenAreas = new Area[3];
+
             for (int i = 0; i < ScreenAreas.Length; i++)
             {
                 ScreenAreas[i] = new Area(0, 0, 0, 0)
@@ -183,14 +193,17 @@ namespace TabletDriverGUI
                     IsEnabled = false
                 };
             }
+
             ScreenAreas[0].IsEnabled = true;
             ScreenAreas[1] = new Area(1000, 500, 500, 250);
 
             // Tablet area
             TabletArea = null;
             TabletAreas = new Area[ScreenAreas.Length];
+
             for (int i = 0; i < GetAreaCount(); i++)
                 TabletAreas[i] = new Area(100, 56, 50, 28);
+
             TabletFullArea = new Area(100, 50, 50, 25);
             Mode = OutputModes.Standard;
             ForceAspectRatio = true;
@@ -203,7 +216,9 @@ namespace TabletDriverGUI
             DisableButtons = false;
 
             TabletButtonMap = new string[16];
+
             for (int i = 0; i < 16; i++) TabletButtonMap[i] = "";
+
             DisableTabletButtons = false;
 
             PressureSensitivity = 0;
@@ -222,12 +237,14 @@ namespace TabletDriverGUI
 
             AntiSmoothingEnabled = false;
             AntiSmoothingSettings = new AntiSmoothingSetting[5];
+
             for (int i = 0; i < AntiSmoothingSettings.Length; i++)
                 AntiSmoothingSettings[i] = new AntiSmoothingSetting();
+
             AntiSmoothingDragMultiplier = 1.0;
             AntiSmoothingOnlyWhenHover = false;
 
-            CustomCommands = new string[] { "" };
+            CustomCommands = new string[0];
 
             WindowWidth = 700;
             WindowHeight = 700;
@@ -252,6 +269,7 @@ namespace TabletDriverGUI
         {
             if (ScreenAreas.Length <= TabletAreas.Length)
                 return ScreenAreas.Length;
+
             return TabletAreas.Length;
         }
 
@@ -259,10 +277,7 @@ namespace TabletDriverGUI
         //
         // Get maximum number of areas
         //
-        public int GetMaxAreaCount()
-        {
-            return 5;
-        }
+        public int GetMaxAreaCount() => 5;
 
 
         //
@@ -305,27 +320,20 @@ namespace TabletDriverGUI
             AntiSmoothingSettings[index].Compensation = compensation;
         }
 
-
         //
         // Write configuration to a XML file
         //
         public void Write(string filename)
         {
-            var fileWriter = new StreamWriter(filename);
+            var serializer = new XmlSerializer(typeof(Configuration));
+            var xmlWriterSettings = new XmlWriterSettings { Indent = true };
 
-            XmlSerializer serializer = new XmlSerializer(typeof(Configuration));
-            XmlWriterSettings xmlWriterSettings = new XmlWriterSettings() { Indent = true };
-            XmlWriter writer = XmlWriter.Create(fileWriter, xmlWriterSettings);
-            try
+            using (var file = new StreamWriter(filename))
             {
-                serializer.Serialize(writer, this);
+                var writer = XmlWriter.Create(file, xmlWriterSettings);
+
+                serializer.Serialize(file, this);
             }
-            catch (Exception)
-            {
-                fileWriter.Close();
-                throw;
-            }
-            fileWriter.Close();
         }
 
         //
@@ -333,25 +341,26 @@ namespace TabletDriverGUI
         //
         public static Configuration CreateFromFile(string filename)
         {
-            Configuration config = null;
-            var serializer = new XmlSerializer(typeof(Configuration));
-            var settings = new XmlWriterSettings() { Indent = true };
-            var reader = XmlReader.Create(filename);
+            if (!File.Exists(filename))
+                throw new FileNotFoundException("Could not find configuration file", filename);
 
-            try
+            var serializer = new XmlSerializer(typeof(Configuration));
+
+            using (var file = File.OpenRead(filename))
             {
-                config = (Configuration)serializer.Deserialize(reader);
+                return (Configuration)serializer.Deserialize(file);
             }
-            catch (Exception)
-            {
-                reader.Close();
-                throw;
-            }
-            reader.Close();
-            return config;
         }
 
+        public static string GetSelectedConfig()
+        {
+            if (!File.Exists("config/.current"))
+                return DEFAULT_CONFIG_FILE;
+
+            return File.ReadAllText("config/.current").Trim('\r', '\n', '\t', ' ');
+        }
+
+        public static void SetSelectedConfig(string path)
+            => File.WriteAllText("config/.current", path);
     }
-
-
 }

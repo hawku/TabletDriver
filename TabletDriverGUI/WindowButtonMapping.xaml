@@ -7,64 +7,70 @@
         mc:Ignorable="d"
         Title="Button Mapping" Height="350" Width="350"
         SizeToContent="WidthAndHeight">
-  <Window.Resources>
-    <Style TargetType="GroupBox">
-      <Setter Property="HeaderTemplate">
-        <Setter.Value>
-          <DataTemplate>
-            <TextBlock Text="{Binding}" FontWeight="DemiBold"/>
-          </DataTemplate>
-        </Setter.Value>
-      </Setter>
-    </Style>
-  </Window.Resources>
-  <StackPanel Orientation="Vertical" Margin="5">
-    <GroupBox Header="Mouse" Padding="2">
-      <ComboBox Name="comboBoxMouse"
-                  Padding="5"
-                  KeyUp="OnEnterKeyUp"
-                  SelectionChanged="ComboBoxMouse_SelectionChanged"
-                  >
-        <ComboBoxItem IsSelected="True">None</ComboBoxItem>
-      </ComboBox>
-    </GroupBox>
-    <GroupBox Header="Keyboard" Padding="2" Margin="0,5,0,5">
-      <TextBox Name="textKeyboard"
-                 BorderThickness="3"
-                 BorderBrush="Black"
-                 Padding="4"
-                 FontWeight="Bold"
-                 PreviewKeyDown="TextKeyboard_PreviewKeyDown"               
-                 >CTRL+SHIFT+Z</TextBox>
-    </GroupBox>
+    <Window.Resources>
+        <Style TargetType="GroupBox">
+            <Setter Property="HeaderTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" FontWeight="DemiBold"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <StackPanel Orientation="Vertical" Margin="5">
+        <GroupBox Header="Mouse" Padding="2">
+            <ComboBox Name="comboBoxMouse"
+                      Padding="5"
+                      KeyUp="OnEnterKeyUp"
+                      SelectionChanged="ComboBoxMouse_SelectionChanged">
+                <ComboBoxItem IsSelected="True">None</ComboBoxItem>
+            </ComboBox>
+        </GroupBox>
+        <GroupBox Header="Keyboard" Padding="2" Margin="0,5,0,5">
+            <TextBox Name="textKeyboard"
+                     BorderThickness="3"
+                     BorderBrush="Black"
+                     Padding="4"
+                     FontWeight="Bold"
+                     PreviewKeyDown="TextKeyboard_PreviewKeyDown">
+                CTRL+SHIFT+Z
+            </TextBox>
+        </GroupBox>
 
-    <GroupBox Header="Multimedia" Padding="2">
-      <ComboBox Name="comboBoxMultimedia"
-                  Padding="5"
-                  KeyUp="OnEnterKeyUp"
-                  SelectionChanged="ComboBoxMultimedia_SelectionChanged"
-                  >
-        <ComboBoxItem IsSelected="True">None</ComboBoxItem>
-      </ComboBox>
-    </GroupBox>
+        <GroupBox Header="Multimedia" Padding="2">
+            <ComboBox Name="comboBoxMultimedia"
+                      Padding="5"
+                      KeyUp="OnEnterKeyUp"
+                      SelectionChanged="ComboBoxMultimedia_SelectionChanged">
+                <ComboBoxItem IsSelected="True">None</ComboBoxItem>
+            </ComboBox>
+        </GroupBox>
 
-    <GroupBox Header="Custom" Padding="2">
-      <TextBox Grid.Column="1" Name="textCustom"
-                 KeyUp="OnEnterKeyUp"
-                 Padding="2"
-               MinWidth="300"
-                 >CTRL+SHIFT+Z</TextBox>
-    </GroupBox>
-    <Grid Margin="0,0,0,10">
-      <Button Name="buttonSet" HorizontalAlignment="Left"
-              FontSize="14" FontWeight="Bold" Foreground="#363"
-              Padding="15,3" Margin="5" Click="ButtonSet_Click">Set</Button>
-      <Button Name="buttonClear" HorizontalAlignment="Center"
-              FontSize="14" FontWeight="Bold" Foreground="#336"
-              Padding="15,3" Margin="5" Click="ButtonClear_Click">Clear</Button>
-      <Button Name="buttonCancel" HorizontalAlignment="Right"
-              FontSize="14" FontWeight="Bold" Foreground="#633"
-              Padding="15,3" Margin="5" Click="ButtonCancel_Click">Cancel</Button>
-    </Grid>
-  </StackPanel>
+        <GroupBox Header="Custom" Padding="2">
+            <TextBox Grid.Column="1" Name="textCustom"
+                     KeyUp="OnEnterKeyUp"
+                     Padding="2"
+                     MinWidth="300">
+                CTRL+SHIFT+Z
+            </TextBox>
+        </GroupBox>
+        <Grid Margin="0,0,0,10">
+            <Button Name="buttonSet" HorizontalAlignment="Left"
+                    FontSize="14" FontWeight="Bold" Foreground="#363"
+                    Padding="15,3" Margin="5" Click="ButtonSet_Click">
+                Set
+            </Button>
+            <Button Name="buttonClear" HorizontalAlignment="Center"
+                    FontSize="14" FontWeight="Bold" Foreground="#336"
+                    Padding="15,3" Margin="5" Click="ButtonClear_Click">
+                Clear
+            </Button>
+            <Button Name="buttonCancel" HorizontalAlignment="Right"
+                    FontSize="14" FontWeight="Bold" Foreground="#633"
+                    Padding="15,3" Margin="5" Click="ButtonCancel_Click">
+                Cancel
+            </Button>
+        </Grid>
+    </StackPanel>
 </Window>

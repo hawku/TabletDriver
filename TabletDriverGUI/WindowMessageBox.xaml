@@ -10,30 +10,31 @@
         Width="300"
         MinWidth="300"
         SizeToContent="WidthAndHeight">
-  <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-    <StackPanel Orientation="Vertical" Margin="20,5">
-      <Label Name="labelMessage"
-             FontSize="16"
-             HorizontalAlignment="Center">Message!
-      </Label>
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-        <Button Name="buttonTrue"
-                FontSize="16"
-                Width="80"
-                Padding="5"
-                Margin="5,5,10,5"
-                Click="ButtonTrue_Click"
-                HorizontalAlignment="Left">
-          OK
-        </Button>
-        <Button Name="buttonFalse"
-                FontSize="16"
-                Width="80" Padding="5" Margin="10,5,0,5"
-                Click="ButtonFalse_Click"
-                HorizontalAlignment="Right">
-          Cancel
-        </Button>
-      </StackPanel>
-    </StackPanel>
-  </Grid>
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Orientation="Vertical" Margin="20,5">
+            <Label Name="labelMessage"
+                   FontSize="16"
+                   HorizontalAlignment="Center">
+                Message!
+            </Label>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Name="buttonTrue"
+                        FontSize="16"
+                        Width="80"
+                        Padding="5"
+                        Margin="5,5,10,5"
+                        Click="ButtonTrue_Click"
+                        HorizontalAlignment="Left">
+                    OK
+                </Button>
+                <Button Name="buttonFalse"
+                        FontSize="16"
+                        Width="80" Padding="5" Margin="10,5,0,5"
+                        Click="ButtonFalse_Click"
+                        HorizontalAlignment="Right">
+                    Cancel
+                </Button>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
 </Window>

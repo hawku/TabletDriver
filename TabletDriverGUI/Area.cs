@@ -56,12 +56,9 @@ namespace TabletDriverGUI
         }
         public bool IsEnabled;
 
-
-
         private double _rotation;
         private readonly double[] _rotationMatrix;
-       private readonly Point[] _corners;
-
+        private readonly Point[] _corners;
 
         //
         // Constructors
@@ -238,6 +235,5 @@ namespace TabletDriverGUI
                     Utils.GetNumberString(Height) +
                 "]";
         }
-
     }
 }

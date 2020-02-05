@@ -1332,15 +1332,25 @@
                 <ComboBox Name="configComboBox"
                           PreviewMouseDown="ConfigComboBox_MouseDown"
                           SelectionChanged="ConfigComboBox_SelectionChanged"
-                          Margin="5,5" Padding="10,5"/>
+                          Margin="5,5" Padding="10,5"
+                          ToolTip="Changes the current config"/>
 
                 <!-- Save -->
                 <Button Name="buttonSaveSettings"
-                    Margin="5,5"
-                    Padding="10,5"
-                    Click="SaveSettings"
-                    ToolTip="Saves settings and sends settings commands to driver">
+                        Margin="5,5"
+                        Padding="10,5"
+                        Click="SaveSettings"
+                        ToolTip="Saves config and sends settings commands to driver">
                     Save
+                </Button>
+                
+                <!-- Delete -->
+                <Button Name="buttonDeleteConfig"
+                        Margin="5,5"
+                        Padding="10,5"
+                        Click="DeleteConfig"
+                        ToolTip="Removes selected config file">
+                    Delete
                 </Button>
             </StackPanel>
 

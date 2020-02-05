@@ -9,6 +9,8 @@ namespace TabletDriverGUI
     [XmlRootAttribute("Configuration", IsNullable = true)]
     public class Configuration
     {
+        public const string DEFAULT_CONFIG_FILE = "config/configs/Default.xml";
+
         public int ConfigVersion;
         public string TabletName;
         public Area ScreenArea;
@@ -318,7 +320,6 @@ namespace TabletDriverGUI
             AntiSmoothingSettings[index].Compensation = compensation;
         }
 
-
         //
         // Write configuration to a XML file
         //
@@ -354,7 +355,7 @@ namespace TabletDriverGUI
         public static string GetSelectedConfig()
         {
             if (!File.Exists("config/.current"))
-                return "config/configs/default.xml";
+                return DEFAULT_CONFIG_FILE;
 
             return File.ReadAllText("config/.current").Trim('\r', '\n', '\t', ' ');
         }

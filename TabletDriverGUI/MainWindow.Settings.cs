@@ -1463,8 +1463,6 @@ namespace TabletDriverGUI
             }
         }
 
-
-
         private string[] configFiles;
 
         private string[] GetAvailableConfigs()
@@ -1484,6 +1482,20 @@ namespace TabletDriverGUI
             configComboBox.Text = Path.GetFileNameWithoutExtension(configFilename);
         }
 
+        private void DeleteConfig(object sender, RoutedEventArgs e)
+        {
+            var msg = new WindowMessageBox(title: "Delete Configuration",
+                                           message: "Are you sure you want to delete this configuration?",
+                                           trueName: "Yes", falseName: "No");
+
+            if (msg.ShowDialog() == true)
+            {
+                File.Delete(configFilename);
+
+                UpdateConfigList();
+            }
+        }
+
         private void ConfigComboBox_MouseDown(object sender, MouseButtonEventArgs e)
             => UpdateConfigList();
 
@@ -1493,11 +1505,12 @@ namespace TabletDriverGUI
 
             var idx = configComboBox.SelectedIndex;
 
-            if (idx == 0) // new config
+            if (idx == 0) // Create new config
             {
                 var dialog = new SaveFileDialog
                 {
-                    InitialDirectory = Directory.GetCurrentDirectory(),
+                    InitialDirectory = Path.GetPathRoot(Configuration.DEFAULT_CONFIG_FILE),
+                    CheckPathExists = true,
                     AddExtension = true,
                     DefaultExt = "xml",
                     Filter = "XML File|*.xml",
@@ -1505,17 +1518,24 @@ namespace TabletDriverGUI
                 };
 
                 if (dialog.ShowDialog() != true)
+                {
+                    configComboBox.SelectedIndex = Array.IndexOf(configFiles, configFilename) + 1;
+
                     return;
+                }
 
                 config.Write(configFilename = dialog.FileName);
 
                 UpdateConfigList();
             }
-            else
+            else // Select existing config
             {
                 Configuration.SetSelectedConfig(configFiles[idx-1]);
 
                 LoadConfig();
+
+                // Don't allow deleting default config
+                buttonDeleteConfig.IsEnabled = configFilename != Configuration.DEFAULT_CONFIG_FILE;
 
                 InitializeConfiguration();
                 LoadSettingsFromConfiguration();

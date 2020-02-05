@@ -48,14 +48,24 @@ namespace TabletDriverGUI
         public const int HWND_BROADCAST = 0xffff;
         public static readonly int WM_SHOWTABLETDRIVERGUI = RegisterWindowMessage("WM_SHOWTABLETDRIVERGUI");
 
+#pragma warning disable CA1401 // Disable visibility warnings
+
         [DllImport("user32")]
         public static extern bool PostMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam);
-        [DllImport("user32")]
+
+        [DllImport("user32", CharSet = CharSet.Unicode)]
         public static extern int RegisterWindowMessage(string message);
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
 
+        //
+        // GDI
+        //
+        [DllImport("gdi32.dll")]
+        public static extern bool DeleteObject(IntPtr hObject);
+
+#pragma warning restore CA1401 // Restore visibility warnings
 
         //
         // Multimedia timer
@@ -67,11 +77,5 @@ namespace TabletDriverGUI
 
         [DllImport("winmm.dll", SetLastError = true, EntryPoint = "timeKillEvent")]
         internal static extern void TimeKillEvent(UInt32 uTimerId);
-
-        //
-        // GDI
-        //
-        [DllImport("gdi32.dll")]
-        public static extern bool DeleteObject(IntPtr hObject);
     }
 }

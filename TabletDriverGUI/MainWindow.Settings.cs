@@ -24,7 +24,6 @@ namespace TabletDriverGUI
 
         WindowTabletView tabletView;
 
-
         //
         // Create setting UI components
         //
@@ -117,12 +116,6 @@ namespace TabletDriverGUI
                     SetStatus("Noise reduction filter preset '" + preset.Name + "' loaded!");
                 }
             };
-
-
-
-
-
-
 
             //
             // Anti-smoothing presets
@@ -786,14 +779,17 @@ namespace TabletDriverGUI
             if (config.RunAtStartup != oldValue)
                 SetRunAtStartup(config.RunAtStartup);
 
-
             //
             // Custom commands
             //
-            List<string> commandList = new List<string>();
+            var commandList = new List<string>();
+
             foreach (string command in textCustomCommands.Text.Split('\n'))
+            {
                 if (command.Trim().Length > 0)
                     commandList.Add(command.Trim());
+            }
+
             config.CustomCommands = commandList.ToArray();
 
 
@@ -805,9 +801,7 @@ namespace TabletDriverGUI
 
             // Update canvases
             UpdateCanvasElements();
-
         }
-
 
         //
         // Initialize configuration
@@ -1469,5 +1463,63 @@ namespace TabletDriverGUI
             }
         }
 
+
+
+        private string[] configFiles;
+
+        private string[] GetAvailableConfigs()
+            => Directory.GetFiles("config/configs/", "*.xml");
+
+        private void UpdateConfigList()
+        {
+            configComboBox.Items.Clear();
+
+            configComboBox.Items.Add("New Config");
+
+            foreach (var file in (configFiles = GetAvailableConfigs()))
+            {
+                configComboBox.Items.Add(Path.GetFileNameWithoutExtension(file));
+            }
+
+            configComboBox.Text = Path.GetFileNameWithoutExtension(configFilename);
+        }
+
+        private void ConfigComboBox_MouseDown(object sender, MouseButtonEventArgs e)
+            => UpdateConfigList();
+
+        private void ConfigComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count == 0 || configFilename.Length == 0 || isLoadingSettings) return;
+
+            var idx = configComboBox.SelectedIndex;
+
+            if (idx == 0) // new config
+            {
+                var dialog = new SaveFileDialog
+                {
+                    InitialDirectory = Directory.GetCurrentDirectory(),
+                    AddExtension = true,
+                    DefaultExt = "xml",
+                    Filter = "XML File|*.xml",
+                    Title = "New Config"
+                };
+
+                if (dialog.ShowDialog() != true)
+                    return;
+
+                config.Write(configFilename = dialog.FileName);
+
+                UpdateConfigList();
+            }
+            else
+            {
+                Configuration.SetSelectedConfig(configFiles[idx-1]);
+
+                LoadConfig();
+
+                InitializeConfiguration();
+                LoadSettingsFromConfiguration();
+            }
+        }
     }
 }

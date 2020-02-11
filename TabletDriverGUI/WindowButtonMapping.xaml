@@ -35,7 +35,7 @@
                  Padding="4"
                  FontWeight="Bold"
                  PreviewKeyDown="TextKeyboard_PreviewKeyDown"               
-                 >CTRL+SHIFT+Z</TextBox>
+                 />
     </GroupBox>
 
     <GroupBox Header="Multimedia" Padding="2">
@@ -46,6 +46,29 @@
                   >
         <ComboBoxItem IsSelected="True">None</ComboBoxItem>
       </ComboBox>
+    </GroupBox>
+
+    <GroupBox Header="Start application" Padding="2">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition />
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBox
+          Grid.Column="0"
+          Text="" 
+          Name="textApplication"
+          Padding="2"
+          Margin="0,0,5,0"
+        />
+        <Button 
+          Grid.Column="1" 
+          Name="buttonBrowse" 
+          Content="Browse..." 
+          Click="ButtonBrowse_Click" 
+          Padding="15,3"
+        />
+      </Grid>
     </GroupBox>
 
     <GroupBox Header="Custom" Padding="2">

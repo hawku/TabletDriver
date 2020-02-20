@@ -411,7 +411,17 @@
                       </Button>
 
                     </StackPanel>
-                  </StackPanel>
+                    <Button x:Name="ConvertMouse" Content="Convert mouse DPI" Height="28" Width="115" 
+                            Margin="0,5,0,0" IsCancel="True" Click="ConvertMouse_Click">
+                        <Button.ToolTip>
+                            <TextBlock>
+                                <TextBlock FontWeight="Bold" FontSize="14">Convert mouse DPI</TextBlock>
+                                <LineBreak/>
+                                Matches the physical movement of your mouse to the physical movement of your pen.
+                            </TextBlock>
+                            </Button.ToolTip>
+                         </Button>
+                     </StackPanel>
 
                   <!-- Tablet area canvas -->
                   <Canvas Grid.Column="1" Name="canvasTabletArea"

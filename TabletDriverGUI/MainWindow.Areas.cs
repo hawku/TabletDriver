@@ -1514,7 +1514,29 @@ namespace TabletDriverGUI
 
         }
 
+        private void ConvertMouse_Click(object sender, RoutedEventArgs e)
+        {
+            var wcm = new WindowConvertMouse();
+            wcm.ShowDialog();
+            if (!wcm.DialogResult.HasValue || !wcm.DialogResult.Value) return;
 
+            const double inchesToMm = 25.4;
+            var width = config.DesktopSize.Width / wcm.Dpi * inchesToMm;
+            var height = config.DesktopSize.Height / wcm.Dpi * inchesToMm;
+            var x = config.TabletFullArea.Width / 2;
+            var y = config.TabletFullArea.Height / 2;
+
+            textTabletAreaWidth.Text = width.ToString();
+            textTabletAreaHeight.Text = height.ToString();
+            textTabletAreaX.Text = x.ToString();
+            textTabletAreaY.Text = y.ToString();
+            config.SelectedTabletArea.Width = width;
+            config.SelectedTabletArea.Height = height;
+            config.SelectedTabletArea.X = x;
+            config.SelectedTabletArea.Y = y;
+            
+            UpdateSettingsToConfiguration();
+        }
 
         #region Wacom / Draw area
 

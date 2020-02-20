@@ -80,6 +80,9 @@
     <Compile Include="MainWindow.Areas.cs" />
     <Compile Include="MultimediaTimer.cs" />
     <Compile Include="NamedPipeClient.cs" />
+    <Compile Include="WindowConvertMouse.xaml.cs">
+      <DependentUpon>WindowConvertMouse.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WindowTabletViewSettings.xaml.cs">
       <DependentUpon>WindowTabletViewSettings.xaml</DependentUpon>
     </Compile>
@@ -106,6 +109,10 @@
     <Compile Include="WindowAreaEditor.xaml.cs">
       <DependentUpon>WindowAreaEditor.xaml</DependentUpon>
     </Compile>
+    <Page Include="WindowConvertMouse.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="WindowTabletViewSettings.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

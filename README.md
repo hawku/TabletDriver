@@ -26,6 +26,7 @@ The GUI minimizes to system tray / notification area. You can reopen the GUI by 
 
 ### Supported tablets:
   - Wacom CTE-440
+  - Wacom CTL-460
   - Wacom CTL-470
   - Wacom CTH-470
   - Wacom CTL-471

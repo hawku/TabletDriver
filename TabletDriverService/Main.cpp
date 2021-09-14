@@ -16,6 +16,7 @@
 #pragma comment(lib, "hid.lib")
 #pragma comment(lib, "setupapi.lib")
 #pragma comment(lib, "winusb.lib")
+#pragma comment(lib, "winmm.lib")
 
 
 // Global variables...
@@ -24,6 +25,8 @@ VMulti *vmulti;
 ScreenMapper *mapper;
 thread *tabletThread;
 chrono::high_resolution_clock::time_point timeBegin = chrono::high_resolution_clock::now();
+chrono::high_resolution_clock::time_point lastMovement = chrono::high_resolution_clock::now();
+Vector2D prevPos;
 
 //
 // Init console parameters
@@ -212,7 +215,9 @@ void RunTabletThread() {
 //
 // Tablet filter timer callback
 //
-VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWaitFired) {
+
+static VOID CALLBACK FilterTimerCallback(UINT wTimerID, UINT msg, DWORD_PTR dwUser, DWORD dw1, DWORD dw2)
+{
 	Vector2D position, position_prev;
 	double z;
 	TabletFilter *filter;
@@ -225,6 +230,18 @@ VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWa
 	// For debug
 	tablet->filterTimed[0]->GetPosition(&position_prev);
 
+	// Detect absence of movement
+	double noMovement = 0.0;
+	if (position.Distance(prevPos) > 0.000001)
+	{
+		lastMovement = timeNow;
+		prevPos = position;
+	}
+	else
+	{
+		noMovement = (timeNow - lastMovement).count() / 1000000.0;
+	}
+
 	// Loop through filters
 	for (int filterIndex = 0; filterIndex < tablet->filterTimedCount; filterIndex++) {
 
@@ -233,6 +250,13 @@ VOID CALLBACK FilterTimerCallback(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWa
 
 		// Filter enabled?
 		if (!filter->isEnabled) return;
+
+
+		if (noMovement > 35)
+		{
+			filter->Reset(position);
+			return;
+		}
 
 		// Set filter targets
 		filter->SetTarget(position, z);

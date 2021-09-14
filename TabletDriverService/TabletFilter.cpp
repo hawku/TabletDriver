@@ -13,14 +13,23 @@ TabletFilter::TabletFilter() {
 // Start Timer
 //
 bool TabletFilter::StartTimer() {
-	return CreateTimerQueueTimer(
-		&timer,
-		NULL, callback,
-		NULL,
-		0,
-		(int)timerInterval,
-		WT_EXECUTEDEFAULT
-	);
+	if (timer == NULL) {
+		MMRESULT result = timeSetEvent(
+			(UINT)timerInterval,//UINT           uDelay,
+			0,//UINT           uResolution,
+			callback, //LPTIMECALLBACK lpTimeProc,
+			NULL, //DWORD_PTR      dwUser,
+			TIME_PERIODIC | TIME_KILL_SYNCHRONOUS //UINT           fuEvent
+		);
+		if (result == NULL) {
+			return false;
+		}
+		else {
+			timer = (HANDLE)1; // for code compatibility purposes
+			uTimerID = result;
+		}
+	}
+	return true;
 }
 
 
@@ -29,9 +38,13 @@ bool TabletFilter::StartTimer() {
 //
 bool TabletFilter::StopTimer() {
 	if (timer == NULL) return false;
-	bool result = DeleteTimerQueueTimer(NULL, timer, NULL);
-	if (result) {
+
+	MMRESULT result = timeKillEvent(uTimerID);
+	// Returns TIMERR_NOERROR if successful or MMSYSERR_INVALPARAM if the specified timer event does not exist.
+	if (result == TIMERR_NOERROR)
+	{
 		timer = NULL;
+		return true;
 	}
-	return result;
+	return false;
 }

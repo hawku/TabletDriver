@@ -37,6 +37,14 @@ TabletFilterSmoothing::~TabletFilterSmoothing() {
 // TabletFilter methods
 //
 
+// Reset
+void TabletFilterSmoothing::Reset(Vector2D position) {
+	target.Set(position);
+	prev_target.Set(position);
+	calculated_target.Set(position);
+	position.Set(position);
+}
+
 // Set target position
 void TabletFilterSmoothing::SetTarget(Vector2D vector, double h) {
 	this->target.x = vector.x;

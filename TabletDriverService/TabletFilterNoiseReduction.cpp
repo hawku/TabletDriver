@@ -20,6 +20,12 @@ TabletFilterNoiseReduction::~TabletFilterNoiseReduction() {
 // TabletFilter methods
 //
 
+// Reset
+void TabletFilterNoiseReduction::Reset(Vector2D position) {
+	lastTarget.Set(position);
+	buffer.Reset();
+}
+
 // Set target position
 void TabletFilterNoiseReduction::SetTarget(Vector2D targetVector, double h) {
 	lastTarget.Set(targetVector);

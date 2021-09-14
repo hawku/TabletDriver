@@ -12,6 +12,7 @@ public:
 	int iterations;
 	double distanceThreshold;
 
+	void Reset(Vector2D position);
 	void SetTarget(Vector2D targetVector, double h);
 	void SetPosition(Vector2D vector, double h);
 	bool GetPosition(Vector2D *outputVector);

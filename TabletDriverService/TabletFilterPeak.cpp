@@ -27,6 +27,10 @@ TabletFilterPeak::~TabletFilterPeak() {
 //
 // TabletFilter methods
 //
+// reset
+void TabletFilterPeak::Reset(Vector2D targetVector) {
+	buffer.Reset();
+}
 // Set target position
 void TabletFilterPeak::SetTarget(Vector2D targetVector, double h) {
 	buffer.Add(targetVector);

@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.Win32;
 
 namespace TabletDriverGUI
 {
@@ -41,6 +42,7 @@ namespace TabletDriverGUI
 
         public OrderedDictionary mouseBindings;
         public OrderedDictionary multimediaBindings;
+        public string applicationCommand = "RUN ";
 
         public WindowButtonMapping()
         {
@@ -179,13 +181,19 @@ namespace TabletDriverGUI
                 }
             }
 
+            // Launch application
+            else if (keys.StartsWith(applicationCommand))
+            {
+                textApplication.Text = keys.Remove(0, applicationCommand.Length);
+            }
+
             // Keyboard
             else
             {
                 textKeyboard.Focus();
+                textKeyboard.Text = keys;
             }
 
-            textKeyboard.Text = keys;
             textCustom.Text = keys;
         }
 
@@ -201,7 +209,8 @@ namespace TabletDriverGUI
                 ButtonBinding binding = (ButtonBinding)comboBoxMouse.SelectedItem;
                 if (comboBoxMouse.SelectedIndex > 0)
                     comboBoxMultimedia.SelectedIndex = 0;
-                textKeyboard.Text = binding.Key;
+                textKeyboard.Text = "";
+                textApplication.Text = "";
                 textCustom.Text = binding.Key;
             }
         }
@@ -217,7 +226,8 @@ namespace TabletDriverGUI
                 ButtonBinding binding = (ButtonBinding)comboBoxMultimedia.SelectedItem;
                 if (comboBoxMultimedia.SelectedIndex > 0)
                     comboBoxMouse.SelectedIndex = 0;
-                textKeyboard.Text = binding.Key;
+                textKeyboard.Text = "";
+                textApplication.Text = "";
                 textCustom.Text = binding.Key;
             }
         }
@@ -278,6 +288,7 @@ namespace TabletDriverGUI
             // Set textboxes
             string keyText = string.Join("+", keys.ToArray());
             textKeyboard.Text = keyText;
+            textApplication.Text = "";
             textCustom.Text = keyText;
 
             comboBoxMouse.SelectedIndex = 0;
@@ -290,6 +301,25 @@ namespace TabletDriverGUI
         {
 
         }
+
+        //
+        // Browse...
+        //
+        private void ButtonBrowse_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string fileName = openFileDialog.FileName;
+
+                if (comboBoxMultimedia.SelectedIndex > 0)
+                    comboBoxMouse.SelectedIndex = 0;
+                textKeyboard.Text = "";
+                textApplication.Text = fileName;
+                textCustom.Text = $"{applicationCommand}{fileName}";
+            }
+        }
+
 
         //
         // Set

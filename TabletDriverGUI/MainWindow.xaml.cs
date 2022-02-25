@@ -194,24 +194,35 @@ namespace TabletDriverGUI
             StopDriver();
         }
 
-        // Window loaded -> Start driver
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private void LoadConfig()
         {
-
             // Configuration filename
-            configFilename = "config/config.xml";
+            configFilename = Configuration.GetSelectedConfig();
 
             // Load configuration
             try
             {
                 config = Configuration.CreateFromFile(configFilename);
             }
-            catch (Exception)
+            catch (FileNotFoundException)
             {
                 driver.ConsoleAddLine("New config created!");
                 isFirstStart = true;
                 config = new Configuration();
             }
+        }
+
+        // Window loaded -> Start driver
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Ensure config directories exist
+            Directory.CreateDirectory("config/configs");
+
+            // Load config
+            LoadConfig();
+
+            // Update available configs
+            UpdateConfigList();
 
             // Create setting elements
             CreateSettingElements();
@@ -222,12 +233,8 @@ namespace TabletDriverGUI
             // Initialize configuration
             InitializeConfiguration();
 
-
             // Hide the window if the GUI is started as minimized
-            if (WindowState == WindowState.Minimized)
-            {
-                Hide();
-            }
+            if (WindowState == WindowState.Minimized) Hide();
 
             //
             // Allow input field events
@@ -236,16 +243,13 @@ namespace TabletDriverGUI
 
             // Start the driver
             StartDriver();
-
         }
-
 
         //
         // Window key down
         //
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-
             // Control + S -> Save settings
             if (e.KeyboardDevice.Modifiers == ModifierKeys.Control && e.Key == Key.S)
             {
@@ -321,9 +325,7 @@ namespace TabletDriverGUI
                     e.Handled = true;
                 }
             }
-
         }
-
 
         //
         // Process command line arguments
@@ -350,8 +352,6 @@ namespace TabletDriverGUI
         }
 
         #endregion
-
-
 
         #region Notify icon stuff
 
@@ -416,8 +416,6 @@ namespace TabletDriverGUI
 
         #endregion
 
-
-
         #region Statusbar
 
         //
@@ -475,9 +473,6 @@ namespace TabletDriverGUI
 
         #endregion
 
-
-
-
         #region WndProc
 
         //
@@ -514,7 +509,6 @@ namespace TabletDriverGUI
 
 
         #endregion
-
 
         private void MouseTest(object sender, MouseButtonEventArgs e)
         {

@@ -24,7 +24,6 @@ namespace TabletDriverGUI
 
         WindowTabletView tabletView;
 
-
         //
         // Create setting UI components
         //
@@ -117,12 +116,6 @@ namespace TabletDriverGUI
                     SetStatus("Noise reduction filter preset '" + preset.Name + "' loaded!");
                 }
             };
-
-
-
-
-
-
 
             //
             // Anti-smoothing presets
@@ -786,14 +779,17 @@ namespace TabletDriverGUI
             if (config.RunAtStartup != oldValue)
                 SetRunAtStartup(config.RunAtStartup);
 
-
             //
             // Custom commands
             //
-            List<string> commandList = new List<string>();
+            var commandList = new List<string>();
+
             foreach (string command in textCustomCommands.Text.Split('\n'))
+            {
                 if (command.Trim().Length > 0)
                     commandList.Add(command.Trim());
+            }
+
             config.CustomCommands = commandList.ToArray();
 
 
@@ -805,9 +801,7 @@ namespace TabletDriverGUI
 
             // Update canvases
             UpdateCanvasElements();
-
         }
-
 
         //
         // Initialize configuration
@@ -1275,16 +1269,17 @@ namespace TabletDriverGUI
             //
             else if (sender == mainMenuResetToDefault)
             {
-                WindowMessageBox messageBox = new WindowMessageBox(
+                var msgBox = new WindowMessageBox(
                               "Are you sure?", "Reset to default settings?",
                               "Yes", "No");
-                messageBox.ShowDialog();
-                if (messageBox.DialogResult == true)
-                {
 
-                    config = null;
+                if (msgBox.ShowDialog() == true)
+                {
                     isFirstStart = true;
                     config = new Configuration();
+
+                    // Save config
+                    config.Write(configFilename);
 
                     // Initialize configuration
                     InitializeConfiguration();
@@ -1469,5 +1464,83 @@ namespace TabletDriverGUI
             }
         }
 
+        private string[] configFiles;
+
+        private string[] GetAvailableConfigs()
+            => Directory.GetFiles("config/configs/", "*.xml");
+
+        private void UpdateConfigList()
+        {
+            configComboBox.Items.Clear();
+
+            configComboBox.Items.Add("New Config");
+
+            foreach (var file in (configFiles = GetAvailableConfigs()))
+            {
+                configComboBox.Items.Add(Path.GetFileNameWithoutExtension(file));
+            }
+
+            configComboBox.Text = Path.GetFileNameWithoutExtension(configFilename);
+        }
+
+        private void DeleteConfig(object sender, RoutedEventArgs e)
+        {
+            var msg = new WindowMessageBox(title: "Delete Configuration",
+                                           message: "Are you sure you want to delete this configuration?",
+                                           trueName: "Yes", falseName: "No");
+
+            if (msg.ShowDialog() == true)
+            {
+                File.Delete(configFilename);
+
+                UpdateConfigList();
+            }
+        }
+
+        private void ConfigComboBox_MouseDown(object sender, MouseButtonEventArgs e)
+            => UpdateConfigList();
+
+        private void ConfigComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count == 0 || configFilename.Length == 0 || isLoadingSettings) return;
+
+            var idx = configComboBox.SelectedIndex;
+
+            if (idx == 0) // Create new config
+            {
+                var dialog = new SaveFileDialog
+                {
+                    InitialDirectory = Path.GetPathRoot(Configuration.DEFAULT_CONFIG_FILE),
+                    CheckPathExists = true,
+                    AddExtension = true,
+                    DefaultExt = "xml",
+                    Filter = "XML File|*.xml",
+                    Title = "New Config"
+                };
+
+                if (dialog.ShowDialog() != true)
+                {
+                    configComboBox.SelectedIndex = Array.IndexOf(configFiles, configFilename) + 1;
+
+                    return;
+                }
+
+                config.Write(configFilename = dialog.FileName);
+
+                UpdateConfigList();
+            }
+            else // Select existing config
+            {
+                Configuration.SetSelectedConfig(configFiles[idx-1]);
+
+                LoadConfig();
+
+                // Don't allow deleting default config
+                buttonDeleteConfig.IsEnabled = configFilename != Configuration.DEFAULT_CONFIG_FILE;
+
+                InitializeConfiguration();
+                LoadSettingsFromConfiguration();
+            }
+        }
     }
 }

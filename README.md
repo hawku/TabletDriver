@@ -1,3 +1,7 @@
+
+[![All Releases](https://img.shields.io/github/downloads/Devocub/TabletDriver/total.svg?style=for-the-badge&logo=appveyor)](https://github.com/Devocub/TabletDriver/releases)
+[![All Releases](https://img.shields.io/github/downloads/Devocub/TabletDriver/latest/total.svg?style=for-the-badge&logo=appveyor)](https://github.com/Devocub/TabletDriver/releases/latest)
+
 This is a my modified version of hawku's tablet driver.  
 Intended for Wacom tablets but will work with other tablets but not expect everything work correct.  
 Comparison with original, added:

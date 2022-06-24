@@ -145,6 +145,10 @@ ______________________
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/4.png)
 ![Alt text](https://raw.githubusercontent.com/Devocub/TabletDriver/master/images/7.png)
 
+## Star History
+![Star History Chart](https://api.star-history.com/svg?repos=Devocub/TabletDriver&type=Date)
+
+
 
 # TabletDriver
 
